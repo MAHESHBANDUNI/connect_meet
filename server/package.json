@@ -5,8 +5,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "serve": "node dist/index.js",
-    "postinstall": "npx drizzle-kit generate"
+    "serve": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
