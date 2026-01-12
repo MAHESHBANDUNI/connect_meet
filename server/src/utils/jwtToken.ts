@@ -1,17 +1,22 @@
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import "dotenv/config";
 
-// Generate JWT Token
-const tokenGeneration = async(user: any) => {
-    return jwt.sign(
-      {
-        userId: user.userId,
-        email: user.email,
-        roleId: user.roleId,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-  };
+const JWT_SECRET: Secret = process.env.JWT_SECRET as Secret;
+const JWT_EXPIRES_IN: SignOptions["expiresIn"] =
+  process.env.JWT_EXPIRES_IN as SignOptions["expiresIn"];
 
-  export default tokenGeneration;
+const tokenGeneration = async (user: any): Promise<string> => {
+  return jwt.sign(
+    {
+      userId: user.userId,
+      email: user.email,
+      roleId: user.roleId,
+    },
+    JWT_SECRET,
+    {
+      expiresIn: JWT_EXPIRES_IN,
+    }
+  );
+};
+
+export default tokenGeneration;
