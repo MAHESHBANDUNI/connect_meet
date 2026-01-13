@@ -76,7 +76,7 @@ export default function SignupForm() {
         }
       `}</style>
 
-            <div className={`flex min-h-screen items-center justify-center bg-linear-to-br from-blue-100 via-white to-blue-200 p-4`}>
+            <div className={`flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-100 via-white to-emerald-200 p-4`}>
                 <div
                     className={`w-full max-w-md rounded-xl shadow-lg bg-white p-8 transform transition-all duration-700 ease-out
             ${animate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
@@ -109,7 +109,7 @@ export default function SignupForm() {
                                         type="text"
                                         value={firstName}
                                         onChange={e => setFirstName(e.target.value)}
-                                        className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow"
+                                        className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow"
                                         placeholder="John"
                                         required
                                     />
@@ -123,7 +123,7 @@ export default function SignupForm() {
                                         type="text"
                                         value={lastName}
                                         onChange={e => setLastName(e.target.value)}
-                                        className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow"
+                                        className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow"
                                         placeholder="Doe"
                                         required
                                     />
@@ -139,7 +139,7 @@ export default function SignupForm() {
                                     type="email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
-                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow"
+                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow"
                                     placeholder="you@example.com"
                                     required
                                 />
@@ -154,7 +154,7 @@ export default function SignupForm() {
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow"
+                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -175,7 +175,7 @@ export default function SignupForm() {
                                     type={showPassword ? "text" : "password"}
                                     value={confirmPassword}
                                     onChange={e => setConfirmPassword(e.target.value)}
-                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow"
+                                    className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow"
                                     placeholder="••••••••"
                                     required
                                 />
@@ -189,7 +189,7 @@ export default function SignupForm() {
 
                         <button
                             type="submit"
-                            className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50"
+                            className="w-full py-2 px-4 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors flex justify-center items-center disabled:opacity-50"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Creating account..." : "Sign Up"}
@@ -198,7 +198,7 @@ export default function SignupForm() {
 
                     <p className="mt-6 text-center text-sm text-gray-600">
                         Already have an account?{" "}
-                        <Link href="/auth/signin" className="text-blue-600 font-medium hover:underline">
+                        <Link href="/auth/signin" className="text-emerald-600 font-medium hover:underline">
                             Sign In
                         </Link>
                     </p>
