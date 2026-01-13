@@ -7,8 +7,6 @@ import authRoutes from './auth/auth.route.js';
 import cors from 'cors';
 import crypto from 'crypto';
 import helmet from 'helmet';
-import session from 'express-session';
-import passport from 'passport';
 import cookieParser from 'cookie-parser';
 import { configurePassport } from './auth/passport.config.js';
 
@@ -31,24 +29,6 @@ const corsOptions = {
 
 // Apply CORS globally
 server.use(cors(corsOptions));
-
-// Session config
-server.use(
-  session({
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-  })
-);
-
-// Passport initialization
-server.use(passport.initialize());
-server.use(passport.session());
 
 // Middleware to generate a CSP nonce
 server.use((req, res, next) => {

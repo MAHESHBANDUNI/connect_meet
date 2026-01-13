@@ -11,8 +11,6 @@ const auth_route_js_1 = __importDefault(require("./auth/auth.route.js"));
 const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const helmet_1 = __importDefault(require("helmet"));
-const express_session_1 = __importDefault(require("express-session"));
-const passport_1 = __importDefault(require("passport"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const passport_config_js_1 = require("./auth/passport.config.js");
 const server = (0, express_1.default)();
@@ -30,20 +28,6 @@ const corsOptions = {
 };
 // Apply CORS globally
 server.use((0, cors_1.default)(corsOptions));
-// Session config
-server.use((0, express_session_1.default)({
-    secret: process.env.SESSION_SECRET || 'secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    },
-}));
-// Passport initialization
-server.use(passport_1.default.initialize());
-server.use(passport_1.default.session());
 // Middleware to generate a CSP nonce
 server.use((req, res, next) => {
     res.locals.cspNonce = crypto_1.default.randomBytes(32).toString("base64");

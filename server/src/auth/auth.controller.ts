@@ -31,13 +31,17 @@ export class AuthController {
       session: true,
       failureRedirect: `${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`,
     }, (err: any, user: any) => {
-      if (err || !user) {
-        return res.redirect(`${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`);
-      }
-
-      // On success, redirect to client with token or set cookie
-      // Since we use JWT in this app (based on tokenGeneration), we'll pass the token
-      res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${user.token}`);
+      // Always destroy the session after OAuth attempt (success or failure) to free up resources
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error('Session destroy error:', destroyErr);
+        }
+        if (err || !user) {
+          return res.redirect(`${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`);
+        }
+        // On success, redirect to client with token
+        res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${user.token}`);
+      });
     })(req, res, next);
   };
 
