@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Play, Users, Shield, Zap, Video } from 'lucide-react';
+import { Play, Users, Shield, Zap, Video, Keyboard } from 'lucide-react';
 
 interface HeroProps {
   className?: string;
@@ -11,11 +11,6 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
       <div className="container mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <div className="inline-flex items-center px-4 py-2 bg-emerald-100 text-emerald-600 rounded-full mb-6">
-              <Zap className="w-4 h-4 mr-2" />
-              <span className="text-sm font-medium">Next-gen video conferencing</span>
-            </div>
-            
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Connect with{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-400">
@@ -29,13 +24,17 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <button className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
-                Start Free Meeting
-                <Play className="w-5 h-5 ml-2" />
-              </button>
-              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-emerald-600 hover:text-emerald-600 transition text-lg font-semibold">
-                Schedule Demo
-              </button>
+                <button className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
+                  Start Free Meeting
+                  <Play className="w-5 h-5 ml-2" />
+                </button>
+                <div className="flex items-center px-4 py-4 border-2 border-gray-300 text-gray-900 rounded-lg hover:border-emerald-600 hover:bg-gray-50 transition-all text-lg bg-white shadow-lg">
+                  <Keyboard className="w-5 h-5 mr-4 flex-shrink-0" />
+                  <input 
+                    className="flex-1 bg-transparent outline-none border-0 text-lg font-medium placeholder-gray-500" 
+                    placeholder="Enter a code or link" 
+                  />
+            </div>
             </div>
             
             <div className="flex items-center space-x-8">
@@ -53,7 +52,18 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
           <div className="relative">
             <div className="relative bg-gradient-to-br from-emerald-500 to-purple-400 rounded-2xl p-1 shadow-2xl">
               <div className="bg-white rounded-2xl p-6">
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4"></div>
+                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
+                  <video
+                    src="/video.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
                 <div className="flex items-center justify-between">
                   <div className="flex space-x-2">
                     <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">

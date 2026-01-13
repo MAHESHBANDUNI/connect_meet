@@ -17,11 +17,6 @@ const HowItWorks: FC = () => {
       icon: <Users className="w-8 h-8" />,
       title: 'Collaborate',
       description: 'Use screen sharing, chat, and whiteboard tools in real-time'
-    },
-    {
-      icon: <CheckCircle className="w-8 h-8" />,
-      title: 'Wrap Up',
-      description: 'Get meeting summaries and recordings automatically'
     }
   ];
 
@@ -38,7 +33,7 @@ const HowItWorks: FC = () => {
         </div>
         
         <div className="relative">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {steps.map((step, index) => (
               <div key={index} className="relative">
                 <div className="bg-white p-8 rounded-2xl shadow-lg text-center">
