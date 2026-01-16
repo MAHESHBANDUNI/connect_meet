@@ -36,6 +36,7 @@ const ROLE_CONFIG: Record<Role, RoleConfig> = {
 const PUBLIC_ROUTES: string[] = [
   "/auth/signin",
   "/auth/signup",
+  "/auth/callback",
   "/auth/forgot-password",
   "/auth/reset-password",
   "/",
