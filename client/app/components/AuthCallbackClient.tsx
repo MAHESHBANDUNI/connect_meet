@@ -14,7 +14,7 @@ export default function AuthCallbackClient() {
       localStorage.setItem("token", token);
       router.push("/");
     } else {
-      // router.push("/auth/signin?error=no_token");
+      router.push("/auth/signin?error=no_token");
     }
   }, [router, searchParams]);
 

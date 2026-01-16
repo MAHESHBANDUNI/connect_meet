@@ -31,7 +31,6 @@ export class AuthController {
       session: true,
       failureRedirect: `${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`,
     }, (err: any, user: any) => {
-      // Always destroy the session after OAuth attempt (success or failure) to free up resources
       req.session.destroy((destroyErr) => {
         if (destroyErr) {
           console.error('Session destroy error:', destroyErr);
@@ -39,7 +38,6 @@ export class AuthController {
         if (err || !user) {
           return res.redirect(`${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`);
         }
-        // On success, redirect to client with token
         res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${user.token}`);
       });
     })(req, res, next);

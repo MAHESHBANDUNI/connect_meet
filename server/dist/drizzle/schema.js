@@ -5,17 +5,10 @@ const drizzle_orm_1 = require("drizzle-orm");
 const pg_core_1 = require("drizzle-orm/pg-core");
 const drizzle_orm_2 = require("drizzle-orm");
 exports.roles = (0, pg_core_1.pgTable)("roles", {
-    roleId: (0, pg_core_1.integer)("role_id")
-        .primaryKey()
-        .generatedAlwaysAsIdentity(),
+    roleId: (0, pg_core_1.serial)("role_id").primaryKey(),
     roleName: (0, pg_core_1.text)("role_name").notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at")
-        .notNull()
-        .defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at")
-        .notNull()
-        .defaultNow()
-        .$onUpdateFn(() => new Date()),
+    createdAt: (0, pg_core_1.timestamp)("created_at").notNull().defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 });
 exports.users = (0, pg_core_1.pgTable)("users", {
     userId: (0, pg_core_1.uuid)("user_id")
@@ -25,19 +18,15 @@ exports.users = (0, pg_core_1.pgTable)("users", {
     lastName: (0, pg_core_1.text)("last_name").notNull(),
     email: (0, pg_core_1.text)("email").notNull().unique(),
     password: (0, pg_core_1.text)("password"),
-    googleId: (0, pg_core_1.text)("google_id").unique(),
+    googleId: (0, pg_core_1.text)("google_id"),
     authProvider: (0, pg_core_1.text)("auth_provider").notNull().default("local"),
-    isEmailVerified: (0, pg_core_1.text)("is_email_verified").notNull().default("false"),
+    // ⚠️ FIX: boolean, not text
+    isEmailVerified: (0, pg_core_1.boolean)("is_email_verified").notNull().default(false),
     roleId: (0, pg_core_1.integer)("role_id")
         .notNull()
         .references(() => exports.roles.roleId, { onDelete: "restrict" }),
-    createdAt: (0, pg_core_1.timestamp)("created_at")
-        .notNull()
-        .defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at")
-        .notNull()
-        .defaultNow()
-        .$onUpdateFn(() => new Date()),
+    createdAt: (0, pg_core_1.timestamp)("created_at").notNull().defaultNow(),
+    updatedAt: (0, pg_core_1.timestamp)("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 });
 exports.roleRelations = (0, drizzle_orm_2.relations)(exports.roles, ({ many }) => ({
     users: many(exports.users),

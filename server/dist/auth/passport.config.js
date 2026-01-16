@@ -17,7 +17,6 @@ const configurePassport = () => {
     }, async (req, accessToken, refreshToken, profile, done) => {
         try {
             const { user, token } = await authService.handleOAuthUser(profile);
-            // We attach the token to the user object for convenience
             return done(null, { ...user, token });
         }
         catch (error) {

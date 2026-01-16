@@ -21,36 +21,46 @@ export default function LoginForm() {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setIsSubmitting(true);
-    try {
-      const result = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/signin`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: email.trim(),
-            password,
-          }),
+    try{
+     const result = await signIn("credentials", {
+        email: email.trim(),
+        password: password,
+        redirect: false,
+      });
+    if(result?.ok){
+      const session = await getSession();
+        if (session?.user?.role) {
+          let path='';
+          const callbackUrl = searchParams.get("callbackUrl");
+          if(callbackUrl){
+            path = callbackUrl.replace(process.env.NEXT_PUBLIC_BASE_URL as string, "");
+          }
+         
+          if(callbackUrl){
+            window.location.href = path;
+          }
+          else{
+          switch (session?.user?.role) {
+            case "admin":
+              window.location.href = "/";
+              break;
+            case "candidate":
+              window.location.href = "/";
+              break;
+            default:
+              window.location.href = "/";
+          }
+          }
+        } else {
+          window.location.href = "/"; 
         }
-      );
-
-      if (result?.ok) {
-        const data = await result.json();
-        localStorage.setItem("token", data.token);
-        console.log("Authenticated");
-        window.location.href = "/";
-      }
-      if (!result.ok) {
-        const errorData = await result.json();
-        setError(errorData.message || "Invalid credentials");
-        console.error('Error:', errorData.message || errorData);
-        return;
-      }
     }
-    catch (err) {
-      console.error("Error: ", err);
+    if(!result?.ok){
+      console.error("Error: ",result?.error);
+    }
+    }
+    catch(err){
+      console.error("Error: ",err);
     }
     finally {
       setIsSubmitting(false);

@@ -1,11 +1,13 @@
-import { FC } from 'react';
-import { Play, Users, Shield, Zap, Video, Keyboard } from 'lucide-react';
+"use client";
+import { FC, useState } from 'react';
+import { Play, Users, Shield, Zap, Video, Keyboard, Link, Plus } from 'lucide-react';
 
 interface HeroProps {
   className?: string;
 }
 
 const Hero: FC<HeroProps> = ({ className = '' }) => {
+  const [showMeetingOptions, setShowMeetingOptions] = useState(false);
   return (
     <div className={`py-20 px-6 ${className}`}>
       <div className="container mx-auto">
@@ -24,10 +26,30 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-                <button className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
-                  Start Free Meeting
-                  <Play className="w-5 h-5 ml-2" />
-                </button>
+                <div className="relative flex items-center">                
+                  <button onClick={() => setShowMeetingOptions(prev => !prev)} className="w-full px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
+                    Start Free Meeting
+                    <Play className="w-5 h-5 ml-2" />
+                  </button>
+                  {showMeetingOptions && (
+                  <div className="absolute right-0 top-full mt-2 w-full bg-white border rounded-lg z-50 shadow-md border-gray-200">
+                    <button
+                      type="button"
+                      className="w-full text-left font-medium px-4 py-2 text-sm sm:text-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition align-items-center flex"
+                    >
+                      <Link className="w-4 h-4 sm:w-5.5 sm:h-5.5 inline-block mr-2 mt-0.5" />
+                      Schedule Meeting
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-4 py-2 text-sm sm:text-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition align-items-center flex"
+                    >
+                      <Plus className="w-4 h-4 sm:w-5.5 sm:h-5.5 inline-block mr-2 mt-0.5" />
+                      Start an Instant Meeting
+                    </button>
+                  </div>
+                  )}
+                </div>
                 <div className="flex items-center px-4 py-4 border-2 border-gray-300 text-gray-900 rounded-lg hover:border-emerald-600 hover:bg-gray-50 transition-all text-lg bg-white shadow-lg">
                   <Keyboard className="w-5 h-5 mr-4 flex-shrink-0" />
                   <input 
@@ -54,12 +76,13 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
               <div className="bg-white rounded-2xl p-6">
                 <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
                   <video
-                    src="/video.mp4"
+                    src="/videos/video1.mp4"
                     autoPlay
                     muted
                     loop
                     playsInline
-                    preload="auto"
+                    preload="metadata"
+                    controls={false}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -74,9 +97,11 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
                       <p className="text-sm text-gray-500">Connected: 12 participants</p>
                     </div>
                   </div>
+                  
                   <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
                     Join Now
                   </button>
+                  
                 </div>
               </div>
             </div>

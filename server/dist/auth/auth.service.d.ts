@@ -15,7 +15,7 @@ export declare class AuthService {
             password: string | null;
             googleId: string | null;
             authProvider: string;
-            isEmailVerified: string;
+            isEmailVerified: boolean;
             role: {
                 roleId: number;
                 roleName: string;
@@ -37,7 +37,7 @@ export declare class AuthService {
             password: string | null;
             googleId: string | null;
             authProvider: string;
-            isEmailVerified: string;
+            isEmailVerified: boolean;
             role: {
                 roleId: number;
                 roleName: string;
@@ -59,7 +59,7 @@ export declare class AuthService {
             password: string | null;
             googleId: string | null;
             authProvider: string;
-            isEmailVerified: string;
+            isEmailVerified: boolean;
             role: {
                 roleId: number;
                 roleName: string;

@@ -46,8 +46,9 @@ export class AuthRepository {
     email: string;
     googleId: string;
     authProvider: string;
-    isEmailVerified: string;
+    isEmailVerified: boolean;
     roleId: number;
+    password?: string;
   }) {
     const [user] = await db.insert(users).values(data).returning();
     return this.findById(user.userId);

@@ -14,7 +14,7 @@ export declare class UserService {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
     }>;
     getUsers(): Promise<{
         roleId: number;
@@ -27,7 +27,7 @@ export declare class UserService {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -46,7 +46,7 @@ export declare class UserService {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;

@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { Mail, User, Lock, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { signIn, getSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 export default function SignupForm() {
     const [firstName, setFirstName] = useState("")
@@ -13,6 +15,7 @@ export default function SignupForm() {
     const [animate, setAnimate] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         setAnimate(true)
@@ -46,11 +49,46 @@ export default function SignupForm() {
 
             const data = await result.json();
 
-            if (result.ok) {
-                // Handle success - redirect to signin or login automatically
-                window.location.href = "/auth/signin?message=signup_success";
-            } else {
-                setError(data.message || "Signup failed");
+            try{
+             const result = await signIn("credentials", {
+                email: data?.user?.email.trim(),
+                password: password,
+                redirect: false,
+              });
+            if(result?.ok){
+              const session = await getSession();
+                if (session?.user?.role) {
+                  let path='';
+                  const callbackUrl = searchParams.get("callbackUrl");
+                  if(callbackUrl){
+                    path = callbackUrl.replace(process.env.NEXT_PUBLIC_BASE_URL as string, "");
+                  }
+                 
+                  if(callbackUrl){
+                    window.location.href = path;
+                  }
+                  else{
+                  switch (session?.user?.role) {
+                    case "admin":
+                      window.location.href = "/";
+                      break;
+                    case "candidate":
+                      window.location.href = "/";
+                      break;
+                    default:
+                      window.location.href = "/";
+                  }
+                  }
+                } else {
+                  window.location.href = "/"; 
+                }
+            }
+            if(!result?.ok){
+              console.error("Error: ",result?.error);
+            }
+            }
+            catch(err){
+              console.error("Error: ",err);
             }
         } catch (err) {
             console.error("Error: ", err);

@@ -11,7 +11,7 @@ export declare class UserRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
     }>;
     findAll(): Promise<{
         roleId: number;
@@ -24,7 +24,7 @@ export declare class UserRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -43,7 +43,7 @@ export declare class UserRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -62,7 +62,7 @@ export declare class UserRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
     } | undefined>;
     delete(userId: string): Promise<void>;
 }

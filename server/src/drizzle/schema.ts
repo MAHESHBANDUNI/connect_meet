@@ -1,22 +1,13 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, uuid, timestamp, serial, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, serial, integer, boolean } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const roles = pgTable("roles", {
-  roleId: integer("role_id")
-  .primaryKey()
-  .generatedAlwaysAsIdentity(),
-
+  roleId: serial("role_id").primaryKey(),
   roleName: text("role_name").notNull(),
 
-  createdAt: timestamp("created_at")
-    .notNull()
-    .defaultNow(),
-
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .defaultNow()
-    .$onUpdateFn(() => new Date()),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 });
 
 export const users = pgTable("users", {
@@ -30,22 +21,18 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password"),
 
-  googleId: text("google_id").unique(),
+  googleId: text("google_id"),
   authProvider: text("auth_provider").notNull().default("local"),
-  isEmailVerified: text("is_email_verified").notNull().default("false"),
+
+  // ⚠️ FIX: boolean, not text
+  isEmailVerified: boolean("is_email_verified").notNull().default(false),
 
   roleId: integer("role_id")
     .notNull()
     .references(() => roles.roleId, { onDelete: "restrict" }),
 
-  createdAt: timestamp("created_at")
-    .notNull()
-    .defaultNow(),
-
-  updatedAt: timestamp("updated_at")
-    .notNull()
-    .defaultNow()
-    .$onUpdateFn(() => new Date()),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 });
 
 export const roleRelations = relations(roles, ({ many }) => ({
@@ -58,4 +45,3 @@ export const userRelations = relations(users, ({ one }) => ({
     references: [roles.roleId],
   }),
 }));
-

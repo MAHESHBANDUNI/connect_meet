@@ -6,9 +6,9 @@ export declare const roles: import("drizzle-orm/pg-core").PgTableWithColumns<{
             name: "role_id";
             tableName: "roles";
             dataType: "number";
-            columnType: "PgInteger";
+            columnType: "PgSerial";
             data: number;
-            driverParam: string | number;
+            driverParam: number;
             notNull: true;
             hasDefault: true;
             isPrimaryKey: true;
@@ -16,7 +16,7 @@ export declare const roles: import("drizzle-orm/pg-core").PgTableWithColumns<{
             hasRuntimeDefault: false;
             enumValues: undefined;
             baseColumn: never;
-            identity: "always";
+            identity: undefined;
             generated: undefined;
         }, {}, {}>;
         roleName: import("drizzle-orm/pg-core").PgColumn<{
@@ -199,16 +199,16 @@ export declare const users: import("drizzle-orm/pg-core").PgTableWithColumns<{
         isEmailVerified: import("drizzle-orm/pg-core").PgColumn<{
             name: "is_email_verified";
             tableName: "users";
-            dataType: "string";
-            columnType: "PgText";
-            data: string;
-            driverParam: string;
+            dataType: "boolean";
+            columnType: "PgBoolean";
+            data: boolean;
+            driverParam: boolean;
             notNull: true;
             hasDefault: true;
             isPrimaryKey: false;
             isAutoincrement: false;
             hasRuntimeDefault: false;
-            enumValues: [string, ...string[]];
+            enumValues: undefined;
             baseColumn: never;
             identity: undefined;
             generated: undefined;

@@ -6,7 +6,6 @@ import passport from 'passport';
 const router = Router();
 const controller = new AuthController();
 
-// Session config for OAuth routes
 const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
@@ -18,11 +17,9 @@ const sessionConfig = {
   },
 };
 
-// Apply session and passport only to OAuth routes
 router.get("/google", session(sessionConfig), passport.initialize(), passport.session(), controller.googleAuth);
 router.get("/google/callback", session(sessionConfig), passport.initialize(), passport.session(), controller.googleCallback);
 
-// Other routes without sessions
 router.post("/signin", controller.signin);
 router.post("/signup", controller.signup);
 router.post("/logout", controller.logout);

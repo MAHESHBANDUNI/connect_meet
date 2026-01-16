@@ -12,7 +12,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -31,7 +31,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -50,7 +50,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -69,7 +69,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -83,8 +83,9 @@ export declare class AuthRepository {
         email: string;
         googleId: string;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         roleId: number;
+        password?: string;
     }): Promise<{
         roleId: number;
         createdAt: Date;
@@ -96,7 +97,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
@@ -115,7 +116,7 @@ export declare class AuthRepository {
         password: string | null;
         googleId: string | null;
         authProvider: string;
-        isEmailVerified: string;
+        isEmailVerified: boolean;
         role: {
             roleId: number;
             roleName: string;
