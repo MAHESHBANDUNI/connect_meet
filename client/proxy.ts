@@ -2,11 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { JWT } from "next-auth/jwt";
 import { withAuth, type NextRequestWithAuth } from "next-auth/middleware";
 
-/* ---------------------------------- */
-/* Types                              */
-/* ---------------------------------- */
-
-type Role = "Admin" | "Candidate";
+type Role = "ADMIN" | "USER";
 
 interface RoleConfig {
   dashboard: string;
@@ -20,33 +16,22 @@ type AppToken = JWT & {
   role?: Role;
 };
 
-/* ---------------------------------- */
-/* Role configuration                 */
-/* ---------------------------------- */
-
 const ROLE_CONFIG: Record<Role, RoleConfig> = {
-  Admin: {
+  ADMIN: {
     dashboard: "/admin/dashboard",
     allowedPaths: ["/admin"],
-    apiPrefixes: ["/api/admin", "/api/revalidate", "/api/inngest"],
+    apiPrefixes: ["/api/admin", "/api/revalidate"],
   },
-  Candidate: {
-    dashboard: "/candidate/interviews",
+  USER: {
+    dashboard: "/user/dashboard",
     allowedPaths: ["/candidate"],
     apiPrefixes: [
       "/api/candidates",
-      "/api/assemblyai-token",
-      "/api/tts",
-      "/api/inngest",
     ],
     authRoutes: ["/auth/signin"],
     signoutRedirect: "/auth/signin",
   },
 };
-
-/* ---------------------------------- */
-/* Public routes                      */
-/* ---------------------------------- */
 
 const PUBLIC_ROUTES: string[] = [
   "/auth/signin",
@@ -57,10 +42,6 @@ const PUBLIC_ROUTES: string[] = [
   "/api/public",
   "/api/auth",
 ];
-
-/* ---------------------------------- */
-/* Middleware                         */
-/* ---------------------------------- */
 
 export default withAuth(
   function middleware(req: NextRequestWithAuth) {
@@ -83,7 +64,7 @@ export default withAuth(
         return NextResponse.redirect(new URL("/auth/signin", req.url));
       }
 
-      if (token.role !== "Candidate") {
+      if (token.role !== "USER") {
         const redirectUrl =
           ROLE_CONFIG[token.role as Role]?.dashboard ?? "/auth/signin";
         return NextResponse.redirect(new URL(redirectUrl, req.url));
@@ -140,10 +121,6 @@ export default withAuth(
     },
   }
 );
-
-/* ---------------------------------- */
-/* Helpers                            */
-/* ---------------------------------- */
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some((route) =>
@@ -202,10 +179,6 @@ function forbiddenResponse(): NextResponse {
     }
   );
 }
-
-/* ---------------------------------- */
-/* Matcher                            */
-/* ---------------------------------- */
 
 export const config = {
   matcher: [

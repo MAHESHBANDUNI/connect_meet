@@ -1,4 +1,3 @@
-// index.ts
 import cluster from 'cluster';
 import os from 'os';
 import http from 'http';
@@ -30,7 +29,6 @@ if (cluster.isPrimary) {
       `Worker ${worker.process.pid} exited (code=${code}, signal=${signal}})`
     );
 
-    // Respawn only in production
     if (process.env.NODE_ENV === 'production') {
       console.log('Respawning worker...');
       cluster.fork();
@@ -49,9 +47,6 @@ if (cluster.isPrimary) {
   process.on('SIGTERM', shutdown);
 
 } else {
-  // =======================
-  // Worker process
-  // =======================
   const app = createServer();
   const server = http.createServer(app);
 

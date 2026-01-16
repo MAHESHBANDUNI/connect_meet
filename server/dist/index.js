@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// index.ts
 const cluster_1 = __importDefault(require("cluster"));
 const os_1 = __importDefault(require("os"));
 const http_1 = __importDefault(require("http"));
@@ -26,7 +25,6 @@ if (cluster_1.default.isPrimary) {
     }
     cluster_1.default.on('exit', (worker, code, signal) => {
         console.error(`Worker ${worker.process.pid} exited (code=${code}, signal=${signal}})`);
-        // Respawn only in production
         if (process.env.NODE_ENV === 'production') {
             console.log('Respawning worker...');
             cluster_1.default.fork();
@@ -43,9 +41,6 @@ if (cluster_1.default.isPrimary) {
     process.on('SIGTERM', shutdown);
 }
 else {
-    // =======================
-    // Worker process
-    // =======================
     const app = (0, server_js_1.createServer)();
     const server = http_1.default.createServer(app);
     server.keepAliveTimeout = 65000;
