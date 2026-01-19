@@ -1,6 +1,6 @@
 import { UserRepository } from "./user.repository";
 import { CreateUserInput } from "./user.validation";
-import { ConflictError, NotFoundError } from "../utils/errorHandler";
+import { ConflictError, NotFoundError } from "../../utils/errorHandler";
 import bcrypt from "bcrypt";
 
 export class UserService {

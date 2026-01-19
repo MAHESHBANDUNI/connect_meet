@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "./auth.service.js";
 import { UserSigninSchema, UserSignupSchema } from "./auth.validation.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
 import passport from "passport";
 
 export class AuthController {

@@ -8,6 +8,27 @@
       "when": 1768560834174,
       "tag": "0000_square_dazzler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1768803010039,
+      "tag": "0001_small_sabretooth",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1768813394714,
+      "tag": "0002_plain_deathstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1768828267512,
+      "tag": "0003_eminent_maria_hill",
+      "breakpoints": true
     }
   ]
 }

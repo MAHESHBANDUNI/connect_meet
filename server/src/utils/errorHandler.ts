@@ -1,19 +1,3 @@
-/**
- * Error handling utilities for the application
- *
- * Usage Examples:
- *
- * // Throw specific HTTP errors
- * throw new BadRequestError('Invalid input data');
- * throw new NotFoundError('User not found');
- * throw new ConflictError('Email already exists');
- * throw new UnauthorizedError('Invalid credentials');
- * throw new ForbiddenError('Access denied');
- * throw new InternalServerError('Something went wrong');
- *
- * // Or use the generic AppError with custom status code
- * throw new AppError('Custom error message', 422);
- */
 export class AppError extends Error {
   public statusCode: number;
   public isOperational: boolean;
@@ -27,9 +11,6 @@ export class AppError extends Error {
   }
 }
 
-/**
- * Specific error classes for common HTTP status codes
- */
 export class BadRequestError extends AppError {
   constructor(message: string = 'Bad request') {
     super(message, 400);
@@ -66,13 +47,7 @@ export class InternalServerError extends AppError {
   }
 }
 
-/**
- * Error handler utility for creating standardized error responses
- */
 export class ErrorHandler {
-  /**
-   * Create a standardized error response
-   */
   static createError(message: string, statusCode: number = 500, details?: any) {
     return {
       success: false,
@@ -83,9 +58,6 @@ export class ErrorHandler {
     };
   }
 
-  /**
-   * Handle validation errors from Zod or other validators
-   */
   static handleValidationError(error: any) {
     const errors = error.errors || error.issues || [];
     const errorMessages = errors.map((err: any) => ({
@@ -96,9 +68,6 @@ export class ErrorHandler {
     return this.createError('Validation failed', 400, { errors: errorMessages });
   }
 
-  /**
-   * Handle database errors
-   */
   static handleDatabaseError(error: any) {
     if (error.code === 11000) {
       // Duplicate key error
@@ -109,11 +78,7 @@ export class ErrorHandler {
     return this.createError('Database operation failed', 500);
   }
 
-  /**
-   * Handle generic errors
-   */
   static handleGenericError(error: any) {
-    // In development, include stack trace
     const isDevelopment = process.env.NODE_ENV === 'development';
 
     return {

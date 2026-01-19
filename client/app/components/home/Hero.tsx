@@ -8,6 +8,7 @@ interface HeroProps {
 
 const Hero: FC<HeroProps> = ({ className = '' }) => {
   const [showMeetingOptions, setShowMeetingOptions] = useState(false);
+  const [scheduleMeetingFormOpen, setScheduleMeetingFormOpen] = useState(false);
   return (
     <div className={`py-20 px-6 ${className}`}>
       <div className="container mx-auto">
@@ -15,7 +16,7 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
           <div>
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
               Connect with{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-purple-400">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-600 to-purple-400">
                 Clarity
               </span>
             </h1>
@@ -35,6 +36,7 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
                   <div className="absolute right-0 top-full mt-2 w-full bg-white border rounded-lg z-50 shadow-md border-gray-200">
                     <button
                       type="button"
+                      onClick={()=> {setScheduleMeetingFormOpen(true)}}
                       className="w-full text-left font-medium px-4 py-2 text-sm sm:text-lg text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition align-items-center flex"
                     >
                       <Link className="w-4 h-4 sm:w-5.5 sm:h-5.5 inline-block mr-2 mt-0.5" />
@@ -51,7 +53,7 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
                   )}
                 </div>
                 <div className="flex items-center px-4 py-4 border-2 border-gray-300 text-gray-900 rounded-lg hover:border-emerald-600 hover:bg-gray-50 transition-all text-lg bg-white shadow-lg">
-                  <Keyboard className="w-5 h-5 mr-4 flex-shrink-0" />
+                  <Keyboard className="w-5 h-5 mr-4 shrink-0" />
                   <input 
                     className="flex-1 bg-transparent outline-none border-0 text-lg font-medium placeholder-gray-500" 
                     placeholder="Enter a code or link" 
@@ -72,9 +74,9 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
           </div>
           
           <div className="relative">
-            <div className="relative bg-gradient-to-br from-emerald-500 to-purple-400 rounded-2xl p-1 shadow-2xl">
+            <div className="relative bg-linear-to-br from-emerald-500 to-purple-400 rounded-2xl p-1 shadow-2xl">
               <div className="bg-white rounded-2xl p-6">
-                <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
+                <div className="aspect-video bg-linear-to-br from-gray-100 to-gray-200 rounded-xl mb-4 overflow-hidden">
                   <video
                     src="/videos/video1.mp4"
                     autoPlay
@@ -107,11 +109,15 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
             </div>
             
             {/* Floating elements */}
-            <div className="absolute -top-6 -left-6 w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full opacity-20 animate-float"></div>
-            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute -top-6 -left-6 w-24 h-24 bg-linear-to-r from-yellow-400 to-orange-500 rounded-full opacity-20 animate-float"></div>
+            <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-linear-to-r from-green-400 to-emerald-500 rounded-full opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
           </div>
         </div>
       </div>
+
+      { scheduleMeetingFormOpen && <>
+        {/* Modal backdrop */}
+      </>}
     </div>
   );
 };

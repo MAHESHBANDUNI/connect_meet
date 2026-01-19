@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { UserService } from "./user.service";
 import { CreateUserValidation } from "./user.validation";
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../../utils/asyncHandler";
 
 export class UserController {
   constructor(private readonly service = new UserService()) {}
@@ -12,7 +12,7 @@ export class UserController {
     res.status(201).json({ success: true, data: user });
   });
 
-  getAll = asyncHandler(async (_req: Request, res: Response) => {
+  getAll = asyncHandler(async (req: Request, res: Response) => {
     const users = await this.service.getUsers();
     res.json({ success: true, data: users });
   });

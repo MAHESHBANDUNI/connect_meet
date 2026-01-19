@@ -1,5 +1,5 @@
-import { db } from "../drizzle/index";
-import { users } from "../drizzle/schema";
+import { db } from "../../drizzle/index";
+import { users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { CreateUserInput } from "./user.validation";
 

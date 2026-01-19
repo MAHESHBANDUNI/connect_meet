@@ -1,22 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ErrorHandler = exports.InternalServerError = exports.ForbiddenError = exports.UnauthorizedError = exports.ConflictError = exports.NotFoundError = exports.BadRequestError = exports.AppError = void 0;
-/**
- * Error handling utilities for the application
- *
- * Usage Examples:
- *
- * // Throw specific HTTP errors
- * throw new BadRequestError('Invalid input data');
- * throw new NotFoundError('User not found');
- * throw new ConflictError('Email already exists');
- * throw new UnauthorizedError('Invalid credentials');
- * throw new ForbiddenError('Access denied');
- * throw new InternalServerError('Something went wrong');
- *
- * // Or use the generic AppError with custom status code
- * throw new AppError('Custom error message', 422);
- */
 class AppError extends Error {
     constructor(message, statusCode = 500, isOperational = true) {
         super(message);
@@ -26,9 +10,6 @@ class AppError extends Error {
     }
 }
 exports.AppError = AppError;
-/**
- * Specific error classes for common HTTP status codes
- */
 class BadRequestError extends AppError {
     constructor(message = 'Bad request') {
         super(message, 400);
@@ -65,13 +46,7 @@ class InternalServerError extends AppError {
     }
 }
 exports.InternalServerError = InternalServerError;
-/**
- * Error handler utility for creating standardized error responses
- */
 class ErrorHandler {
-    /**
-     * Create a standardized error response
-     */
     static createError(message, statusCode = 500, details) {
         return {
             success: false,
@@ -81,9 +56,6 @@ class ErrorHandler {
             timestamp: new Date().toISOString()
         };
     }
-    /**
-     * Handle validation errors from Zod or other validators
-     */
     static handleValidationError(error) {
         const errors = error.errors || error.issues || [];
         const errorMessages = errors.map((err) => ({
@@ -92,9 +64,6 @@ class ErrorHandler {
         }));
         return this.createError('Validation failed', 400, { errors: errorMessages });
     }
-    /**
-     * Handle database errors
-     */
     static handleDatabaseError(error) {
         if (error.code === 11000) {
             // Duplicate key error
@@ -103,11 +72,7 @@ class ErrorHandler {
         }
         return this.createError('Database operation failed', 500);
     }
-    /**
-     * Handle generic errors
-     */
     static handleGenericError(error) {
-        // In development, include stack trace
         const isDevelopment = process.env.NODE_ENV === 'development';
         return {
             ...this.createError(error.message || 'Internal server error', error.statusCode || 500),

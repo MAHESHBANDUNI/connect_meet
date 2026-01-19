@@ -1,8 +1,8 @@
 import { AuthRepository } from "./auth.repository.js";
 import { UserSigninInput, UserSignupInput } from "./auth.validation.js";
-import { ConflictError, NotFoundError, BadRequestError } from "../utils/errorHandler.js";
+import { ConflictError, NotFoundError, BadRequestError } from "../../utils/errorHandler.js";
 import bcrypt from "bcrypt";
-import tokenGeneration from "../utils/jwtToken.js";
+import tokenGeneration from "../../utils/jwtToken.js";
 
 export class AuthService {
   constructor(private readonly repo = new AuthRepository()) { }

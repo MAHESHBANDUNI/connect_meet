@@ -21,7 +21,7 @@ const Footer: FC = () => {
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-12">
         {/* Newsletter Section */}
-        <div className="max-w-4xl mx-auto mb-16 p-8 bg-gradient-to-r from-emerald-900/50 to-purple-900/50 rounded-2xl text-center">
+        <div className="max-w-4xl mx-auto mb-16 p-8 bg-linear-to-r from-emerald-900/50 to-purple-900/50 rounded-2xl text-center">
           <div className="flex items-center justify-center mb-4">
             <Mail className="w-8 h-8 text-emerald-400 mr-3" />
             <h3 className="text-2xl font-bold">Stay Updated</h3>

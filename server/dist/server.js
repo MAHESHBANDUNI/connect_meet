@@ -7,13 +7,14 @@ exports.createServer = createServer;
 const express_1 = __importDefault(require("express"));
 const errorMiddleware_js_1 = require("./middleware/errorMiddleware.js");
 require("dotenv/config");
-const user_route_js_1 = __importDefault(require("./user/user.route.js"));
-const auth_route_js_1 = __importDefault(require("./auth/auth.route.js"));
+const user_route_js_1 = __importDefault(require("./modules/user/user.route.js"));
+const auth_route_js_1 = __importDefault(require("./modules/auth/auth.route.js"));
+const meeting_route_js_1 = __importDefault(require("./modules/meeting/meeting.route.js"));
 const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const helmet_1 = __importDefault(require("helmet"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const passport_config_js_1 = require("./auth/passport.config.js");
+const passport_config_js_1 = require("./modules/auth/passport.config.js");
 function createServer() {
     const server = (0, express_1.default)();
     (0, passport_config_js_1.configurePassport)();
@@ -52,6 +53,7 @@ function createServer() {
     }));
     server.use('/api/users', user_route_js_1.default);
     server.use('/api/auth', auth_route_js_1.default);
+    server.use('/api/meetings', meeting_route_js_1.default);
     server.use(errorMiddleware_js_1.errorMiddleware);
     return server;
 }

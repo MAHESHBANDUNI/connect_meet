@@ -23,10 +23,10 @@ const ROLE_CONFIG: Record<Role, RoleConfig> = {
     apiPrefixes: ["/api/admin", "/api/revalidate"],
   },
   USER: {
-    dashboard: "/user/dashboard",
-    allowedPaths: ["/candidate"],
+    dashboard: "/dashboard",
+    allowedPaths: ["/dashboard", "/meeting"],
     apiPrefixes: [
-      "/api/candidates",
+      "/api/user",
     ],
     authRoutes: ["/auth/signin"],
     signoutRedirect: "/auth/signin",
@@ -59,8 +59,8 @@ export default withAuth(
       return NextResponse.next();
     }
 
-    /* 3. Interview links */
-    if (pathname.startsWith("/candidate/interview")) {
+    /* 3. Meeting links */
+    if (pathname.startsWith("/meeting")) {
       if (!token) {
         return NextResponse.redirect(new URL("/auth/signin", req.url));
       }

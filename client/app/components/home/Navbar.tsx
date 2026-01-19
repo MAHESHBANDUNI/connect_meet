@@ -64,16 +64,24 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
                 </button>
 
                 {showLogoutOption && (
-                  <div className="absolute right-0 top-full mt-2 w-40 bg-white border rounded-lg shadow-md border-gray-200 z-50">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border rounded-lg shadow-xl border-gray-200 z-50 py-1">
                     <button
-                      onClick={()=>handleLogout()}
+                      onClick={() => router.push('/dashboard')}
                       type="button"
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      My Dashboard
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      type="button"
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 mt-1"
                     >
                       Logout
                     </button>
                   </div>
                 )}
+
               </div>
               )
             }
