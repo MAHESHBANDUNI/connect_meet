@@ -4,6 +4,7 @@ exports.MeetingService = void 0;
 exports.generateMeetingCode = generateMeetingCode;
 const errorHandler_1 = require("../../utils/errorHandler");
 const meeting_repository_1 = require("./meeting.repository");
+const emailHandler_1 = require("../../utils/emailHandler");
 function generateMeetingCode() {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const parts = [];
@@ -28,25 +29,46 @@ class MeetingService {
         const participantEmails = data?.invitees ?? [];
         const cohostEmails = data?.cohosts ?? [];
         const allEmails = Array.from(new Set([user?.email, ...participantEmails, ...cohostEmails]));
-        const userMap = await this.repo.mapParticipantsWithUserId(allEmails);
+        const userMap = await this.repo.mapParticipantsWithUserDetails(allEmails);
         const meetingParticipants = {};
         meetingParticipants[user.email] = {
             userId: user.userId,
+            firstName: user.firstName,
+            lastName: user.lastName,
             participantRole: "HOST",
         };
         for (const email of participantEmails) {
             meetingParticipants[email] = {
-                userId: userMap[email] ?? null,
+                userId: userMap[email][0]?.userId ?? null,
+                firstName: userMap[email][0]?.firstName ?? null,
+                lastName: userMap[email][0]?.lastName ?? null,
                 participantRole: "PARTICIPANT"
             };
         }
         for (const email of cohostEmails) {
             meetingParticipants[email] = {
-                userId: userMap[email] ?? null,
-                participantRole: "CO_HOST"
+                userId: userMap[email][0]?.userId ?? null,
+                firstName: userMap[email][0]?.firstName ?? null,
+                lastName: userMap[email][0]?.lastName ?? null,
+                participantRole: "PARTICIPANT"
             };
         }
         await this.repo.addMeetingParticipant(meeting.meetingId, user.userId, meetingParticipants);
+        const meetingDetails = {
+            topic: meeting.topic,
+            description: meeting.description,
+            startTime: meeting.startTime,
+            meetingLink: `${process.env.CLIENT_URL}/meeting/${meetingCode}`,
+        };
+        await Promise.allSettled(Object.entries(meetingParticipants).map(([email, participant]) => {
+            if (!email)
+                return;
+            return (0, emailHandler_1.sendMeetingInvite)({
+                email,
+                firstName: participant.firstName ?? "Guest",
+                lastName: participant.lastName ?? "",
+            }, meetingDetails);
+        }));
         return meeting;
     }
     async getMeetingById(id) {

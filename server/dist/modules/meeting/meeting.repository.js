@@ -25,21 +25,30 @@ class MeetingRepository {
             where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId)
         });
     }
-    async mapParticipantsWithUserId(participantList) {
+    async mapParticipantsWithUserDetails(participantList) {
         const userRecords = await index_js_1.db
             .select({
             email: schema_js_1.users.email,
-            userId: schema_js_1.users.userId
+            userId: schema_js_1.users.userId,
+            firstName: schema_js_1.users.firstName,
+            lastName: schema_js_1.users.lastName,
         })
             .from(schema_js_1.users)
             .where((0, drizzle_orm_1.inArray)(schema_js_1.users.email, participantList));
         const userMap = userRecords.reduce((acc, user) => {
-            acc[user.email] = user.userId;
+            if (!acc[user.email]) {
+                acc[user.email] = [];
+            }
+            acc[user.email].push({
+                userId: user.userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+            });
             return acc;
         }, {});
         const result = {};
         for (const email of participantList) {
-            result[email] = userMap[email] ?? null;
+            result[email] = userMap[email] ?? [];
         }
         return result;
     }

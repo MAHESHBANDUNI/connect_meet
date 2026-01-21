@@ -25,7 +25,11 @@ export declare class MeetingRepository {
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
     } | undefined>;
-    mapParticipantsWithUserId(participantList: string[]): Promise<Record<string, string | null>>;
+    mapParticipantsWithUserDetails(participantList: string[]): Promise<Record<string, {
+        userId: string;
+        firstName: string;
+        lastName: string;
+    }[]>>;
     addMeetingParticipant(meetingId: string, addedBy: string, participantMap: Record<string, {
         userId: string | null;
         participantRole: MeetingParticipantRole;
