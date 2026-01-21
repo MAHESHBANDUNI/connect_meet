@@ -9,5 +9,6 @@ export declare class MeetingController {
     endMeeting: (req: Request, res: Response, next: import("express").NextFunction) => void;
     joinMeeting: (req: Request, res: Response, next: import("express").NextFunction) => void;
     exitMeeting: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    getUserMeetings: (req: Request, res: Response, next: import("express").NextFunction) => void;
 }
 //# sourceMappingURL=meeting.controller.d.ts.map

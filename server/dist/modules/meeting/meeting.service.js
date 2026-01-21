@@ -107,6 +107,10 @@ class MeetingService {
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, leftAt);
         return meeting;
     }
+    async getUserMeetings(user) {
+        const meetings = await this.repo.getMeetingsByUser(user.userId);
+        return meetings;
+    }
 }
 exports.MeetingService = MeetingService;
 //# sourceMappingURL=meeting.service.js.map

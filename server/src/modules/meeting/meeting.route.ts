@@ -5,6 +5,7 @@ import { protect } from "../../middleware/authMiddlerware.js";
 const router = Router();
 const controller = new MeetingController();
 
+router.get("/user/all", protect, controller.getUserMeetings);
 router.post("/create", protect,controller.createMeeting);
 router.get("/:id",controller.getMeetingById);
 router.post("/:id/start", protect, controller.startMeeting);

@@ -41,10 +41,10 @@ export default function LoginForm() {
           }
           else{
           switch (session?.user?.role) {
-            case "admin":
+            case "ADMIN":
               window.location.href = "/";
               break;
-            case "candidate":
+            case "USER":
               window.location.href = "/";
               break;
             default:

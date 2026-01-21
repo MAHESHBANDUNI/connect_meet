@@ -79,6 +79,31 @@ class MeetingRepository {
     async updateMeetingParticipantStatus(meetingId, user, status, joinedAt, leftAt) {
         await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, leftAt: leftAt ?? leftAt }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
     }
+    async getMeetingsByUser(userId) {
+        const userMeetings = await index_js_1.db.query.meetingParticipants.findMany({
+            where: (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, userId),
+            with: {
+                meeting: {
+                    with: {
+                        participants: {
+                            columns: {
+                                participantId: true,
+                                email: true,
+                                participantRole: true,
+                                participantStatus: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return userMeetings.map(mp => ({
+            ...mp.meeting,
+            participantCount: mp.meeting.participants.length,
+            userRole: mp.participantRole,
+            participants: mp.meeting.participants
+        }));
+    }
 }
 exports.MeetingRepository = MeetingRepository;
 //# sourceMappingURL=meeting.repository.js.map

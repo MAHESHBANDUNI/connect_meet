@@ -21,9 +21,9 @@ const Footer: FC = () => {
     <footer className="bg-gray-900 text-white">
       <div className="container mx-auto px-6 py-12">
         {/* Newsletter Section */}
-        <div className="max-w-4xl mx-auto mb-16 p-8 bg-linear-to-r from-emerald-900/50 to-purple-900/50 rounded-2xl text-center">
+        <div className="max-w-4xl mx-auto mb-16 p-8 bg-linear-to-r from-blue-900/50 to-indigo-900/50 rounded-2xl text-center">
           <div className="flex items-center justify-center mb-4">
-            <Mail className="w-8 h-8 text-emerald-400 mr-3" />
+            <Mail className="w-8 h-8 text-blue-400 mr-3" />
             <h3 className="text-2xl font-bold">Stay Updated</h3>
           </div>
           <p className="text-gray-300 mb-6">
@@ -33,9 +33,9 @@ const Footer: FC = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500"
+              className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
             />
-            <button className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-semibold transition">
+            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
               Subscribe
             </button>
           </div>
@@ -46,11 +46,11 @@ const Footer: FC = () => {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
-              <div className="p-2 bg-emerald-600 rounded-lg mr-3">
+              <div className="p-2 bg-blue-600 rounded-lg mr-3">
                 <Video className="w-6 h-6" />
               </div>
               <span className="text-2xl font-bold">
-                Connect<span className="text-emerald-400">Meet</span>
+                Connect<span className="text-blue-400">Meet</span>
               </span>
             </div>
             <p className="text-gray-400 mb-6 max-w-md">
@@ -62,7 +62,7 @@ const Footer: FC = () => {
                   key={index}
                   href={social.href}
                   aria-label={social.label}
-                  className="w-10 h-10 bg-gray-800 hover:bg-emerald-600 rounded-full flex items-center justify-center transition"
+                  className="w-10 h-10 bg-gray-800 hover:bg-blue-600 rounded-full flex items-center justify-center transition"
                 >
                   {social.icon}
                 </a>
@@ -79,7 +79,7 @@ const Footer: FC = () => {
                   <li key={index}>
                     <a
                       href="#"
-                      className="text-gray-400 hover:text-emerald-400 transition"
+                      className="text-gray-400 hover:text-blue-400 transition"
                     >
                       {link}
                     </a>
@@ -96,11 +96,11 @@ const Footer: FC = () => {
             <div className="text-gray-400 mb-4 md:mb-0">
               © {new Date().getFullYear()} ConnectMeet. All rights reserved.
             </div>
-            
+
             <div className="flex flex-wrap justify-center gap-6 text-gray-400">
-              <a href="#" className="hover:text-emerald-400 transition">Privacy Policy</a>
-              <a href="#" className="hover:text-emerald-400 transition">Terms of Service</a>
-              <a href="#" className="hover:text-emerald-400 transition">Cookie Policy</a>
+              <a href="#" className="hover:text-blue-400 transition">Privacy Policy</a>
+              <a href="#" className="hover:text-blue-400 transition">Terms of Service</a>
+              <a href="#" className="hover:text-blue-400 transition">Cookie Policy</a>
               <a href="#" className="hover:text-emerald-400 transition">Security</a>
             </div>
           </div>

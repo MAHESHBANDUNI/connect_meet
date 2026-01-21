@@ -11,6 +11,8 @@ const tokenGeneration = async (user: any): Promise<string> => {
       userId: user.userId,
       email: user.email,
       roleId: user.roleId,
+      firstName: user.firstName,
+      lastName: user.lastName,
     },
     JWT_SECRET,
     {

@@ -71,5 +71,24 @@ export declare class MeetingService {
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
     }>;
+    getUserMeetings(user: User): Promise<{
+        participantCount: number;
+        userRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+        participants: {
+            email: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+        }[];
+        createdAt: Date;
+        updatedAt: Date;
+        meetingId: string;
+        meetingCode: string;
+        topic: string;
+        description: string | null;
+        startTime: Date;
+        endTime: Date | null;
+        status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+    }[]>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map

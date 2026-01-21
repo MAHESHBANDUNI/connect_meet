@@ -46,4 +46,10 @@ export class MeetingController {
         const meeting = await this.service.exitMeeting(meetingId, user);
         res.status(200).json({ success: true, data: meeting });
     });
+
+    getUserMeetings = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetings = await this.service.getUserMeetings(user);
+        res.status(200).json({ success: true, data: meetings });
+    });
 }

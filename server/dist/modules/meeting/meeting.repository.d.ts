@@ -74,5 +74,24 @@ export declare class MeetingRepository {
     updateMeetingParticipantStatus(meetingId: string, user: {
         userId: string;
     }, status: "JOINED" | "WAITING" | "LEFT", joinedAt?: Date, leftAt?: Date): Promise<void>;
+    getMeetingsByUser(userId: string): Promise<{
+        participantCount: number;
+        userRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+        participants: {
+            email: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+        }[];
+        createdAt: Date;
+        updatedAt: Date;
+        meetingId: string;
+        meetingCode: string;
+        topic: string;
+        description: string | null;
+        startTime: Date;
+        endTime: Date | null;
+        status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+    }[]>;
 }
 //# sourceMappingURL=meeting.repository.d.ts.map

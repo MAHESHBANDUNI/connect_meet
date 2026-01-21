@@ -41,6 +41,11 @@ class MeetingController {
             const meeting = await this.service.exitMeeting(meetingId, user);
             res.status(200).json({ success: true, data: meeting });
         });
+        this.getUserMeetings = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetings = await this.service.getUserMeetings(user);
+            res.status(200).json({ success: true, data: meetings });
+        });
     }
 }
 exports.MeetingController = MeetingController;

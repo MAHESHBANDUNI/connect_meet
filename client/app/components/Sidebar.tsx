@@ -2,11 +2,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, 
-  Laptop, 
-  User, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Laptop,
+  User,
+  LogOut,
   ChevronRight,
   Menu,
   X,
@@ -52,11 +52,11 @@ const navItemsUser: NavItem[] = [
   { name: "Meetings", href: "/meetings", icon: Laptop }
 ]
 
-export default function Sidebar({ 
-  sidebarOpen, 
-  setSidebarOpen, 
-  isCollapsed, 
-  setIsCollapsed 
+export default function Sidebar({
+  sidebarOpen,
+  setSidebarOpen,
+  isCollapsed,
+  setIsCollapsed
 }: SidebarProps) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -69,15 +69,15 @@ export default function Sidebar({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024)
     }
-    
+
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   // Determine nav items
-  const activeNavItems = session?.user?.role === 'Admin' 
-    ? navItemsAdmin 
+  const activeNavItems = session?.user?.role === 'Admin'
+    ? navItemsAdmin
     : navItemsUser
 
   // Check if pathname matches any submenu item
@@ -152,8 +152,8 @@ export default function Sidebar({
       <motion.aside
         ref={sidebarRef}
         initial={isMobile ? { x: -320 } : false}
-        animate={{ 
-          x: sidebarOpen || !isMobile ? 0 : -320 
+        animate={{
+          x: sidebarOpen || !isMobile ? 0 : -320
         }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         className={`
@@ -175,7 +175,7 @@ export default function Sidebar({
                     exit={{ opacity: 0, width: 0 }}
                     className="overflow-hidden"
                   >
-                    <h1 className="text-xl font-bold bg-linear-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+                    <h1 className="text-xl font-bold bg-linear-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
                       Connect Meet
                     </h1>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -185,7 +185,7 @@ export default function Sidebar({
                 )}
               </AnimatePresence>
             </div>
-            
+
             {/* Close/Collapse Button */}
             <button
               onClick={handleCollapseToggle}
@@ -210,7 +210,7 @@ export default function Sidebar({
               ${(isCollapsed && !isMobile) ? "hidden" : "block"}`}>
               Main Menu
             </p>
-            
+
             {activeNavItems.map((item) => {
               const isActive = pathname === item.href || getActiveSubmenu(item);
               const isCollapsedState = isCollapsed && !isMobile;
@@ -231,7 +231,7 @@ export default function Sidebar({
                           className={`
                             flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200
                             ${isActive
-                              ? "bg-linear-to-r from-green-50 to-green-100 text-green-700 border border-green-200"
+                              ? "bg-linear-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}
                             ${isCollapsedState ? "justify-center px-3" : ""}
                             cursor-pointer
@@ -239,9 +239,9 @@ export default function Sidebar({
                         >
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <Icon size={20} className={isActive ? "text-green-600" : "text-gray-800"} />
+                              <Icon size={20} className={isActive ? "text-blue-600" : "text-gray-800"} />
                             </div>
-                            
+
                             <AnimatePresence>
                               {(!isCollapsed || isMobile) && (
                                 <motion.span
@@ -275,16 +275,16 @@ export default function Sidebar({
                           className={`
                             flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                             ${isActive
-                              ? "bg-linear-to-r from-green-50 to-green-100 text-green-700 border border-green-200"
+                              ? "bg-linear-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}
                             ${isCollapsedState ? "justify-center px-3" : ""}
                           `}
                           onClick={() => isMobile && setSidebarOpen(false)}
                         >
                           <div className="relative">
-                            <Icon size={20} className={isActive ? "text-green-600" : "text-gray-800"} />
+                            <Icon size={20} className={isActive ? "text-blue-600" : "text-gray-800"} />
                           </div>
-                          
+
                           <AnimatePresence>
                             {(!isCollapsed || isMobile) && (
                               <motion.span
@@ -314,7 +314,7 @@ export default function Sidebar({
                         {item.submenu?.map((subItem) => {
                           const SubIcon = subItem.icon;
                           const isSubActive = pathname === subItem.href;
-                          
+
                           return (
                             <motion.div
                               key={subItem.href}
@@ -326,16 +326,16 @@ export default function Sidebar({
                                 className={`
                                   flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200
                                   ${isSubActive
-                                    ? "bg-green-50 text-green-700"
+                                    ? "bg-blue-50 text-blue-700"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}
                                 `}
                                 onClick={() => isMobile && setSidebarOpen(false)}
                               >
                                 <div className="flex items-center gap-3">
-                                  <SubIcon className={`w-4 h-4 ${isSubActive ? "text-green-600" : "text-gray-500"}`} />
+                                  <SubIcon className={`w-4 h-4 ${isSubActive ? "text-blue-600" : "text-gray-500"}`} />
                                   <span className="text-sm font-medium">{subItem.name}</span>
                                 </div>
-                                
+
                               </Link>
                             </motion.div>
                           );
@@ -351,7 +351,7 @@ export default function Sidebar({
         </nav>
 
         {/* Footer / Logout */}
-        {/* <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 p-4">
           <div className="mb-4">
             <AnimatePresence>
               {(!isCollapsed || isMobile) && session?.user && (
@@ -364,14 +364,14 @@ export default function Sidebar({
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
-                        {session.user.name?.charAt(0) || 
-                         session.user.email?.charAt(0) || 
-                         "U"}
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                        {session.user.name?.charAt(0) ||
+                          session.user.email?.charAt(0) ||
+                          "U"}
                       </div>
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-sm"></div>
                     </div>
-                        
+
                     <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="font-semibold text-sm truncate">
                         {session.user.name || "User"}
@@ -380,11 +380,10 @@ export default function Sidebar({
                         {session.user.email}
                       </p>
                       {session.user.role && (
-                        <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-                          session.user.role === 'Admin' 
-                            ? 'bg-purple-100 text-purple-700' 
-                            : 'bg-green-100 text-green-700'
-                        }`}>
+                        <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${session.user.role === 'Admin'
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : 'bg-blue-100 text-blue-700'
+                          }`}>
                           {session.user.role}
                         </span>
                       )}
@@ -394,7 +393,7 @@ export default function Sidebar({
               )}
             </AnimatePresence>
           </div>
-            
+
           <motion.button
             onClick={handleLogout}
             className={`
@@ -407,8 +406,8 @@ export default function Sidebar({
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
           >
-            <LogOut 
-              size={20} 
+            <LogOut
+              size={20}
               className={`${(isCollapsed && !isMobile) ? "" : "flex-shrink-0"} text-gray-600 group-hover:text-gray-800`}
             />
 
@@ -427,7 +426,7 @@ export default function Sidebar({
               )}
             </AnimatePresence>
           </motion.button>
-            
+
           <div className="mt-4">
             <AnimatePresence>
               {(!isCollapsed || isMobile) && (
@@ -442,7 +441,7 @@ export default function Sidebar({
               )}
             </AnimatePresence>
           </div>
-        </div> */}
+        </div>
       </motion.aside>
     </>
   )

@@ -33,28 +33,53 @@ export class MeetingRepository {
         });
     }
 
-    async mapParticipantsWithUserId(participantList: string[]) {
+    async mapParticipantsWithUserDetails(participantList: string[]) {
         const userRecords = await db
             .select({
                 email: users.email,
-                userId: users.userId
+                userId: users.userId,
+                firstName: users.firstName,
+                lastName: users.lastName,
             })
             .from(users)
             .where(inArray(users.email, participantList));
-
-        const userMap = userRecords.reduce<Record<string, string>>(
-            (acc, user) => {
-                acc[user.email] = user.userId;
-                return acc;
-            },
-            {}
-        );
-        const result: Record<string, string | null> = {};
-
+        
+        const userMap = userRecords.reduce<
+            Record<
+                string,
+                {
+                    userId: string;
+                    firstName: string;
+                    lastName: string;
+                }[]
+            >
+        >((acc, user) => {
+            if (!acc[user.email]) {
+                acc[user.email] = [];
+            }
+        
+            acc[user.email].push({
+                userId: user.userId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+            });
+        
+            return acc;
+        }, {});
+    
+        const result: Record<
+            string,
+            {
+                userId: string;
+                firstName: string;
+                lastName: string;
+            }[]
+        > = {};
+        
         for (const email of participantList) {
-            result[email] = userMap[email] ?? null;
+            result[email] = userMap[email] ?? [];
         }
-
+    
         return result;
     }
 
@@ -121,5 +146,32 @@ export class MeetingRepository {
                 eq(meetingParticipants.meetingId, meetingId)
             )
         );
+    }
+
+    async getMeetingsByUser(userId: string) {
+        const userMeetings = await db.query.meetingParticipants.findMany({
+            where: eq(meetingParticipants.userId, userId),
+            with: {
+                meeting: {
+                    with: {
+                        participants: {
+                            columns: {
+                                participantId: true,
+                                email: true,
+                                participantRole: true,
+                                participantStatus: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return userMeetings.map(mp => ({
+            ...mp.meeting,
+            participantCount: mp.meeting.participants.length,
+            userRole: mp.participantRole,
+            participants: mp.meeting.participants
+        }));
     }
 }

@@ -1,7 +1,8 @@
 import { CreateMeetingInput } from "./meeting.validation";
 import { ConflictError, NotFoundError } from "../../utils/errorHandler";
-import type {User, MeetingParticipantRole} from "./meeting.types";
+import type {User, MeetingParticipantRole, MeetingDetails} from "./meeting.types";
 import { MeetingRepository } from "./meeting.repository";
+import { sendMeetingInvite } from "../../utils/emailHandler";
 
 export function generateMeetingCode(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -39,29 +40,35 @@ export class MeetingService {
             new Set([user?.email, ...participantEmails, ...cohostEmails])
         );
 
-        const userMap = await this.repo.mapParticipantsWithUserId(allEmails);
+        const userMap = await this.repo.mapParticipantsWithUserDetails(allEmails);
 
         const meetingParticipants: Record<
             string,
-            { userId: string | null; participantRole: MeetingParticipantRole }
+            { userId: string | null; firstName: string | null; lastName: string | null; participantRole: MeetingParticipantRole }
         > = {};
 
         meetingParticipants[user.email] = {
             userId: user.userId,
+            firstName: user.firstName,
+            lastName: user.lastName,
             participantRole: "HOST",
         };
 
         for (const email of participantEmails) {
             meetingParticipants[email] = {
-                userId: userMap[email] ?? null,
+                userId: userMap[email][0]?.userId ?? null,
+                firstName: userMap[email][0]?.firstName ?? null,
+                lastName: userMap[email][0]?.lastName ?? null,
                 participantRole: "PARTICIPANT"
             };
         }
 
         for (const email of cohostEmails) {
             meetingParticipants[email] = {
-                userId: userMap[email] ?? null,
-                participantRole: "CO_HOST"
+                userId: userMap[email][0]?.userId ?? null,
+                firstName: userMap[email][0]?.firstName ?? null,
+                lastName: userMap[email][0]?.lastName ?? null,
+                participantRole: "PARTICIPANT"
             };
         }
 
@@ -71,6 +78,27 @@ export class MeetingService {
             meetingParticipants
         );
 
+        const meetingDetails = {
+            topic: meeting.topic,
+            description: meeting.description,
+            startTime: meeting.startTime,
+            meetingLink: `${process.env.CLIENT_URL}/meeting/${meetingCode}`,
+        };
+    
+        await Promise.allSettled(
+            Object.entries(meetingParticipants).map(([email, participant]) => {
+                if (!email) return;
+            
+                return sendMeetingInvite(
+                    {
+                        email,
+                        firstName: participant.firstName ?? "Guest",
+                        lastName: participant.lastName ?? "",
+                    },
+                    meetingDetails as MeetingDetails
+                );
+            })
+        );
         return meeting;
     }
 
@@ -135,5 +163,10 @@ export class MeetingService {
         await this.repo.checkMeetingParticipant(meetingId, user);
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, leftAt);
         return meeting;
+    }
+
+    async getUserMeetings(user: User) {
+        const meetings = await this.repo.getMeetingsByUser(user.userId);
+        return meetings;
     }
 }

@@ -51,9 +51,9 @@ interface ScheduleMeetingModalProps {
   setSaving: (saving: boolean) => void;
 }
 
-const ScheduleMeetingModal = ({ 
-  isOpen, 
-  onClose, 
+const ScheduleMeetingModal = ({
+  isOpen,
+  onClose,
   onSubmit
 }: ScheduleMeetingModalProps) => {
   const [formData, setFormData] = useState<MeetingFormData>({
@@ -80,9 +80,9 @@ const ScheduleMeetingModal = ({
     const handleMouseDown = (e: MouseEvent) => {
       const target = e.target as Element;
       const isInsideModal = target.closest('.modal-content');
-      const isInsidePopover = target.closest('[data-slot="popover-content"]') || 
-                              target.closest('[data-slot="popover-trigger"]');
-      
+      const isInsidePopover = target.closest('[data-slot="popover-content"]') ||
+        target.closest('[data-slot="popover-trigger"]');
+
       if (!isInsideModal && !isInsidePopover) {
         handleClose();
       }
@@ -142,9 +142,9 @@ const ScheduleMeetingModal = ({
 
       const field = type === 'coHost' ? 'coHosts' : 'invitees';
       if (formData[field].includes(trimmedEmail)) {
-        setErrors(prev => ({ 
-          ...prev, 
-          [field]: `${type === 'coHost' ? 'Co-host' : 'Invitee'} already added` 
+        setErrors(prev => ({
+          ...prev,
+          [field]: `${type === 'coHost' ? 'Co-host' : 'Invitee'} already added`
         }));
         return;
       }
@@ -155,9 +155,9 @@ const ScheduleMeetingModal = ({
       setErrors(prev => ({ ...prev, [field]: undefined }));
     } catch (err) {
       const field = type === 'coHost' ? 'coHosts' : 'invitees';
-      setErrors(prev => ({ 
-        ...prev, 
-        [field]: type === 'coHost' ? 'Invalid co-host email' : 'Invalid invitee email' 
+      setErrors(prev => ({
+        ...prev,
+        [field]: type === 'coHost' ? 'Invalid co-host email' : 'Invalid invitee email'
       }));
     }
   };
@@ -207,9 +207,9 @@ const ScheduleMeetingModal = ({
       handleClose();
     } catch (error) {
       console.error("Error scheduling meeting:", error);
-      setErrors(prev => ({ 
-        ...prev, 
-        submit: "Failed to schedule meeting. Please try again." 
+      setErrors(prev => ({
+        ...prev,
+        submit: "Failed to schedule meeting. Please try again."
       }));
     } finally {
       setSaving(false);
@@ -222,11 +222,11 @@ const ScheduleMeetingModal = ({
     <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center p-4 bg-[#00000082] backdrop-blur-[5px] z-9999">
       <div className="modal-content bg-white rounded-lg w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center border-b border-gray-200 p-4 bg-linear-to-r from-green-600 to-green-700">
+        <div className="flex justify-between items-center border-b border-gray-200 p-4 bg-linear-to-r from-blue-600 to-blue-700">
           <h2 className="text-xl text-white font-semibold">Schedule Meeting</h2>
-          <button 
-            onClick={handleClose} 
-            className="text-white p-1 hover:bg-green-800 rounded-full transition-colors cursor-pointer"
+          <button
+            onClick={handleClose}
+            className="text-white p-1 hover:bg-blue-800 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-6 h-6" />
           </button>
@@ -351,7 +351,7 @@ const ScheduleMeetingModal = ({
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               {formData.coHosts.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {formData.coHosts.map((email) => (
@@ -369,7 +369,7 @@ const ScheduleMeetingModal = ({
                   ))}
                 </div>
               )}
-              
+
               {errors.coHosts && (
                 <p className="text-red-500 text-xs mt-1">{errors.coHosts}</p>
               )}
@@ -404,7 +404,7 @@ const ScheduleMeetingModal = ({
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               {formData.invitees.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {formData.invitees.map((email) => (
@@ -422,7 +422,7 @@ const ScheduleMeetingModal = ({
                   ))}
                 </div>
               )}
-              
+
               {errors.invitees && (
                 <p className="text-red-500 text-xs mt-1">{errors.invitees}</p>
               )}
@@ -446,7 +446,7 @@ const ScheduleMeetingModal = ({
             >
               Cancel
             </Button>
-            
+
             <Button
               type="submit"
               disabled={!isFormValid() || saving}
