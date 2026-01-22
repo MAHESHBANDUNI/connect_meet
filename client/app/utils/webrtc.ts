@@ -12,13 +12,49 @@ export const getRTCPeerConnectionConfig = (): RTCConfiguration => {
   };
 };
 
+// export const createPeerConnection = (
+//   userId: string,
+//   remoteUserId: string,
+//   onIceCandidate: (candidate: RTCIceCandidate, targetUserId: string) => void,
+//   onTrack: (event: RTCTrackEvent, remoteUserId: string) => void
+// ): RTCPeerConnection => {
+//   const pc = new RTCPeerConnection(getRTCPeerConnectionConfig());
+
+//   pc.onicecandidate = (event) => {
+//     if (event.candidate) {
+//       onIceCandidate(event.candidate, remoteUserId);
+//     }
+//   };
+
+//   pc.ontrack = (event) => {
+//     onTrack(event, remoteUserId);
+//   };
+
+//   pc.onconnectionstatechange = () => {
+//     console.log(`Connection state with ${remoteUserId}:`, pc.connectionState);
+//   };
+
+//   pc.oniceconnectionstatechange = () => {
+//     console.log(`ICE state with ${remoteUserId}:`, pc.iceConnectionState);
+//   };
+
+//   return pc;
+// };
+
 export const createPeerConnection = (
-  userId: string,
+  localUserId: string,
   remoteUserId: string,
+  localStream: MediaStream | null,
   onIceCandidate: (candidate: RTCIceCandidate, targetUserId: string) => void,
   onTrack: (event: RTCTrackEvent, remoteUserId: string) => void
 ): RTCPeerConnection => {
   const pc = new RTCPeerConnection(getRTCPeerConnectionConfig());
+
+  if (localStream) {
+    localStream.getTracks().forEach(track => {
+      pc.addTrack(track, localStream);
+    });
+  }
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
@@ -42,36 +78,18 @@ export const createPeerConnection = (
 };
 
 export const createOffer = async (
-  pc: RTCPeerConnection,
-  localStream: MediaStream
+  pc: RTCPeerConnection
 ): Promise<RTCSessionDescriptionInit> => {
-  localStream.getTracks().forEach(track => {
-    if (localStream) {
-      pc.addTrack(track, localStream);
-    }
-  });
-
-  const offer = await pc.createOffer({
-    offerToReceiveAudio: true,
-    offerToReceiveVideo: true,
-  });
-
+  const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   return offer;
 };
 
 export const createAnswer = async (
   pc: RTCPeerConnection,
-  localStream: MediaStream,
   remoteDescription: RTCSessionDescriptionInit
 ): Promise<RTCSessionDescriptionInit> => {
   await pc.setRemoteDescription(new RTCSessionDescription(remoteDescription));
-
-  localStream.getTracks().forEach(track => {
-    if (localStream) {
-      pc.addTrack(track, localStream);
-    }
-  });
 
   const answer = await pc.createAnswer();
   await pc.setLocalDescription(answer);
@@ -94,16 +112,16 @@ export const replaceTrack = async (
   newStream: MediaStream
 ): Promise<void> => {
   const senders = pc.getSenders();
-  const tracks = newStream.getTracks();
 
-  for (const track of tracks) {
-    const sender = senders.find((s) => s.track?.kind === track.kind);
-    if (sender) {
-      console.log(`Replacing ${track.kind} track`);
-      await sender.replaceTrack(track);
-    } else {
-      console.log(`Adding new ${track.kind} track`);
-      pc.addTrack(track, newStream);
+  for (const sender of senders) {
+    if (!sender.track) continue;
+
+    const newTrack = newStream
+      .getTracks()
+      .find(t => t.kind === sender.track!.kind);
+
+    if (newTrack && sender.track !== newTrack) {
+      await sender.replaceTrack(newTrack);
     }
   }
 };
