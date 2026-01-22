@@ -32,7 +32,7 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
 
     setState(prev => {
       const users = new Map(prev.users);
-      const user = users.get(userId) || { id: userId, isAudioMuted: false, isVideoOff: false };
+      const user = users.get(userId) || { id: userId, isAudioMuted: false, isVideoOff: false, isLocal: false };
       user.stream = stream;
       users.set(userId, user);
       return { ...prev, users };
@@ -82,7 +82,7 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
         console.error('Error creating offer:', error);
       }
     }
-  }, [localUserId, onIceCandidate, onTrack]); // Removed localStream dependency
+  }, [localUserId, onIceCandidate, onTrack]);
 
   const handleSignal = useCallback(async (from: string, signal: any) => {
     let pc = peerConnectionsRef.current.get(from);
@@ -109,14 +109,32 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
     } catch (error) {
       console.error('Error handling signal:', error);
     }
-  }, [localUserId, onIceCandidate, onTrack]); // Removed localStream dependency
+  }, [localUserId, onIceCandidate, onTrack]);
 
+  const setUsersLocalMedia = useCallback(
+    (action: 'toggle-audio' | 'toggle-video', value: boolean) => {
+      setState(prev => {
+        const users = new Map(prev.users);
+        const user = users.get(localUserId);
+      
+        if (!user) return prev;
+      
+        if (action === 'toggle-audio') user.isAudioMuted = value;
+        if (action === 'toggle-video') user.isVideoOff = value;
+      
+        users.set(localUserId, user);
+        return { ...prev, users };
+      });
+    },
+    [localUserId]
+  );
+  
   const handleUserConnected = useCallback((userId: string) => {
     if (userId !== localUserId) {
       setState(prev => {
         const users = new Map(prev.users);
         if (!users.has(userId)) {
-          users.set(userId, { id: userId, isAudioMuted: false, isVideoOff: false });
+          users.set(userId, { id: userId, isAudioMuted: false, isVideoOff: false, isLocal: false });
         }
         return { ...prev, users };
       });
@@ -147,21 +165,22 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
     },
     onSignal: (data) => handleSignal(data.from, data.signal),
     onUserAction: (data) => {
-  setState(prev => {
-    const users = new Map(prev.users);
-    const user = users.get(data.userId) || {
-      id: data.userId,
-      isAudioMuted: false,
-      isVideoOff: false,
-    };
+      setState(prev => {
+        const users = new Map(prev.users);
+        const user = users.get(data.userId);
 
-    if (data.action === 'toggle-audio') user.isAudioMuted = data.value;
-    if (data.action === 'toggle-video') user.isVideoOff = data.value;
+        if (!user) return prev;
 
-    users.set(data.userId, user);
-    return { ...prev, users };
-  });
-},
+        // ❌ Ignore socket updates for self
+        if (user.isLocal) return prev;
+
+        if (data.action === 'toggle-audio') user.isAudioMuted = data.value;
+        if (data.action === 'toggle-video') user.isVideoOff = data.value;
+
+        users.set(data.userId, user);
+        return { ...prev, users };
+      });
+    },
     onChatMessage: (data) => {
       setState(prev => ({
         ...prev,
@@ -197,6 +216,26 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
     }
   }, [localStream]);
 
+  useEffect(() => {
+    if (!localStream) return;
+  
+    setState(prev => {
+      const users = new Map(prev.users);
+      const existing = users.get(localUserId);
+  
+      users.set(localUserId, {
+        id: localUserId,
+        name: localUserId,
+        stream: localStream,
+        isAudioMuted: existing?.isAudioMuted ?? false,
+        isVideoOff: existing?.isVideoOff ?? false,
+        isLocal: true,
+      });
+  
+      return { ...prev, users };
+    });
+  }, [localStream, localUserId]);
+
   return {
     users: Array.from(state.users.values()),
     messages: state.messages,
@@ -213,7 +252,8 @@ export const useWebRTC = (localUserId: string, roomId: string, localStream: Medi
         messages: [...prev.messages, { ...message, isLocal: true }],
       }));
     },
+    setUsersLocalMedia,
     sendUserAction,
-    isConnected: true,
+    isConnected: true
   };
 };

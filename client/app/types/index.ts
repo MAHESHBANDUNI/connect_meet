@@ -4,6 +4,7 @@ export interface User {
   stream?: MediaStream;
   isAudioMuted: boolean;
   isVideoOff: boolean;
+  isLocal: boolean;
 }
 
 export interface Message {

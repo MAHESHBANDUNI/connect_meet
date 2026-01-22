@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMediaStream } from '@/app/hooks/useMediaStream';
 import { useWebRTC } from '@/app/hooks/useWebRTC';
-import { LocalVideo } from './LocalVideo';
-import { RemoteVideo } from './RemoteVideo';
+import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
 
@@ -38,6 +37,7 @@ export const VideoCall = ({ roomId, userId, onLeave }: VideoCallProps) => {
     messages,
     sendChatMessage,
     sendUserAction,
+    setUsersLocalMedia
   } = useWebRTC(userId, roomId, activeStream);
 
   useEffect(() => {
@@ -60,15 +60,28 @@ export const VideoCall = ({ roomId, userId, onLeave }: VideoCallProps) => {
 //     }
 //   }, [isAudioMuted, isVideoOff, isInitialized, roomId, userId, sendUserAction]);
 
-  const handleToggleAudio = () => {
+const handleToggleAudio = () => {
+  const newValue = !isAudioMuted;
+
   toggleAudio();
-  sendUserAction(roomId, userId, 'toggle-audio', !isAudioMuted);
+
+  // UPDATE LOCAL USER STATE
+  setUsersLocalMedia('toggle-audio', newValue);
+
+  // NOTIFY OTHERS
+  sendUserAction(roomId, userId, 'toggle-audio', newValue);
 };
 
 const handleToggleVideo = () => {
+  const newValue = !isVideoOff;
+
   toggleVideo();
-  sendUserAction(roomId, userId, 'toggle-video', !isVideoOff);
+
+  setUsersLocalMedia('toggle-video', newValue);
+
+  sendUserAction(roomId, userId, 'toggle-video', newValue);
 };
+
 //   const handleToggleScreenShare = () => toggleScreenShare();
 
   const handleEndCall = () => {
@@ -127,23 +140,10 @@ const handleToggleVideo = () => {
             totalUsers === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-7xl mx-auto w-full' :
               'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-[1600px] mx-auto w-full'
           }`}>
-          {/* Local Video */}
-          <div className="transition-all duration-500 hover:scale-[1.02]">
-            <LocalVideo
-              stream={activeStream}
-              isVideoOff={isVideoOff}
-              isAudioMuted={isAudioMuted}
-            //   isScreenSharing={isScreenSharing}
-              userName={userId}
-            />
-          </div>
+            {users.map(user => (
+              <VideoTile key={user.id} user={user} />
+            ))}
 
-          {/* Remote Videos */}
-          {users.map((user) => (
-            <div key={user.id} className="transition-all duration-500 hover:scale-[1.02]">
-              <RemoteVideo user={user} />
-            </div>
-          ))}
         </div>
 
         {/* Combined Sidebar for Chat and Participants */}
