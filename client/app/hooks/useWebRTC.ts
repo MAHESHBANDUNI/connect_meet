@@ -139,15 +139,34 @@ export const useWebRTC = (
 
       try {
         if (signal.type === 'offer') {
+          if (pc.signalingState !== 'stable') {
+            console.warn(
+              'Offer received in non-stable state, ignoring'
+            );
+            return;
+          }
+        
           const answer = await createAnswer(pc, signal);
           sendSignal({
             to: from,
             from: localUserId,
             signal: { type: 'answer', sdp: answer.sdp },
           });
-        } else if (signal.type === 'answer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(signal));
-        } else if (signal.type === 'candidate') {
+        }
+         else if (signal.type === 'answer') {
+          if (pc.signalingState !== 'have-local-offer') {
+            console.warn(
+              'Ignoring answer in state:',
+              pc.signalingState
+            );
+            return;
+          }
+        
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(signal)
+          );
+        }
+         else if (signal.type === 'candidate') {
           await addIceCandidate(pc, signal.candidate);
         }
       } catch (err) {
@@ -207,8 +226,19 @@ export const useWebRTC = (
     onUserDisconnected: ({ userId }) => removeUser(userId),
 
     onExistingUsers: ({ users }) => {
-      users.forEach((userId: string) => {
-        if (userId !== localUserId) initializePeerConnection(userId);
+      setState(prev => {
+        const map = new Map(prev.users);
+        users.forEach(userId => {
+          if (!map.has(userId)) {
+            map.set(userId, {
+              id: userId,
+              isAudioMuted: false,
+              isVideoOff: false,
+              isLocal: false,
+            });
+          }
+        });
+        return { ...prev, users: map };
       });
     },
 
