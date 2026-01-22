@@ -24,7 +24,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
   const connect = useCallback((roomId: string, userId: string) => {
     if (socketRef.current?.connected) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL || 'ws://localhost:3001';
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 
     socketRef.current = io(socketUrl, {
       transports: ['websocket', 'polling'],

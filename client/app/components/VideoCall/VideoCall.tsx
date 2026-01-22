@@ -4,15 +4,16 @@ import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon } from "lucide-react";
 
 interface VideoCallProps {
   roomId: string;
   userId: string;
   onLeave: () => void;
+  onAddParticipant: () => void;
 }
 
-export const VideoCall = ({ roomId, userId, onLeave }: VideoCallProps) => {
+export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCallProps) => {
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -111,8 +112,8 @@ const handleToggleVideo = () => {
   return (
     <div className="fixed inset-0 bg-[#0f1115] flex flex-col overflow-hidden">
       {/* Top Header */}
-      <header className="h-16 flex items-center justify-between px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
-        <div className="flex items-center gap-4">
+      <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
+        {/* <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
             <span className="text-white/90 font-semibold tracking-tight text-sm uppercase">Rec</span>
@@ -122,22 +123,22 @@ const handleToggleVideo = () => {
             <h1 className="text-white/50 text-sm font-medium">Meeting ID:</h1>
             <span className="text-white/90 font-mono text-sm tracking-widest">{roomId}</span>
           </div>
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={toggleParticipants}>
-            <svg className="w-4 h-4 text-white/40 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span className="text-white/60 text-sm font-medium group-hover:text-white transition-colors">
-              {totalUsers} Participants
+            <span className="text-sm font-medium text-white pt-0.5">
+              {totalUsers === 1 ? '1 Participant' : `${totalUsers} Participants`}
             </span>
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex overflow-hidden relative">
+      <main className="flex-1 flex overflow-hidden relative bg-[#26282c]">
         {/* Video Grid Section */}
         <div className={`flex-1 transition-all duration-300 ease-in-out p-6 grid gap-4 content-center overflow-y-auto ${totalUsers === 1 ? 'max-w-4xl mx-auto w-full' :
             totalUsers === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-7xl mx-auto w-full' :
@@ -164,11 +165,17 @@ const handleToggleVideo = () => {
           )}
           {showParticipants && (
             <div className="flex flex-col h-full bg-[#1a1d23]">
+              <div className='flex flex-row justify-around items-center'>
               <div className="px-6 py-5 border-b border-white/5 bg-black/10">
                 <h3 className="text-sm font-bold text-white tracking-tight">Participants</h3>
                 <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">
                   {totalUsers} People in this meeting
                 </p>
+              </div>
+              <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
+                <UserPlusIcon className="w-5 h-5 text-white m-1"/>
+                <p className='text-white text-sm'>Add people</p>
+              </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 {/* Local Participant */}
@@ -217,7 +224,7 @@ const handleToggleVideo = () => {
           </div>
         </div> */}
 
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-between">
           <Controls
             isAudioMuted={isAudioMuted}
             isVideoOff={isVideoOff}
@@ -244,7 +251,7 @@ const handleToggleVideo = () => {
             {showChat && <span className="text-sm font-medium pr-1">Chat</span>}
           </button>
 
-          <button
+          {/* <button
             onClick={toggleParticipants}
             className={`
               p-3 rounded-2xl transition-all duration-200 flex items-center gap-2
@@ -256,7 +263,7 @@ const handleToggleVideo = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
             {showParticipants && <span className="text-sm font-medium pr-1">Participants</span>}
-          </button>
+          </button> */}
         </div>
       </footer>
     </div>
