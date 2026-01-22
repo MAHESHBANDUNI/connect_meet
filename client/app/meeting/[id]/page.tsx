@@ -19,7 +19,7 @@ export default function MeetingPage() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      setUserId(session.user.name as string);
+      setUserId(`${session.user.name}:${session.user.id}` as string);
     }
   }, [session]);
 

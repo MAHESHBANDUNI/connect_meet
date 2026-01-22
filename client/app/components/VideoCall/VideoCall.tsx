@@ -4,6 +4,7 @@ import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff } from "lucide-react";
 
 interface VideoCallProps {
   roomId: string;
@@ -39,6 +40,8 @@ export const VideoCall = ({ roomId, userId, onLeave }: VideoCallProps) => {
     sendUserAction,
     setUsersLocalMedia
   } = useWebRTC(userId, roomId, activeStream);
+
+  console.log('Current Users in Call:', users);
 
   useEffect(() => {
     const initialize = async () => {
@@ -93,7 +96,7 @@ const handleToggleVideo = () => {
     sendChatMessage(content);
   };
 
-  const totalUsers = users.length + 1;
+  const totalUsers = users.length;
 
   const toggleParticipants = () => {
     setShowParticipants(!showParticipants);
@@ -175,27 +178,27 @@ const handleToggleVideo = () => {
                       {userId.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">{userId} (You)</p>
-                      <p className="text-[10px] text-white/40">Host</p>
+                      <p className="text-sm font-semibold text-white">{userId.split(":")[0]} (You)</p>
+                      {/* <p className="text-[10px] text-white/40">Host</p> */}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {isAudioMuted && <span className="p-1 rounded-lg bg-red-500/20 text-red-400"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M12.196 1.513c-.33-.192-.73-.192-1.06 0l-7.51 4.382c-.313.182-.51.522-.51.89v6.43c0 .368.197.708.51.89l7.51 4.382c.33.192.73.192 1.06 0l7.51-4.382c.313-.182.51-.522.51-.89v-6.43c0-.368-.197-.708-.51-.89l-7.51-4.382zM11 14a1 1 0 11-2 0 1 1 0 012 0zm1-3a1 1 0 11-2 0V7a1 1 0 112 0v4z" /></svg></span>}
-                    {isVideoOff && <span className="p-1 rounded-lg bg-red-500/20 text-red-400"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg></span>}
+                    {isAudioMuted ? <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400"><MicOff className="w-5 h-5" /></span>:<span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"><MicIcon className="w-5 h-5" /></span>}
+                    {isVideoOff ? <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400"><VideoOffIcon className="w-5 h-5" /></span>:<span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"><VideoIcon className="w-5 h-5" /></span>}
                   </div>
                 </div>
                 {/* Remote Participants */}
-                {users.map((user) => (
+                {users.filter((user) => !user.isLocal).map((user) => (
                   <div key={user.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 text-white/60 font-medium">
-                        {(user.name || user.id).charAt(0).toUpperCase()}
+                        {(user.id.split(":")[0]).charAt(0).toUpperCase()}
                       </div>
-                      <p className="text-sm font-medium text-white/90">{user.name || user.id}</p>
+                      <p className="text-sm font-medium text-white/90">{user.id.split(":")[0]}</p>
                     </div>
                     <div className="flex gap-2">
-                      {user.isAudioMuted && <span className="p-1 rounded-lg bg-red-500/20 text-red-400"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M12.196 1.513c-.33-.192-.73-.192-1.06 0l-7.51 4.382c-.313.182-.51.522-.51.89v6.43c0 .368.197.708.51.89l7.51 4.382c.33.192.73.192 1.06 0l7.51-4.382c.313-.182.51-.522.51-.89v-6.43c0-.368-.197-.708-.51-.89l-7.51-4.382zM11 14a1 1 0 11-2 0 1 1 0 012 0zm1-3a1 1 0 11-2 0V7a1 1 0 112 0v4z" /></svg></span>}
-                      {user.isVideoOff && <span className="p-1 rounded-lg bg-red-500/20 text-red-400"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg></span>}
+                      {user.isAudioMuted && <span className="p-1 bg-transparent backdrop-blur-md rounded-xl "><MicOff className="w-4 h-4 " /></span>}
+                      {user.isVideoOff && <span className="p-1 bg-transparent backdrop-blur-md rounded-xl "><VideoOffIcon className="w-4 h-4" /></span>}
                     </div>
                   </div>
                 ))}
@@ -207,12 +210,12 @@ const handleToggleVideo = () => {
 
       {/* Modern Bottom Controls */}
       <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">
-        <div className="w-1/4">
+        {/* <div className="w-1/4">
           <div className="flex flex-col">
             <span className="text-white/90 font-semibold text-sm">Meeting Room</span>
             <span className="text-white/40 text-xs">Encryption Active</span>
           </div>
-        </div>
+        </div> */}
 
         <div className="flex-1 flex justify-center">
           <Controls
