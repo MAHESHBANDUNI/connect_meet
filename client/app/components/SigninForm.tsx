@@ -82,7 +82,7 @@ export default function LoginForm() {
         }
       `}</style>
 
-      <div className={`flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-100 via-white to-emerald-200`}>
+      <div className={`flex min-h-screen items-center justify-center bg-linear-to-br from-blue-100 via-white to-blue-200`}>
         <div
           className={`w-full max-w-md rounded-xl shadow-lg bg-white p-8 transform transition-all duration-700 ease-out
             ${animate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
@@ -118,7 +118,7 @@ export default function LoginForm() {
                   autoComplete="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow duration-300 ease-in-out
+                  className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow duration-300 ease-in-out
                   focus:shadow-lg pr-10"
                   placeholder="you@example.com"
                   required
@@ -141,7 +141,7 @@ export default function LoginForm() {
                   autoComplete="current-password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-emerald-400 outline-none transition-shadow duration-300 ease-in-out
+                  className="w-full rounded border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-400 outline-none transition-shadow duration-300 ease-in-out
                     focus:shadow-lg pr-10"
                   placeholder="••••••••"
                   required
@@ -166,7 +166,7 @@ export default function LoginForm() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="cursor-pointer w-full py-2 px-4 rounded-sm bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition-colors duration-300 flex justify-center items-center"
+              className="cursor-pointer w-full py-2 px-4 rounded-sm bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-300 flex justify-center items-center"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -198,7 +198,7 @@ export default function LoginForm() {
 
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{" "}
-            <Link href="/auth/signup" className="text-emerald-600 font-medium hover:underline">
+            <Link href="/auth/signup" className="text-blue-600 font-medium hover:underline">
               Sign Up
             </Link>
           </p>

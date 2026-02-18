@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: cm_server
+    container_name: cm-server
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./server/.env
+    restart: unless-stopped
+
+  signalling:
+    build:
+      context: ./signalling-server
+      dockerfile: Dockerfile
+    image: cm_signalling
+    container_name: cm-signalling
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./signalling-server/.env
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: cm_client
+    container_name: cm-client
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./client/.env
+    depends_on:
+      - server
+      - signalling
+    restart: unless-stopped

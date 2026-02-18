@@ -1,0 +1,6 @@
+FROM node:24-alpine
+WORKDIR .
+COPY . .
+RUN npm install --omit=dev
+CMD ["node", "src/index.ts"]
+EXPOSE 8000
