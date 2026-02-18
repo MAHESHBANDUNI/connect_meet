@@ -139,7 +139,7 @@ export default function WaitingRoom({
   };
 
   const copyMeetingCode = () => {
-    navigator.clipboard.writeText(meetingCode);
+    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${meetingCode}`);
     successToast("Meeting code copied to clipboard!");
   };
 

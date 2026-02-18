@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import WaitingRoom from "@/app/components/meetings/WaitingRoom";
 import { VideoCall } from "@/app/components/VideoCall/VideoCall";
 import { PlusIcon, X, Send, Mail } from "lucide-react";
+import { MeetingEnd } from "@/app/components/MeetingEnd";
 
 export default function MeetingPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function MeetingPage() {
   const [emailList, setEmailList] = useState<string[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [meetingEnded, setMeetingEnded] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -105,6 +107,7 @@ export default function MeetingPage() {
 
   const handleLeaveRoom = () => {
     setIsInCall(false);
+    setMeetingEnded(true);
   };
 
   const handleExit = () => {
@@ -272,6 +275,14 @@ export default function MeetingPage() {
         )}
       </>
     );
+  }
+
+  if (meetingEnded) {
+      return (
+          <MeetingEnd
+              redirectUrl="/meetings"
+          />
+      );
   }
 
   return (

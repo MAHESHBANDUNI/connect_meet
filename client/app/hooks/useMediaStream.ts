@@ -45,14 +45,20 @@ export const useMediaStream = () => {
   }, []);
 
   const stopMediaStream = useCallback(() => {
-    if (state.localStream) {
-      state.localStream.getTracks().forEach(track => track.stop());
-      setState(prev => ({ ...prev, localStream: null }));
-    }
-    if (state.screenStream) {
-      state.screenStream.getTracks().forEach(track => track.stop());
-      setState(prev => ({ ...prev, screenStream: null, isScreenSharing: false }));
-    }
+    [state.localStream, state.screenStream].forEach(stream => {
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+        });
+      }
+    });
+
+    setState(prev => ({
+      ...prev,
+      localStream: null,
+      screenStream: null,
+      isScreenSharing: false
+    }));
   }, [state.localStream, state.screenStream]);
 
   const toggleAudio = useCallback(() => {

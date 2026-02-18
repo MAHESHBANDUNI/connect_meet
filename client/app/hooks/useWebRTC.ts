@@ -284,7 +284,12 @@ export const useWebRTC = (
 
     return () => {
       disconnect();
-      peerConnectionsRef.current.forEach(pc => pc.close());
+      peerConnectionsRef.current.forEach(pc => {
+        pc.getSenders().forEach(sender => {
+          if (sender.track) sender.track.stop();
+        });
+        pc.close();
+      });
       peerConnectionsRef.current.clear();
       remoteStreamsRef.current.clear();
     };
