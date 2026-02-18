@@ -1,5 +1,3 @@
-# signalling-server Dockerfile
-
 # builder stage
 FROM node:24-alpine AS builder
 WORKDIR /app
