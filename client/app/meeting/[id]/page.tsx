@@ -111,7 +111,7 @@ export default function MeetingPage() {
   };
 
   const handleExit = () => {
-    router.push("/dashboard");
+    router.push("/meetings");
   };
 
   if (isInCall) {

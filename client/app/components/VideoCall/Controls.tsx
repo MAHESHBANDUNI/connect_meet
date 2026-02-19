@@ -1,3 +1,5 @@
+"use client";
+
 import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone } from "lucide-react";
 
 interface ControlsProps {
@@ -8,6 +10,7 @@ interface ControlsProps {
   onToggleVideo: () => void;
 //   onToggleScreenShare: () => void;
   onEndCall: () => void;
+  roomId: string;
 }
 
 export const Controls = ({
@@ -15,7 +18,8 @@ export const Controls = ({
   isVideoOff,
   onToggleAudio,
   onToggleVideo,
-  onEndCall
+  onEndCall,
+  roomId
 }: ControlsProps) => {
   return (
     <div className="w-full flex items-center justify-between px-4 md:px-6">
@@ -23,7 +27,7 @@ export const Controls = ({
       <div className="hidden md:flex items-center gap-2">
         <h1 className="text-white/50 text-sm font-medium">Meeting ID:</h1>
         <span className="text-white/90 font-mono text-sm tracking-widest">
-          g723-hf82-fjj8-nff1
+          {roomId}
         </span>
       </div>
 

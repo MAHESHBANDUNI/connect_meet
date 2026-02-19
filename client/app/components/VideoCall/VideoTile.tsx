@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from 'react';
 import { User } from '@/app/types';
 import { MicIcon, MicOff, VideoOffIcon } from 'lucide-react';

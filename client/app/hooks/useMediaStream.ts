@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-interface MediaStreamState {
-  localStream: MediaStream | null;
-  screenStream: MediaStream | null;
-  isAudioMuted: boolean;
-  isVideoOff: boolean;
-//   isScreenSharing: boolean;
-}
+// interface MediaStreamState {
+//   localStream: MediaStream | null;
+//   screenStream: MediaStream | null;
+//   isAudioMuted: boolean;
+//   isVideoOff: boolean;
+// //   isScreenSharing: boolean;
+// }
 
 const defaultConstraints: MediaStreamConstraints = {
   audio: {
@@ -22,64 +22,58 @@ const defaultConstraints: MediaStreamConstraints = {
 };
 
 export const useMediaStream = () => {
-  const [state, setState] = useState<MediaStreamState>({
-    localStream: null,
-    screenStream: null,
-    isAudioMuted: false,
-    isVideoOff: false,
-    // isScreenSharing: false,
-  });
+  // const [state, setState] = useState<MediaStreamState>({
+  //   localStream: null,
+  //   screenStream: null,
+  //   isAudioMuted: false,
+  //   isVideoOff: false,
+  //   // isScreenSharing: false,
+  // });
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
 
   const getMediaStream = useCallback(async (constraints?: MediaStreamConstraints) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(
-        constraints || defaultConstraints
-      );
-      
-      setState(prev => ({ ...prev, localStream: stream }));
-      return stream;
-    } catch (error) {
-      console.error('Error accessing media devices:', error);
-      throw error;
-    }
+    const stream = await navigator.mediaDevices.getUserMedia(
+      constraints || defaultConstraints
+    );
+
+    localStreamRef.current = stream;
+    return stream;
   }, []);
 
   const stopMediaStream = useCallback(() => {
-    [state.localStream, state.screenStream].forEach(stream => {
+    [localStreamRef.current, screenStreamRef.current].forEach(stream => {
       if (stream) {
-        stream.getTracks().forEach(track => {
-          track.stop();
-        });
+        stream.getTracks().forEach(track => track.stop());
       }
     });
 
-    setState(prev => ({
-      ...prev,
-      localStream: null,
-      screenStream: null,
-      isScreenSharing: false
-    }));
-  }, [state.localStream, state.screenStream]);
+    localStreamRef.current = null;
+    screenStreamRef.current = null;
+  }, []);
 
   const toggleAudio = useCallback(() => {
-    if (state.localStream) {
-      const audioTrack = state.localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setState(prev => ({ ...prev, isAudioMuted: !audioTrack.enabled }));
-      }
-    }
-  }, [state.localStream]);
+    const stream = localStreamRef.current;
+    if (!stream) return;
+
+    stream.getAudioTracks().forEach(track => {
+      track.enabled = !track.enabled;
+      setIsAudioMuted(!track.enabled);
+    });
+  }, []);
 
   const toggleVideo = useCallback(() => {
-    if (state.localStream) {
-      const videoTrack = state.localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setState(prev => ({ ...prev, isVideoOff: !videoTrack.enabled }));
-      }
-    }
-  }, [state.localStream]);
+    const stream = localStreamRef.current;
+    if (!stream) return;
+
+    stream.getVideoTracks().forEach(track => {
+      track.enabled = !track.enabled;
+      setIsVideoOff(!track.enabled);
+    });
+  }, []);
 
 //   const toggleScreenShare = useCallback(async () => {
 //     if (state.isScreenSharing && state.screenStream) {
@@ -108,21 +102,20 @@ export const useMediaStream = () => {
 //   }, [state.isScreenSharing, state.screenStream]);
     const hasStoppedRef = useRef(false);
     
-    useEffect(() => {
-      return () => {
-        if (!hasStoppedRef.current) {
-          hasStoppedRef.current = true;
-          stopMediaStream();
-        }
-      };
-    }, [stopMediaStream]);
+  useEffect(() => {
+    return () => {
+      stopMediaStream();
+    };
+  }, [stopMediaStream]);
 
   return {
-    ...state,
+    localStream: localStreamRef.current,
+    screenStream: screenStreamRef.current,
+    isAudioMuted,
+    isVideoOff,
     getMediaStream,
     stopMediaStream,
     toggleAudio,
     toggleVideo,
-    // toggleScreenShare,
   };
 };

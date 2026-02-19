@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '@/app/types';
 
@@ -75,7 +77,7 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
               >
                 {!isLocal && (
                   <span className="text-[10px] font-bold text-white/40 mb-1 ml-2 uppercase tracking-wider">
-                    {message.userId}
+                    {message.userId.split(":")[0]}
                   </span>
                 )}
                 <div

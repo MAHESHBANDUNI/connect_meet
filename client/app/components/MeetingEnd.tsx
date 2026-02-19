@@ -50,8 +50,8 @@ export function MeetingEnd({
                 <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-blue-500/20 rounded-full animate-float-slow" />
             </div>
             
-            <div className="relative p-6 sm:p-8">
-                <div className="relative flex justify-center mb-6">
+            <div className="relative p-8 sm:p-10">
+                <div className="relative flex justify-center mb-6 mt-6">
                     
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-24 h-24 border-4 border-blue-200 dark:border-blue-900/30 rounded-full animate-ping-slow" />

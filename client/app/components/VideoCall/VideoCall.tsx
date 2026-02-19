@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { useMediaStream } from '@/app/hooks/useMediaStream';
 import { useWebRTC } from '@/app/hooks/useWebRTC';
@@ -233,6 +235,7 @@ const handleToggleVideo = () => {
             onToggleVideo={handleToggleVideo}
             // onToggleScreenShare={handleToggleScreenShare}
             onEndCall={handleEndCall}
+            roomId={roomId}
           />
         </div>
 
