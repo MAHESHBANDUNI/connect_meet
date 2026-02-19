@@ -157,9 +157,9 @@ export default function HomeComponent() {
     return (
         <>
             <div className="min-h-screen bg-[#F8FAFC]">
-                {/* Header - Improved mobile responsiveness */}
+                {/* Header*/}
                 <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div className="w-full sm:w-auto">
                                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-900">
@@ -178,47 +178,58 @@ export default function HomeComponent() {
                             </button>
                         </div>
 
-                        {/* Tabs - Horizontal scroll on mobile */}
+                        {/* Tabs */}
                         <div className="relative mt-6">
-                            <div className="flex gap-1 sm:gap-2 overflow-x-auto pb-2 hide-scrollbar">
-                                {tabs.map((tab) => (
-                                    <button
-                                        key={tab.value}
-                                        onClick={() => setActiveTab(tab.value)}
-                                        className={`relative px-4 py-2 sm:px-6 sm:py-2.5 text-sm font-medium whitespace-nowrap transition-colors rounded-lg ${
-                                            activeTab === tab.value
-                                                ? 'text-blue-600 bg-blue-50'
-                                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                        {tab.label}
-                                        {tab.count !== undefined && tab.count > 0 && (
-                                            <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                                                activeTab === tab.value
-                                                    ? 'bg-blue-100 text-blue-600'
-                                                    : 'bg-gray-200 text-gray-600'
-                                            }`}>
-                                                {tab.count}
-                                            </span>
-                                        )}
-                                    </button>
-                                ))}
+                          <div className="relative border-b border-gray-200">
+                            <div className="flex gap-6 overflow-x-auto hide-scrollbar">
+                              {tabs.map((tab) => {
+                                const isActive = activeTab === tab.value;
+                            
+                                return (
+                                  <button
+                                    key={tab.value}
+                                    onClick={() => setActiveTab(tab.value)}
+                                    className={`
+                                      relative py-3 text-sm font-medium whitespace-nowrap
+                                      transition-colors duration-200
+                                      ${
+                                        isActive
+                                          ? "text-blue-600"
+                                          : "text-gray-500 hover:text-gray-900"
+                                      }
+                                    `}
+                                  >
+                                    {tab.label}
+                                  
+                                    {tab.count !== undefined && tab.count > 0 && (
+                                      <span
+                                        className={`
+                                          ml-2 text-xs px-2 py-0.5 rounded-full
+                                          ${
+                                            isActive
+                                              ? "bg-blue-100 text-blue-600"
+                                              : "bg-gray-100 text-gray-600"
+                                          }
+                                        `}
+                                      >
+                                        {tab.count}
+                                      </span>
+                                    )}
+                        
+                                    {isActive && (
+                                      <span className="absolute left-0 -bottom-[1px] h-0.5 w-full bg-blue-600 rounded-full transition-all duration-300" />
+                                    )}
+                                  </button>
+                                );
+                              })}
                             </div>
-                            {/* Active tab indicator for desktop */}
-                            <div className="hidden sm:block absolute bottom-0 left-0 right-0 h-0.5 bg-gray-200">
-                                <div 
-                                    className="h-full bg-blue-600 transition-all duration-300"
-                                    style={{
-                                        width: `${100 / tabs.length}%`,
-                                        transform: `translateX(${tabs.findIndex(t => t.value === activeTab) * 100}%)`
-                                    }}
-                                />
-                            </div>
+                          </div>
                         </div>
+
                     </div>
                 </div>
 
-                {/* Main Content - Improved grid responsiveness */}
+                {/* Main Content */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-16 sm:py-20">
@@ -298,7 +309,7 @@ export default function HomeComponent() {
     );
 }
 
-// Extracted Meeting Card Component - Fully responsive
+// Meeting Card Component
 function MeetingCard({ 
     meeting, 
     isHost, 
@@ -360,7 +371,7 @@ function MeetingCard({
                         </div>
                     </div>
                     
-                    {/* Actions Menu - Improved for mobile */}
+                    {/* Actions Menu */}
                     <div className="relative">
                         <button
                             onClick={() => setShowActions(!showActions)}
@@ -452,7 +463,7 @@ function MeetingCard({
                     </p>
                 </div>
 
-                {/* Actions - Responsive buttons */}
+                {/* Actions */}
                 {meeting.status === 'SCHEDULED' && (
                     <div className="flex gap-2">
                         <button
@@ -489,7 +500,7 @@ function MeetingCard({
     );
 }
 
-// Empty State Component - Responsive
+// Empty State Component 
 function EmptyState({ type, onSchedule }: { type: TabType; onSchedule: () => void }) {
     const messages = {
         upcoming: {
