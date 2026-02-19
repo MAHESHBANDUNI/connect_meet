@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         //   setIsCollapsed={setIsCollapsed}
         />
 
-        <main className="p-4 md:p-6 2xl:p-10 transition-all duration-300 ">
+        <main className="p-3 md:p-6 2xl:p-10 transition-all duration-300 ">
           {children}
         </main>
       </div>

@@ -159,30 +159,30 @@ export default function HomeComponent() {
             <div className="min-h-screen bg-[#F8FAFC]">
                 {/* Header */}
                 <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="max-w-7xl mx-auto px-0.5 sm:px-6 lg:px-8 py-0.5">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h1 className="text-2xl font-semibold text-gray-900">Meetings</h1>
-                                <p className="text-sm text-gray-500 mt-1">
+                                <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">Meetings</h1>
+                                <p className="text-xs sm:text-sm text-gray-500 mt-0 sm:mt-1">
                                     Manage and join your scheduled meetings
                                 </p>
                             </div>
                             <button
                                 onClick={() => setScheduleMeetingFormOpen(true)}
-                                className="inline-flex items-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                className="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                             >
-                                <VideoIcon className="w-4 h-4 mr-2" />
-                                Schedule meeting
+                                <VideoIcon className="w-4 sm:w-6 h-4 sm:h-6 mr-2" />
+                                <p className="text-sm sm:text-md">Schedule meeting</p>
                             </button>
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex gap-1 mt-4 border-b border-gray-200 -mb-4">
+                        <div className="flex gap-2 sm:gap-1 mt-4 border-b border-gray-200 mb-1">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.value}
                                     onClick={() => setActiveTab(tab.value)}
-                                    className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                                    className={`relative px-1 sm:px-4 py-0.5 sm:py-2 text-sm font-medium transition-colors ${
                                         activeTab === tab.value
                                             ? 'text-blue-600'
                                             : 'text-gray-600 hover:text-gray-900'
@@ -190,7 +190,7 @@ export default function HomeComponent() {
                                 >
                                     {tab.label}
                                     {tab.count !== undefined && tab.count > 0 && (
-                                        <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
+                                        <span className={`ml-0.75 sm:ml-2 px-1 sm:px-2 py-0.5 text-xs rounded-full ${
                                             activeTab === tab.value
                                                 ? 'bg-blue-50 text-blue-600'
                                                 : 'bg-gray-100 text-gray-600'
@@ -208,7 +208,7 @@ export default function HomeComponent() {
                 </div>
 
                 {/* Main Content */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-12">
                             <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-300 border-t-blue-600" />
@@ -219,7 +219,7 @@ export default function HomeComponent() {
                             {/* Today's meetings section */}
                             {activeTab === 'upcoming' && (
                                 <div>
-                                    <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+                                    <h2 className="text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
                                         Today's meetings
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -320,19 +320,19 @@ function MeetingCard({
                 meeting.status === 'ENDED' ? 'bg-gray-300' : 'bg-orange-500'
             }`} />
 
-            <div className="p-5">
+            <div className="p-2 sm:p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate pr-4">
+                        <h3 className="text-sm sm:text-md font-semibold text-gray-900 truncate pr-4 ">
                             {meeting.topic}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${statusStyles[meeting.status]}`}>
+                        <div className="flex items-center gap-2 mt-2 sm:mt-1">
+                            <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium ${statusStyles[meeting.status]}`}>
                                 {statusLabels[meeting.status]}
                             </span>
                             {meeting.userRole && meeting.userRole !== 'PARTICIPANT' && (
-                                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 ring-1 ring-purple-600/20">
+                                <span className="inline-flex items-center px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 ring-1 ring-purple-600/20">
                                     {meeting.userRole}
                                 </span>
                             )}
@@ -354,27 +354,27 @@ function MeetingCard({
                                     className="fixed inset-0 z-20"
                                     onClick={() => setShowActions(false)}
                                 />
-                                <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-30">
+                                <div className="absolute right-0 mt-1 w-36 sm:w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-30">
                                     {isHost && meeting.status === 'SCHEDULED' && (
                                         <>
-                                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                                <Edit className="w-4 h-4" />
+                                            <button className="w-full px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 sm:gap-2">
+                                                <Edit className="w-3 sm:w-4 h-3 sm:h-4" />
                                                 Edit meeting
                                             </button>
-                                            <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                                <XCircle className="w-4 h-4" />
+                                            <button className="w-full px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-1.5 sm:gap-2">
+                                                <XCircle className="w-3 sm:w-4 h-3 sm:h-4" />
                                                 Cancel meeting
                                             </button>
                                             <div className="border-t border-gray-100 my-1" />
                                         </>
                                     )}
-                                    <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                        <Users className="w-4 h-4" />
+                                    <button className="w-full px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 sm:gap-2">
+                                        <Users className="w-3 sm:w-4 h-3 sm:h-4" />
                                         View participants
                                     </button>
                                     {isHost && (
-                                        <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-                                            <Trash2 className="w-4 h-4" />
+                                        <button className="w-full px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 sm:gap-2">
+                                            <Trash2 className="w-3 sm:w-4 h-3 sm:h-4" />
                                             Delete
                                         </button>
                                     )}
@@ -385,32 +385,32 @@ function MeetingCard({
                 </div>
 
                 {/* Meeting Details */}
-                <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <div className="space-y-2 sm:space-y-3 mb-2.5 sm:mb-4">
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <Calendar className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400 flex-shrink-0" />
                         <span>{formatDateTime(meeting.startTime)}</span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <Clock className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400 flex-shrink-0" />
                         <span>{formatDuration(meeting.startTime, meeting.endTime) || 'No duration set'}</span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
+                        <Users className="w-3 sm:w-4 h-3 sm:h-4 text-gray-400 flex-shrink-0" />
                         <span>{meeting.participantCount || 0} participants</span>
                     </div>
                 </div>
 
                 {/* Meeting Code */}
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <div className="mb-2.5 sm:mb-4 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <span className="text-xs font-semibold sm:font-medium text-gray-500 uppercase tracking-wider">
                             Meeting ID
                         </span>
                         <button
                             onClick={() => onCopy(meeting.meetingCode, meeting.meetingId)}
-                            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                            className="text-xs text-blue-600 hover:text-blue-700 font-semibold sm:font-medium flex items-center gap-1"
                         >
                             {copiedId === meeting.meetingId ? (
                                 <>
@@ -425,7 +425,7 @@ function MeetingCard({
                             )}
                         </button>
                     </div>
-                    <p className="font-mono text-sm font-medium text-gray-900 mt-1">
+                    <p className="font-mono text-xs sm:text-sm font-medium text-gray-900 mt-1">
                         {meeting.meetingCode}
                     </p>
                 </div>
@@ -435,13 +435,13 @@ function MeetingCard({
                     <div className="flex gap-2">
                         <button
                             onClick={onJoin}
-                            className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            className="flex-1 px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             {isHost ? 'Start meeting' : 'Join meeting'}
                         </button>
                         {isHost && (
-                            <button className="px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors">
-                                <Edit className="w-4 h-4" />
+                            <button className="px-2.5 sm:px-4 py-1.5 sm:py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                                <Edit className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                             </button>
                         )}
                     </div>
