@@ -1,16 +1,30 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
-  Mic, MicOff, Video, VideoOff, Copy, LogOut, Settings,
-  Camera, Headphones, ChevronDown, X
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Copy,
+  LogOut,
+  Settings,
+  Camera,
+  Headphones,
+  ChevronDown,
+  X,
 } from "lucide-react";
 import { successToast, errorToast } from "@/app/components/ui/toast";
 
 interface WaitingRoomProps {
   meetingCode: string;
   meetingTitle: string;
-  onJoin: (cameraEnabled: boolean, micEnabled: boolean, cameraId?: string, micId?: string) => void;
+  onJoin: (
+    cameraEnabled: boolean,
+    micEnabled: boolean,
+    cameraId?: string,
+    micId?: string
+  ) => void;
   onExit: () => void;
 }
 
@@ -23,6 +37,9 @@ export default function WaitingRoom({
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const [hasMicPermission, setHasMicPermission] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
 
   const [devices, setDevices] = useState<{
     cameras: MediaDeviceInfo[];
@@ -37,115 +54,161 @@ export default function WaitingRoom({
   const [selectedDevices, setSelectedDevices] = useState({
     cameraId: "",
     micId: "",
-    speakerId: "",
+    speakerId: "default",
   });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+
+  const getDevices = useCallback(async () => {
+    try {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+
+      const cameras = allDevices.filter((d) => d.kind === "videoinput");
+      const mics = allDevices.filter((d) => d.kind === "audioinput");
+      const speakers = allDevices.filter((d) => d.kind === "audiooutput");
+
+      setDevices({ cameras, mics, speakers });
+
+      setSelectedDevices((prev) => ({
+        cameraId: prev.cameraId || cameras[0]?.deviceId || "",
+        micId: prev.micId || mics[0]?.deviceId || "",
+        speakerId: prev.speakerId || speakers[0]?.deviceId || "default",
+      }));
+    } catch (err) {
+      console.error("Error enumerating devices:", err);
+      errorToast("Unable to access media devices.");
+    }
+  }, []);
+
   useEffect(() => {
-    const getDevices = async () => {
-      try {
-        const allDevices = await navigator.mediaDevices.enumerateDevices();
-
-        const cameras = allDevices.filter(d => d.kind === "videoinput");
-        const mics = allDevices.filter(d => d.kind === "audioinput");
-        const speakers = allDevices.filter(d => d.kind === "audiooutput");
-
-        setDevices({ cameras, mics, speakers });
-
-        // Set default devices if not already set
-        setSelectedDevices(prev => ({
-          cameraId: prev.cameraId || cameras[0]?.deviceId || "",
-          micId: prev.micId || mics[0]?.deviceId || "",
-          speakerId: prev.speakerId || speakers[0]?.deviceId || "default",
-        }));
-      } catch (err) {
-        console.error("Error enumerating devices:", err);
-      }
-    };
-
     getDevices();
-
     navigator.mediaDevices.addEventListener("devicechange", getDevices);
     return () => {
       navigator.mediaDevices.removeEventListener("devicechange", getDevices);
     };
-  }, []);
+  }, [getDevices]);
 
-  useEffect(() => {
-    if (cameraEnabled) {
-      startCamera();
-    } else {
-      stopCamera();
-    }
-
-    return () => {
-      stopCamera();
-    };
-  }, [cameraEnabled, selectedDevices.cameraId]);
-
-  const startCamera = async () => {
-    stopCamera();
-    try {
-      const constraints = {
-        video: {
-          deviceId: selectedDevices.cameraId ? { exact: selectedDevices.cameraId } : undefined,
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-        audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-
-      if (devices.cameras.length > 0 && !devices.cameras[0].label) {
-        const allDevices = await navigator.mediaDevices.enumerateDevices();
-        setDevices({
-          cameras: allDevices.filter(d => d.kind === "videoinput"),
-          mics: allDevices.filter(d => d.kind === "audioinput"),
-          speakers: allDevices.filter(d => d.kind === "audiooutput"),
-        });
-      }
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setCameraEnabled(false);
-      errorToast("Could not access camera. Please check permissions.");
-    }
-  };
-
-  const stopCamera = () => {
+  const stopMedia = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        track.stop();
-      });
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-  };
+  }, []);
+
+  const startMedia = useCallback(async () => {
+    stopMedia();
+
+    try {
+      const constraints: MediaStreamConstraints = {
+        video: cameraEnabled
+          ? {
+              deviceId: selectedDevices.cameraId
+                ? { exact: selectedDevices.cameraId }
+                : undefined,
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            }
+          : false,
+        audio: micEnabled
+          ? {
+              deviceId: selectedDevices.micId
+                ? { exact: selectedDevices.micId }
+                : undefined,
+            }
+          : false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+      streamRef.current = stream;
+
+      setHasCameraPermission(cameraEnabled);
+      setHasMicPermission(micEnabled);
+
+      if (videoRef.current && cameraEnabled) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error("Error accessing media:", error);
+
+      if (cameraEnabled) {
+        setCameraEnabled(false);
+        setHasCameraPermission(false);
+      }
+
+      if (micEnabled) {
+        setMicEnabled(false);
+        setHasMicPermission(false);
+      }
+
+      errorToast("Permission denied or media device unavailable.");
+    }
+  }, [cameraEnabled, micEnabled, selectedDevices, stopMedia]);
+
+  useEffect(() => {
+    if (cameraEnabled || micEnabled) {
+      startMedia();
+    } else {
+      stopMedia();
+    }
+
+    return () => {
+      stopMedia();
+    };
+  }, [cameraEnabled, micEnabled, selectedDevices, startMedia, stopMedia]);
 
   const handleJoin = () => {
-    onJoin(cameraEnabled, micEnabled, selectedDevices.cameraId, selectedDevices.micId);
+    onJoin(
+      cameraEnabled,
+      micEnabled,
+      selectedDevices.cameraId,
+      selectedDevices.micId
+    );
   };
 
-  const copyMeetingCode = () => {
-    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${meetingCode}`);
-    successToast("Meeting code copied to clipboard!");
-  };
-
-  const handleDeviceChange = (kind: keyof typeof selectedDevices, value: string) => {
-    setSelectedDevices(prev => ({ ...prev, [kind]: value }));
-
-    if (kind === "speakerId" && videoRef.current && (videoRef.current as any).setSinkId) {
-      (videoRef.current as any).setSinkId(value);
+  const copyMeetingCode = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${meetingCode}`
+      );
+      successToast("Meeting link copied to clipboard!");
+    } catch {
+      errorToast("Failed to copy meeting link.");
     }
   };
+
+  const handleDeviceChange = async (
+    kind: keyof typeof selectedDevices,
+    value: string
+  ) => {
+    setSelectedDevices((prev) => ({ ...prev, [kind]: value }));
+
+    if (
+      kind === "speakerId" &&
+      videoRef.current &&
+      "setSinkId" in videoRef.current
+    ) {
+      try {
+        await (videoRef.current as HTMLMediaElement & {
+          setSinkId: (id: string) => Promise<void>;
+        }).setSinkId(value);
+      } catch {
+        errorToast("Failed to switch audio output device.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopMedia();
+    };
+  }, [stopMedia]);
 
   return (
     <div className="flex flex-col lg:flex-row h-screen w-full bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 overflow-hidden">
