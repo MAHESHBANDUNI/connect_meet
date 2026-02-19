@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/app/components/ui/button";
 import {
   Mic, MicOff, Video, VideoOff, Copy, LogOut, Settings,
-  Camera, Volume2, Headphones, Monitor, ChevronDown
+  Camera, Volume2, Headphones, Monitor, ChevronDown, X
 } from "lucide-react";
 import { successToast, errorToast } from "@/app/components/ui/toast";
 
@@ -153,11 +153,12 @@ export default function WaitingRoom({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen w-full text-slate-900 bg-slate-50 overflow-hidden">
-      {/* Left Side - Camera Preview & Settings */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 lg:p-12 space-y-8 min-h-0 overflow-y-auto">
-        <div className="w-full max-w-3xl space-y-6">
-          <div className="relative aspect-video bg-slate-900 rounded-3xl overflow-hidden shadow-2xl ring-1 ring-slate-200 group">
+    <div className="flex flex-col lg:flex-row min-h-screen w-full bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900 overflow-auto">
+      {/* Main Content Area - Left Side on Desktop */}
+      <div className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6 lg:p-8 xl:p-12 min-h-screen lg:min-h-0">
+        <div className="w-full max-w-5xl mx-auto space-y-4 sm:space-y-6">
+          {/* Camera Preview Card */}
+          <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden shadow-lg sm:shadow-xl md:shadow-2xl">
             {cameraEnabled ? (
               <video
                 ref={videoRef}
@@ -167,158 +168,164 @@ export default function WaitingRoom({
                 className="w-full h-full object-cover mirror"
               />
             ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-slate-800">
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
                 <div className="relative">
-                  <div className="w-24 h-24 bg-slate-700/50 rounded-full flex items-center justify-center animate-pulse">
-                    <VideoOff className="w-12 h-12 text-slate-400" />
+                  <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 bg-slate-700/50 rounded-full flex items-center justify-center animate-pulse">
+                    <VideoOff className="w-8 sm:w-10 md:w-12 h-8 sm:h-10 md:h-12 text-slate-400" />
                   </div>
                 </div>
-                <p className="mt-4 text-slate-400 font-medium">Camera is off</p>
+                <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-400 font-medium">Camera is off</p>
               </div>
             )}
 
-            {/* Floating Top Controls */}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <div className="bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-3 border border-white/10 shadow-lg">
-                <span className="text-sm font-mono text-white/90 font-medium">{meetingCode}</span>
+            {/* Meeting Code Badge - Responsive positioning */}
+            <div className="absolute top-2 sm:top-3 md:top-4 right-2 sm:right-3 md:right-4">
+              <div className="bg-black/40 backdrop-blur-md px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full sm:rounded-xl md:rounded-2xl flex items-center gap-1 sm:gap-2 border border-white/10 shadow-lg">
+                <span className="text-xs sm:text-sm font-mono text-white/90 font-medium truncate max-w-[80px] sm:max-w-[120px] md:max-w-full">
+                  {meetingCode}
+                </span>
                 <button
                   onClick={copyMeetingCode}
-                  className="p-1.5 hover:bg-white/20 rounded-xl transition-all text-white/80 hover:text-white"
+                  className="p-1 sm:p-1.5 hover:bg-white/20 rounded-full sm:rounded-lg transition-all text-white/80 hover:text-white"
                   title="Copy meeting code"
                 >
-                  <Copy className="w-4 h-4" />
+                  <Copy className="w-3 sm:w-3.5 md:w-4 h-3 sm:h-3.5 md:h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Bottom Controls Overlay */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-4 px-6 py-4 bg-slate-900/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl">
+            {/* Bottom Controls - Responsive sizing */}
+            <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2 sm:gap-3 md:gap-4 px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl">
               <button
                 onClick={() => setMicEnabled(!micEnabled)}
-                className={`p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${micEnabled
-                    ? "bg-slate-100 text-slate-900 shadow-lg"
+                className={`p-2 sm:p-3 md:p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                  micEnabled
+                    ? "bg-white text-slate-900 shadow-lg"
                     : "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                  }`}
+                }`}
+                aria-label={micEnabled ? "Mute microphone" : "Unmute microphone"}
               >
-                {micEnabled ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+                {micEnabled ? <Mic className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6" /> : <MicOff className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6" />}
               </button>
+              
               <button
                 onClick={() => setCameraEnabled(!cameraEnabled)}
-                className={`p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${cameraEnabled
-                    ? "bg-slate-100 text-slate-900 shadow-lg"
+                className={`p-2 sm:p-3 md:p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                  cameraEnabled
+                    ? "bg-white text-slate-900 shadow-lg"
                     : "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                  }`}
+                }`}
+                aria-label={cameraEnabled ? "Turn off camera" : "Turn on camera"}
               >
-                {cameraEnabled ? <Video className="w-6 h-6" /> : <VideoOff className="w-6 h-6" />}
+                {cameraEnabled ? <Video className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6" /> : <VideoOff className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6" />}
               </button>
 
-              <div className="w-px h-8 bg-white/20 mx-2" />
+              <div className="w-px h-4 sm:h-6 md:h-8 bg-white/20 mx-0 sm:mx-1 md:mx-2" />
 
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className={`p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${showSettings ? "bg-blue-600 text-white" : "bg-white/10 text-white hover:bg-white/20"
-                  }`}
+                className={`p-2 sm:p-3 md:p-4 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+                  showSettings ? "bg-blue-600 text-white" : "bg-white/10 text-white hover:bg-white/20"
+                }`}
+                aria-label="Settings"
               >
-                <Settings className="w-6 h-6" />
+                <Settings className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6" />
               </button>
             </div>
           </div>
 
-          {/* Quick Info & Feedback */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 ${micEnabled ? "bg-blue-50 border-blue-100 text-blue-700" : "bg-slate-100 border-slate-200 text-slate-500"
-              }`}>
-              <div className={`p-2 rounded-full ${micEnabled ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"}`}>
-                {micEnabled ? <Volume2 className="w-4 h-4 animate-pulse" /> : <MicOff className="w-4 h-4" />}
-              </div>
-              <span className="text-sm font-semibold">{micEnabled ? "Microphone active" : "Microphone muted"}</span>
-            </div>
-            <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-300 ${cameraEnabled ? "bg-blue-50 border-blue-100 text-blue-700" : "bg-slate-100 border-slate-200 text-slate-500"
-              }`}>
-              <div className={`p-2 rounded-full ${cameraEnabled ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-400"}`}>
-                {cameraEnabled ? <Monitor className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />}
-              </div>
-              <span className="text-sm font-semibold">{cameraEnabled ? "Video sharing" : "Camera off"}</span>
-            </div>
-          </div>
-
-          {/* Settings Section (Conditional) */}
+          {/* Settings Section - Responsive */}
           {showSettings && (
-            <div className="mt-8 p-6 bg-white rounded-3xl border border-slate-200 shadow-xl space-y-6 animate-in slide-in-from-bottom-4 transition-all overflow-hidden relative">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-blue-600" />
-                  Device Settings
-                </h3>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors font-medium text-sm"
-                >
-                  Done
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Camera Selection */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2 tracking-wider">
-                    <Camera className="w-3.5 h-3.5" />
-                    Camera
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={selectedDevices.cameraId}
-                      onChange={(e) => handleDeviceChange("cameraId", e.target.value)}
-                      className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer group-hover:border-slate-300"
-                    >
-                      {devices.cameras.map((d) => (
-                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${d.deviceId.slice(0, 5)}...`}</option>
-                      ))}
-                      {devices.cameras.length === 0 && <option value="">No cameras found</option>}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-hover:text-slate-600" />
-                  </div>
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm lg:relative lg:inset-auto lg:bg-transparent lg:p-0 lg:backdrop-blur-none animate-in fade-in lg:animate-none">
+              <div className="w-full max-w-lg lg:max-w-none bg-white rounded-t-2xl sm:rounded-2xl lg:rounded-3xl border border-slate-200 shadow-xl lg:shadow-lg p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5 md:space-y-6 animate-in slide-in-from-bottom lg:slide-in-from-bottom-0 lg:animate-none">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Settings className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600" />
+                    Device Settings
+                  </h3>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="lg:hidden p-2 hover:bg-slate-100 rounded-full transition-colors"
+                    aria-label="Close settings"
+                  >
+                    <X className="w-5 h-5 text-slate-500" />
+                  </button>
+                  <button
+                    onClick={() => setShowSettings(false)}
+                    className="hidden lg:block text-xs sm:text-sm text-slate-400 hover:text-slate-600 transition-colors font-medium"
+                  >
+                    Done
+                  </button>
                 </div>
 
-                {/* Microphone Selection */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2 tracking-wider">
-                    <Mic className="w-3.5 h-3.5" />
-                    Microphone
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={selectedDevices.micId}
-                      onChange={(e) => handleDeviceChange("micId", e.target.value)}
-                      className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer group-hover:border-slate-300"
-                    >
-                      {devices.mics.map((d) => (
-                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.slice(0, 5)}...`}</option>
-                      ))}
-                      {devices.mics.length === 0 && <option value="">No microphones found</option>}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-hover:text-slate-600" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
+                  {/* Camera Selection */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1.5 tracking-wider">
+                      <Camera className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      Camera
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedDevices.cameraId}
+                        onChange={(e) => handleDeviceChange("cameraId", e.target.value)}
+                        className="w-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2 sm:py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      >
+                        {devices.cameras.map((d) => (
+                          <option key={d.deviceId} value={d.deviceId} className="text-xs sm:text-sm">
+                            {d.label || `Camera ${d.deviceId.slice(0, 5)}...`}
+                          </option>
+                        ))}
+                        {devices.cameras.length === 0 && <option value="">No cameras found</option>}
+                      </select>
+                      <ChevronDown className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 sm:w-4 h-3 sm:h-4 text-slate-400 pointer-events-none" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Speaker Selection */}
-                <div className="space-y-2 md:col-span-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2 tracking-wider">
-                    <Headphones className="w-3.5 h-3.5" />
-                    Speaker
-                  </label>
-                  <div className="relative group">
-                    <select
-                      value={selectedDevices.speakerId}
-                      onChange={(e) => handleDeviceChange("speakerId", e.target.value)}
-                      className="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer group-hover:border-slate-300"
-                    >
-                      {devices.speakers.map((d) => (
-                        <option key={d.deviceId} value={d.deviceId}>{d.label || `Speaker ${d.deviceId.slice(0, 5)}...`}</option>
-                      ))}
-                      {devices.speakers.length === 0 && <option value="default">Default System Output</option>}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-hover:text-slate-600" />
+                  {/* Microphone Selection */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1.5 tracking-wider">
+                      <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      Microphone
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedDevices.micId}
+                        onChange={(e) => handleDeviceChange("micId", e.target.value)}
+                        className="w-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2 sm:py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      >
+                        {devices.mics.map((d) => (
+                          <option key={d.deviceId} value={d.deviceId} className="text-xs sm:text-sm">
+                            {d.label || `Mic ${d.deviceId.slice(0, 5)}...`}
+                          </option>
+                        ))}
+                        {devices.mics.length === 0 && <option value="">No microphones found</option>}
+                      </select>
+                      <ChevronDown className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 sm:w-4 h-3 sm:h-4 text-slate-400 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  {/* Speaker Selection - Full width on mobile */}
+                  <div className="sm:col-span-2 space-y-1.5 sm:space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1.5 tracking-wider">
+                      <Headphones className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                      Speaker
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedDevices.speakerId}
+                        onChange={(e) => handleDeviceChange("speakerId", e.target.value)}
+                        className="w-full pl-3 sm:pl-4 pr-8 sm:pr-10 py-2 sm:py-2.5 md:py-3 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl text-xs sm:text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                      >
+                        {devices.speakers.map((d) => (
+                          <option key={d.deviceId} value={d.deviceId} className="text-xs sm:text-sm">
+                            {d.label || `Speaker ${d.deviceId.slice(0, 5)}...`}
+                          </option>
+                        ))}
+                        {devices.speakers.length === 0 && <option value="default">Default System Output</option>}
+                      </select>
+                      <ChevronDown className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 sm:w-4 h-3 sm:h-4 text-slate-400 pointer-events-none" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -327,55 +334,44 @@ export default function WaitingRoom({
         </div>
       </div>
 
-      {/* Right Side - Action Panel */}
-      <div className="w-full lg:w-[420px] bg-white lg:border-l border-slate-200 shadow-[-20px_0_40px_rgba(0,0,0,0.02)] z-10 p-8 lg:p-12 flex flex-col justify-center">
-        <div className="max-w-md mx-auto w-full space-y-8">
-          <div className="space-y-4 text-center">
-            <h1 className="text-2xl font-semibold text-slate-900 leading-tight">Ready to <span className="text-blue-600">Join?</span></h1>
-            {/* <p className="text-slate-500 text-lg leading-relaxed">Everything is set. Your colleagues are waiting for you in the room.</p> */}
+      {/* Right Panel - Action Buttons */}
+      <div className="w-full lg:w-80 xl:w-96 bg-white lg:bg-transparent lg:border-l border-slate-200 p-4 sm:p-6 md:p-8 lg:p-10 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto space-y-4 sm:space-y-6">
+          {/* Meeting Title - Visible on all screens */}
+          <div className="text-center lg:text-left">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-900 mb-1">
+              {meetingTitle}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Ready to join the meeting?
+            </p>
           </div>
 
-          {/* <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Meeting Topic</p>
-                <p className="text-xl font-bold text-slate-800 break-words line-clamp-2">{meetingTitle}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                <Video className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-slate-200">
-              <div className="flex items-center gap-4 text-slate-500 font-medium">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-slate-${200 + i * 100} flex items-center justify-center text-[10px] text-white font-bold`}>
-                      U{i}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm">No one else is here yet</span>
-              </div>
-            </div>
-          </div> */}
-
-          <div className="space-y-4">
+          {/* Action Buttons */}
+          <div className="space-y-3 sm:space-y-4">
             <Button
               onClick={handleJoin}
               size="lg"
-              className="w-full h-16 text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-3xl shadow-xl shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+              className="w-full h-12 sm:h-14 md:h-16 text-sm sm:text-base md:text-lg font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl sm:rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] sm:hover:scale-[1.02] active:scale-95"
             >
-              Join now
+              Join Meeting
             </Button>
 
             <button
               onClick={onExit}
-              className="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-3 sm:py-3.5 md:py-4 text-red-500 font-medium hover:bg-red-50 rounded-lg sm:rounded-xl transition-all flex items-center justify-center gap-2 group"
             >
-              <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              Return Home
+              <LogOut className="w-4 sm:w-5 h-4 sm:h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="text-sm sm:text-base">Return Home</span>
             </button>
+          </div>
+
+          {/* Meeting Code - Mobile only */}
+          <div className="lg:hidden flex items-center justify-center gap-2 p-3 sm:p-4 bg-slate-50 rounded-lg sm:rounded-xl">
+            <span className="text-xs sm:text-sm text-slate-600">Meeting Code:</span>
+            <code className="text-xs sm:text-sm font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              {meetingCode}
+            </code>
           </div>
         </div>
       </div>
