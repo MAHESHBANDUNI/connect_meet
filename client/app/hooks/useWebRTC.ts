@@ -250,6 +250,26 @@ export const useWebRTC = (
     [localUserId]
   );
 
+  const stopScreenSharing = useCallback(() => {
+    const screen = screenStreamRef.current;
+    if (!screen) return;
+
+    screen.getTracks().forEach(track => track.stop());
+    screenStreamRef.current = null;
+
+    peerConnectionsRef.current.forEach(pc => {
+      const senders = pc.getSenders();
+      senders.forEach(sender => {
+        if (sender.track?.kind === 'video') {
+          pc.removeTrack(sender);
+        }
+      });
+    });
+
+    setUsersLocalMedia('toggle-screen', false);
+    sendUserAction(roomId, localUserId, 'toggle-screen', false);
+  }, []);
+
   const {
     connect,
     disconnect,
@@ -329,6 +349,8 @@ export const useWebRTC = (
         ],
       }));
     },
+
+    onForceStopScreen: stopScreenSharing,
   });
 
   useEffect(() => {

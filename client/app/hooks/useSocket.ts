@@ -9,6 +9,7 @@ interface SocketEventHandlers {
   onSignal?: (data: { from: string; signal: any }) => void;
   onChatMessage?: (data: { userId: string; message: string; timestamp: number }) => void;
   onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number }) => void;
+  onForceStopScreen?: () => void;
   onError?: (error: { type: string; message: string }) => void;
 }
 
@@ -66,6 +67,10 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
 
     socket.on('user-action', (data) => {
       handlersRef.current.onUserAction?.(data);
+    });
+
+    socket.on('force-stop-screen', () => {
+      handlersRef.current.onForceStopScreen?.();
     });
 
     socket.on('error', (error) => {

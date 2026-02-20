@@ -25,6 +25,7 @@ export interface RoomState {
   messages: Message[];
   isConnected: boolean;
   isCallActive: boolean;
+  activeScreenSharer?: string | null;
 }
 
 export interface SignalData {

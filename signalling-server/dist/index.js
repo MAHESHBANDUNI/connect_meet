@@ -29,8 +29,8 @@ io.on('connection', (socket) => {
             const { roomId: oldRoomId } = users.get(socket.id);
             socket.leave(oldRoomId);
             if (rooms.has(oldRoomId)) {
-                rooms.get(oldRoomId).delete(socket.id);
-                if (rooms.get(oldRoomId).size === 0) {
+                rooms.get(oldRoomId).users.delete(socket.id);
+                if (rooms.get(oldRoomId).users.size === 0) {
                     rooms.delete(oldRoomId);
                 }
                 // Notify old room
@@ -44,12 +44,15 @@ io.on('connection', (socket) => {
         socket.join(roomId);
         // Update tracking
         if (!rooms.has(roomId)) {
-            rooms.set(roomId, new Set());
+            rooms.set(roomId, {
+                users: new Set(),
+                activeScreenSharer: null
+            });
         }
-        rooms.get(roomId).add(socket.id);
+        rooms.get(roomId).users.add(socket.id);
         users.set(socket.id, { userId, roomId });
         // Get all other users in the room
-        const otherUsers = Array.from(rooms.get(roomId))
+        const otherUsers = Array.from(rooms.get(roomId).users)
             .filter(id => id !== socket.id)
             .map(id => users.get(id).userId);
         // Notify new user of existing users
@@ -63,7 +66,7 @@ io.on('connection', (socket) => {
             roomId,
             timestamp: Date.now()
         });
-        console.log(`Room ${roomId}: ${rooms.get(roomId).size} users`);
+        console.log(`Room ${roomId}: ${rooms.get(roomId).users.size} users`);
     });
     // Handle WebRTC signalling
     socket.on('signal', ({ to, from, signal }) => {
@@ -101,7 +104,42 @@ io.on('connection', (socket) => {
     });
     // Handle user actions (mute, video toggle, etc.)
     socket.on('user-action', ({ roomId, userId, action, value }) => {
-        console.log(`Action ${action} from ${userId} in ${roomId}`);
+        const room = rooms.get(roomId);
+        if (!room)
+            return;
+        // SCREEN SHARING CONTROL
+        if (action === 'toggle-screen') {
+            // Someone wants to START sharing
+            if (value === true) {
+                // If someone else is already sharing
+                if (room.activeScreenSharer && room.activeScreenSharer !== userId) {
+                    // Find previous sharer socket
+                    for (const [sId, userData] of users.entries()) {
+                        if (userData.userId === room.activeScreenSharer) {
+                            // Force stop previous sharer
+                            io.to(sId).emit('force-stop-screen');
+                            // Notify room that previous sharer stopped
+                            io.to(roomId).emit('user-action', {
+                                userId: room.activeScreenSharer,
+                                action: 'toggle-screen',
+                                value: false,
+                                timestamp: Date.now()
+                            });
+                            break;
+                        }
+                    }
+                }
+                // Set new active sharer
+                room.activeScreenSharer = userId;
+            }
+            // Someone stopped sharing
+            if (value === false) {
+                if (room.activeScreenSharer === userId) {
+                    room.activeScreenSharer = null;
+                }
+            }
+        }
+        // Broadcast action to others
         socket.to(roomId).emit('user-action', {
             userId,
             action,
@@ -120,7 +158,11 @@ io.on('connection', (socket) => {
             const { userId, roomId } = users.get(socket.id);
             // Remove from room
             if (rooms.has(roomId)) {
-                rooms.get(roomId).delete(socket.id);
+                rooms.get(roomId).users.delete(socket.id);
+                // If the disconnected user was the active screen sharer, update room state
+                if (rooms.get(roomId).activeScreenSharer === userId) {
+                    rooms.get(roomId).activeScreenSharer = null;
+                }
                 // Notify others in room
                 socket.to(roomId).emit('user-disconnected', {
                     userId,
@@ -129,7 +171,7 @@ io.on('connection', (socket) => {
                     timestamp: Date.now()
                 });
                 // Clean up empty rooms
-                if (rooms.get(roomId).size === 0) {
+                if (rooms.get(roomId).users.size === 0) {
                     rooms.delete(roomId);
                     console.log(`Room ${roomId} cleaned up (empty)`);
                 }

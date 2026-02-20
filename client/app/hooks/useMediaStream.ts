@@ -31,14 +31,13 @@ export const useMediaStream = () => {
   }, []);
 
   const stopMediaStream = useCallback(() => {
-    [localStreamRef.current, screenStreamRef.current].forEach(stream => {
+    [localStreamRef.current].forEach(stream => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     });
 
     localStreamRef.current = null;
-    screenStreamRef.current = null;
   }, []);
 
   const toggleAudio = useCallback(() => {
@@ -102,6 +101,6 @@ export const useMediaStream = () => {
     stopMediaStream,
     toggleAudio,
     toggleVideo,
-    toggleScreenShare
+    toggleScreenShare,
   };
 };

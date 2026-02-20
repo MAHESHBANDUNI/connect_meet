@@ -44,7 +44,8 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
     setUsersLocalMedia
   } = useWebRTC(userId, roomId, activeStream, screenStream);
 
-  // console.log('Current Users in Call:', users);
+  console.log('Current Users in Call:', users);
+  console.log('User Media Status:', { isAudioMuted, isVideoOff, isScreenSharing, localStream, screenStream });
   const screenSharer = users.find(
     user => user.screenStream
   );
