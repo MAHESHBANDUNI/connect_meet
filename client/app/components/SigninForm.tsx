@@ -71,7 +71,6 @@ export default function LoginForm() {
 
   return (
     <>
-      {/* Custom Animations */}
       <style>{`
         @keyframes fadeIn {
           0% {opacity: 0;}
@@ -108,7 +107,6 @@ export default function LoginForm() {
 
           <form className="space-y-6" onSubmit={(e) => handleSubmit(e)}>
 
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">Email</label>
               <div className="relative">
@@ -131,7 +129,6 @@ export default function LoginForm() {
               </div>
             </div>
 
-            {/* Password + Eye Toggle */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">Password</label>
               <div className="relative">
@@ -163,7 +160,6 @@ export default function LoginForm() {
               <p className="text-red-500 text-sm animateFadeIn">{error}</p>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               className="cursor-pointer w-full py-2 px-4 rounded-sm bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-300 flex justify-center items-center"

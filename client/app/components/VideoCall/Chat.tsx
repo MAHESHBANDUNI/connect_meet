@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Message } from '@/app/types';
+import { Send } from 'lucide-react';
 
 interface ChatProps {
   messages: Message[];
@@ -99,26 +100,25 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="p-6 pt-2">
-        <div className="flex gap-3 bg-black/20 border border-white/5 rounded-2xl p-2 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all duration-300">
+      <div className="p-6 pt-2">
+        <div className="flex justify-between gap-3 bg-black/20 border border-white/20 rounded-2xl p-2 transition-all duration-300">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 bg-transparent text-sm text-white px-3 py-2 focus:outline-none placeholder:text-white/20"
+            className="w-full bg-transparent text-sm text-white px-3 py-2 placeholder:text-white/20 "
           />
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             disabled={!inputValue.trim()}
-            className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 disabled:hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/20 active:scale-95"
+            className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 disabled:hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/20 active:scale-95 focus:outline-none focus:ring-0"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
+            <Send className="w-4 h-4" />
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

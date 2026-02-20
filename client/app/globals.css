@@ -54,7 +54,7 @@
   --card-foreground: oklch(0.2 0.05 260);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.05 260);
-  --primary: oklch(0.45 0.2 260); /* Professional Blue/Indigo */
+  --primary: oklch(0.45 0.2 260);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.95 0.02 260);
   --secondary-foreground: oklch(0.2 0.1 260);
@@ -82,13 +82,13 @@
 }
 
 .dark {
-  --background: oklch(0.15 0.04 260); /* Dark Blue background */
+  --background: oklch(0.15 0.04 260);
   --foreground: oklch(0.95 0.02 260);
   --card: oklch(0.18 0.04 260);
   --card-foreground: oklch(0.95 0.02 260);
   --popover: oklch(0.18 0.04 260);
   --popover-foreground: oklch(0.95 0.02 260);
-  --primary: oklch(0.55 0.2 250); /* Bright Indigo/Blue for dark mode */
+  --primary: oklch(0.55 0.2 250);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.25 0.05 260);
   --secondary-foreground: oklch(0.95 0.02 260);
@@ -358,3 +358,34 @@ video {
 .animate-stagger > *:nth-child(1) { animation-delay: 0.1s; }
 .animate-stagger > *:nth-child(2) { animation-delay: 0.2s; }
 .animate-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #2d2e30;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5f6368;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7f8489;
+}

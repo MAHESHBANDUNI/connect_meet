@@ -7,6 +7,7 @@ import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
 import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon } from "lucide-react";
+import {ScreenPresentTile} from './ScreenPresentTile';
 
 interface VideoCallProps {
   roomId: string;
@@ -25,16 +26,15 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
     screenStream,
     isAudioMuted,
     isVideoOff,
-    // isScreenSharing,
+    isScreenSharing,
     toggleAudio,
     toggleVideo,
-    // toggleScreenShare,
+    toggleScreenShare,
     stopMediaStream,
     getMediaStream,
   } = useMediaStream();
 
-//   const activeStream = isScreenSharing && screenStream ? screenStream : localStream;
-    const activeStream = localStream;
+  const activeStream = localStream;
 
   const {
     users,
@@ -42,9 +42,16 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
     sendChatMessage,
     sendUserAction,
     setUsersLocalMedia
-  } = useWebRTC(userId, roomId, activeStream);
+  } = useWebRTC(userId, roomId, activeStream, screenStream);
 
-  console.log('Current Users in Call:', users);
+  // console.log('Current Users in Call:', users);
+  const screenSharer = users.find(
+    user => user.screenStream
+  );
+
+  const gridUsers = users.filter(
+    user => user.id !== screenSharer?.id
+  );
 
   useEffect(() => {
     const initialize = async () => {
@@ -59,36 +66,26 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
     initialize();
   }, [getMediaStream]);
 
-//   useEffect(() => {
-//     if (isInitialized) {
-//       sendUserAction(roomId, userId, 'toggle-audio', isAudioMuted);
-//       sendUserAction(roomId, userId, 'toggle-video', isVideoOff);
-//     }
-//   }, [isAudioMuted, isVideoOff, isInitialized, roomId, userId, sendUserAction]);
+  const handleToggleAudio = () => {
+    const newValue = !isAudioMuted;
+    toggleAudio();
+    setUsersLocalMedia('toggle-audio', newValue);
+    sendUserAction(roomId, userId, 'toggle-audio', newValue);
+  };
 
-const handleToggleAudio = () => {
-  const newValue = !isAudioMuted;
+  const handleToggleVideo = () => {
+    const newValue = !isVideoOff;
+    toggleVideo();
+    setUsersLocalMedia('toggle-video', newValue);
+    sendUserAction(roomId, userId, 'toggle-video', newValue);
+  };
 
-  toggleAudio();
-
-  // UPDATE LOCAL USER STATE
-  setUsersLocalMedia('toggle-audio', newValue);
-
-  // NOTIFY OTHERS
-  sendUserAction(roomId, userId, 'toggle-audio', newValue);
-};
-
-const handleToggleVideo = () => {
-  const newValue = !isVideoOff;
-
-  toggleVideo();
-
-  setUsersLocalMedia('toggle-video', newValue);
-
-  sendUserAction(roomId, userId, 'toggle-video', newValue);
-};
-
-//   const handleToggleScreenShare = () => toggleScreenShare();
+  const handleToggleScreenShare = () => {
+    const newValue = !isScreenSharing;
+    toggleScreenShare();
+    setUsersLocalMedia('toggle-screen', newValue);
+    sendUserAction(roomId, userId, 'toggle-screen', newValue);
+  };
 
   const handleEndCall = () => {
     stopMediaStream();
@@ -115,17 +112,6 @@ const handleToggleVideo = () => {
     <div className="fixed inset-0 bg-[#0f1115] flex flex-col overflow-hidden">
       {/* Top Header */}
       <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
-        {/* <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
-            <span className="text-white/90 font-semibold tracking-tight text-sm uppercase">Rec</span>
-          </div>
-          <div className="h-4 w-[1px] bg-white/10 mx-2"></div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-white/50 text-sm font-medium">Meeting ID:</h1>
-            <span className="text-white/90 font-mono text-sm tracking-widest">{roomId}</span>
-          </div>
-        </div> */}
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={toggleParticipants}>
@@ -141,16 +127,57 @@ const handleToggleVideo = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden relative bg-[#26282c]">
-        {/* Video Grid Section */}
-        <div className={`flex-1 transition-all duration-300 ease-in-out p-6 grid gap-4 content-center overflow-y-auto ${totalUsers === 1 ? 'max-w-4xl mx-auto w-full' :
-            totalUsers === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-7xl mx-auto w-full' :
-              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-[1600px] mx-auto w-full'
-          }`}>
-            {users.map(user => (
-              <VideoTile key={user.id} user={user} />
-            ))}
 
-        </div>
+        {screenSharer ? (
+          <div className="flex flex-col lg:flex-row w-full h-full">
+          
+            {/* Share Screen Area */}
+            <div className="flex-1 bg-[#26282c] flex items-center justify-center p-4 w-full lg:min-w-3/4 h-2/3 sm:h-full">
+               <div className='w-full h-full flex items-center justify-center'>
+                  <ScreenPresentTile user={screenSharer} />
+                </div>
+            </div>
+
+            <div
+              className={`
+                grid
+                grid-cols-2
+                md:grid-cols-3
+                lg:grid-cols-1
+                gap-2
+                w-full lg:w-1/4
+                h-full
+                overflow-x-auto
+                lg:overflow-y-auto
+                p-4
+              `}
+            >
+              {users.map(user => (
+                <>
+                <VideoTile key={user.id} user={user} screenSharer={screenSharer}/>
+                </>
+              ))}
+            </div>
+            
+          </div>
+
+        ) : (
+          <div className={`
+            flex-1 p-6 grid gap-4 content-center overflow-y-auto
+            ${totalUsers === 1
+              ? 'max-w-4xl mx-auto grid-cols-1'
+              : totalUsers === 2
+              ? 'grid-cols-1 md:grid-cols-2'
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }
+          `}>
+            {users.map(user => (
+              <>
+              <VideoTile key={user.id} user={user} />
+              </>
+            ))}
+          </div>
+        )}
 
         {/* Combined Sidebar for Chat and Participants */}
         <aside className={`
@@ -217,23 +244,15 @@ const handleToggleVideo = () => {
         </aside>
       </main>
 
-      {/* Modern Bottom Controls */}
       <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">
-        {/* <div className="w-1/4">
-          <div className="flex flex-col">
-            <span className="text-white/90 font-semibold text-sm">Meeting Room</span>
-            <span className="text-white/40 text-xs">Encryption Active</span>
-          </div>
-        </div> */}
-
         <div className="flex-1 flex justify-between">
           <Controls
             isAudioMuted={isAudioMuted}
             isVideoOff={isVideoOff}
-            // isScreenSharing={isScreenSharing}
+            isScreenSharing={isScreenSharing}
             onToggleAudio={handleToggleAudio}
             onToggleVideo={handleToggleVideo}
-            // onToggleScreenShare={handleToggleScreenShare}
+            onToggleScreenShare={handleToggleScreenShare}
             onEndCall={handleEndCall}
             roomId={roomId}
           />
@@ -253,20 +272,6 @@ const handleToggleVideo = () => {
             </svg>
             {showChat && <span className="text-sm font-medium pr-1">Chat</span>}
           </button>
-
-          {/* <button
-            onClick={toggleParticipants}
-            className={`
-              p-3 rounded-2xl transition-all duration-200 flex items-center gap-2
-              ${showParticipants ? 'bg-blue-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'}
-            `}
-            title="Participants"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-            {showParticipants && <span className="text-sm font-medium pr-1">Participants</span>}
-          </button> */}
         </div>
       </footer>
     </div>

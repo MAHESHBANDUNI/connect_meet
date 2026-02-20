@@ -21,10 +21,6 @@ declare module "next-auth/jwt" {
   }
 }
 
-/* ---------------------------------- */
-/* Utils                              */
-/* ---------------------------------- */
-
 function cleanApiErrorMessage(error?: string): string {
   try {
     if (error?.startsWith("API Error:")) {
@@ -34,10 +30,6 @@ function cleanApiErrorMessage(error?: string): string {
   } catch {}
   return error || "Authentication failed";
 }
-
-/* ---------------------------------- */
-/* Auth Options                       */
-/* ---------------------------------- */
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -138,10 +130,6 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NEXT_ENV !== "production",
 };
-
-/* ---------------------------------- */
-/* Route Handler                      */
-/* ---------------------------------- */
 
 const handler = NextAuth(authOptions);
 

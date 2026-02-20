@@ -96,12 +96,12 @@ export default function MeetingPage() {
     cameraId?: string,
     micId?: string
   ) => {
-    console.log("Joining meeting with:", {
-      cameraEnabled,
-      micEnabled,
-      cameraId,
-      micId,
-    });
+    // console.log("Joining meeting with:", {
+    //   cameraEnabled,
+    //   micEnabled,
+    //   cameraId,
+    //   micId,
+    // });
     setIsInCall(true);
   };
 

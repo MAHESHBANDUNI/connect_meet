@@ -12,35 +12,6 @@ export const getRTCPeerConnectionConfig = (): RTCConfiguration => {
   };
 };
 
-// export const createPeerConnection = (
-//   userId: string,
-//   remoteUserId: string,
-//   onIceCandidate: (candidate: RTCIceCandidate, targetUserId: string) => void,
-//   onTrack: (event: RTCTrackEvent, remoteUserId: string) => void
-// ): RTCPeerConnection => {
-//   const pc = new RTCPeerConnection(getRTCPeerConnectionConfig());
-
-//   pc.onicecandidate = (event) => {
-//     if (event.candidate) {
-//       onIceCandidate(event.candidate, remoteUserId);
-//     }
-//   };
-
-//   pc.ontrack = (event) => {
-//     onTrack(event, remoteUserId);
-//   };
-
-//   pc.onconnectionstatechange = () => {
-//     console.log(`Connection state with ${remoteUserId}:`, pc.connectionState);
-//   };
-
-//   pc.oniceconnectionstatechange = () => {
-//     console.log(`ICE state with ${remoteUserId}:`, pc.iceConnectionState);
-//   };
-
-//   return pc;
-// };
-
 export const createPeerConnection = (
   localUserId: string,
   remoteUserId: string,

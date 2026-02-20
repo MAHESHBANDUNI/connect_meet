@@ -16,7 +16,6 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
   const socketRef = useRef<Socket | null>(null);
   const handlersRef = useRef(handlers);
 
-  // Update handlers ref whenever they change
   useEffect(() => {
     handlersRef.current = handlers;
   }, [handlers]);
@@ -77,7 +76,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
     });
-  }, []); // Stable connect function
+  }, []); 
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {

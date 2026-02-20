@@ -10,10 +10,6 @@ require("dotenv/config");
 const server_js_1 = require("./server.js");
 const PORT = Number(process.env.PORT || 8000);
 function getWorkerCount() {
-    //   if (process.env.NODE_ENV !== 'production') return 1;
-    //   if (process.env.WEB_CONCURRENCY) {
-    //     return Number(process.env.WEB_CONCURRENCY);
-    //   }
     return os_1.default.cpus().length;
 }
 if (cluster_1.default.isPrimary) {

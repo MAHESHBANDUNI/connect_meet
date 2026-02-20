@@ -64,7 +64,6 @@ export default function Sidebar({
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Check mobile viewport
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024)
@@ -75,18 +74,15 @@ export default function Sidebar({
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Determine nav items
   const activeNavItems = session?.user?.role === 'Admin'
     ? navItemsAdmin
     : navItemsUser
 
-  // Check if pathname matches any submenu item
   const getActiveSubmenu = (item: NavItem): boolean => {
     if (!item.submenu) return false;
     return item.submenu.some(subItem => pathname.startsWith(subItem.href));
   };
 
-  // Click outside to close sidebar on mobile
   useEffect(() => {
     if (!sidebarOpen || !isMobile) return
 
@@ -135,7 +131,6 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Mobile Overlay */}
       <AnimatePresence>
         {sidebarOpen && isMobile && (
           <motion.div
@@ -148,7 +143,6 @@ export default function Sidebar({
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <motion.aside
         ref={sidebarRef}
         initial={isMobile ? { x: -320 } : false}

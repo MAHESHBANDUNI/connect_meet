@@ -1,10 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ErrorHandler, AppError } from '../utils/errorHandler.js';
 
-/**
- * Global error handling middleware
- * This middleware should be placed after all other middleware and routes
- */
 export const errorMiddleware = (
   error: any,
   req: Request,

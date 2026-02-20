@@ -6,9 +6,10 @@ import { MicIcon, MicOff, VideoOffIcon } from 'lucide-react';
 
 interface VideoTileProps {
   user: User;
+  screenSharer?: User | null;
 }
 
-export const VideoTile = ({ user }: VideoTileProps) => {
+export const VideoTile = ({ user, screenSharer }: VideoTileProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -22,7 +23,7 @@ export const VideoTile = ({ user }: VideoTileProps) => {
   const userName = user.id.split(":")[0];
 
   return (
-    <div className="relative group rounded-3xl overflow-hidden bg-[#1a1d23] aspect-video shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all duration-500 hover:ring-blue-500/50">
+    <div className={`relative group rounded-3xl object-cover overflow-hidden bg-[#1a1d23] shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all duration-500 hover:ring-blue-500/50 w-full ${screenSharer ? 'h-[240px]' : 'h-full'}`}>
       <video
         ref={videoRef}
         autoPlay
@@ -43,7 +44,6 @@ export const VideoTile = ({ user }: VideoTileProps) => {
         </div>
       )}
 
-      {/* Overlay Information */}
       <div className="absolute inset-0 p-4 flex flex-col justify-between pointer-events-none">
         <div className="flex justify-end">
           {user.isAudioMuted && (

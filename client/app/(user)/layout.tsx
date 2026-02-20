@@ -5,13 +5,12 @@ import HeaderDashboard from "../components/HeaderDashboard";
 import Sidebar from "../components/Sidebar";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false); // for mobile
-  const [isCollapsed, setIsCollapsed] = useState(false); // for desktop
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen">
       
-      {/* Sidebar */}
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
@@ -19,7 +18,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         setIsCollapsed={setIsCollapsed}
       />
 
-      {/* Main content area */}
       <div
         className={`
           relative flex flex-1 flex-col transition-all duration-300 overflow-auto

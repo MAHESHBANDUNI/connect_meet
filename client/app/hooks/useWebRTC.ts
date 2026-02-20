@@ -19,7 +19,8 @@ interface WebRTCState {
 export const useWebRTC = (
   localUserId: string,
   roomId: string,
-  localStream: MediaStream | null
+  localStream: MediaStream | null,
+  screenStream: MediaStream | null
 ) => {
   const [state, setState] = useState<WebRTCState>({
     users: new Map(),
@@ -29,32 +30,52 @@ export const useWebRTC = (
   });
 
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
-  const remoteStreamsRef = useRef<Map<string, MediaStream>>(new Map());
+  const remoteStreamsRef = useRef<
+    Map<string, { camera?: MediaStream; screen?: MediaStream }>
+  >(new Map());
   const localStreamRef = useRef<MediaStream | null>(localStream);
+  const screenStreamRef = useRef<MediaStream | null>(screenStream);
 
   useEffect(() => {
     localStreamRef.current = localStream;
   }, [localStream]);
 
-  /* ---------------- Remote stream handling ---------------- */
+  useEffect(() => {
+    screenStreamRef.current = screenStream;
+  }, [screenStream]);
 
-  const addRemoteStream = useCallback((userId: string, stream: MediaStream) => {
-    remoteStreamsRef.current.set(userId, stream);
+  const addRemoteStream = useCallback(
+    (
+      userId: string,
+      stream: MediaStream,
+      type: 'camera' | 'screen'
+    ) => {
+      const existing = remoteStreamsRef.current.get(userId) || {};
 
-    setState(prev => {
-      const users = new Map(prev.users);
-      const user = users.get(userId) || {
-        id: userId,
-        isAudioMuted: false,
-        isVideoOff: false,
-        isLocal: false,
-      };
+      if (type === 'camera') existing.camera = stream;
+      if (type === 'screen') existing.screen = stream;
 
-      user.stream = stream;
-      users.set(userId, user);
-      return { ...prev, users };
-    });
-  }, []);
+      remoteStreamsRef.current.set(userId, existing);
+
+      setState(prev => {
+        const users = new Map(prev.users);
+        const user = users.get(userId) || {
+          id: userId,
+          isAudioMuted: false,
+          isVideoOff: false,
+          isLocal: false,
+          isScreenSharing: false,
+        };
+
+        user.stream = existing.camera;
+        user.screenStream = existing.screen;
+
+        users.set(userId, user);
+        return { ...prev, users };
+      });
+    },
+    []
+  );
 
   const removeUser = useCallback((userId: string) => {
     peerConnectionsRef.current.get(userId)?.close();
@@ -67,8 +88,6 @@ export const useWebRTC = (
       return { ...prev, users };
     });
   }, []);
-
-  /* ---------------- PeerConnection callbacks ---------------- */
 
   const onIceCandidate = useCallback(
     (candidate: RTCIceCandidate, targetUserId: string) => {
@@ -83,14 +102,45 @@ export const useWebRTC = (
 
   const onTrack = useCallback(
     (event: RTCTrackEvent, remoteUserId: string) => {
-      if (event.streams?.[0]) {
-        addRemoteStream(remoteUserId, event.streams[0]);
-      }
-    },
-    [addRemoteStream]
-  );
+      const stream = event.streams?.[0];
+      if (!stream) return;
 
-  /* ---------------- PeerConnection creation ---------------- */
+      const existing = remoteStreamsRef.current.get(remoteUserId) || {};
+
+      if (event.track.kind === 'video') {
+        if (!existing.camera) {
+          existing.camera = stream;
+        } else if (stream.id !== existing.camera.id) {
+          existing.screen = stream;
+        }
+      }
+
+      if (event.track.kind === 'audio') {
+        existing.camera = stream;
+      }
+
+      remoteStreamsRef.current.set(remoteUserId, existing);
+
+      setState(prev => {
+        const users = new Map(prev.users);
+        const user = users.get(remoteUserId) || {
+          id: remoteUserId,
+          isAudioMuted: false,
+          isVideoOff: false,
+          isLocal: false,
+          isScreenSharing: false,
+        };
+
+        user.stream = existing.camera;
+        user.screenStream = existing.screen;
+        user.isScreenSharing = !!existing.screen;
+
+        users.set(remoteUserId, user);
+        return { ...prev, users };
+      });
+    },
+    []
+  );
 
   const getOrCreatePC = useCallback(
     (remoteUserId: string) => {
@@ -100,10 +150,18 @@ export const useWebRTC = (
         pc = createPeerConnection(
           localUserId,
           remoteUserId,
-          localStreamRef.current,
+          null,
           onIceCandidate,
           onTrack
         );
+
+        localStreamRef.current?.getTracks().forEach(track => {
+          pc!.addTrack(track, localStreamRef.current!);
+        });
+
+        screenStreamRef.current?.getTracks().forEach(track => {
+          pc!.addTrack(track, screenStreamRef.current!);
+        });
 
         peerConnectionsRef.current.set(remoteUserId, pc);
       }
@@ -112,8 +170,6 @@ export const useWebRTC = (
     },
     [localUserId, onIceCandidate, onTrack]
   );
-
-  /* ---------------- Signaling ---------------- */
 
   const initializePeerConnection = useCallback(
     async (remoteUserId: string) => {
@@ -176,10 +232,8 @@ export const useWebRTC = (
     [getOrCreatePC, localUserId]
   );
 
-  /* ---------------- Local media UI sync ---------------- */
-
   const setUsersLocalMedia = useCallback(
-    (action: 'toggle-audio' | 'toggle-video', value: boolean) => {
+    (action: 'toggle-audio' | 'toggle-video' | 'toggle-screen', value: boolean) => {
       setState(prev => {
         const users = new Map(prev.users);
         const user = users.get(localUserId);
@@ -187,6 +241,7 @@ export const useWebRTC = (
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
+        if (action === 'toggle-screen') user.isScreenSharing = value;
 
         users.set(localUserId, user);
         return { ...prev, users };
@@ -194,8 +249,6 @@ export const useWebRTC = (
     },
     [localUserId]
   );
-
-  /* ---------------- Socket events ---------------- */
 
   const {
     connect,
@@ -214,6 +267,7 @@ export const useWebRTC = (
               isAudioMuted: false,
               isVideoOff: false,
               isLocal: false,
+              isScreenSharing: false
             });
           }
           return { ...prev, users };
@@ -235,6 +289,7 @@ export const useWebRTC = (
               isAudioMuted: false,
               isVideoOff: false,
               isLocal: false,
+              isScreenSharing: false
             });
           }
         });
@@ -252,6 +307,7 @@ export const useWebRTC = (
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
+        if (action === 'toggle-screen') user.isScreenSharing = value;
 
         users.set(userId, user);
         return { ...prev, users };
@@ -274,8 +330,6 @@ export const useWebRTC = (
       }));
     },
   });
-
-  /* ---------------- Lifecycle ---------------- */
 
   useEffect(() => {
     if (localUserId && roomId) {
@@ -304,6 +358,44 @@ export const useWebRTC = (
   }, [localStream]);
 
   useEffect(() => {
+    peerConnectionsRef.current.forEach(pc => {
+      if (!screenStream) return;
+
+      screenStream.getTracks().forEach(track => {
+        pc.addTrack(track, screenStream);
+      });
+    });
+  }, [screenStream]);
+
+  useEffect(() => {
+    peerConnectionsRef.current.forEach(pc => {
+      const senders = pc.getSenders();
+
+      senders.forEach(sender => {
+        if (
+          sender.track &&
+          screenStream &&
+          sender.track.kind === 'video' &&
+          !screenStream.getTracks().includes(sender.track)
+        ) {
+          pc.removeTrack(sender);
+        }
+      });
+
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => {
+          const alreadySending = senders.find(
+            s => s.track?.id === track.id
+          );
+          if (!alreadySending) {
+            pc.addTrack(track, screenStream);
+          }
+        });
+      }
+    });
+  }, [screenStream]);
+
+  useEffect(() => {
     if (!localStream) return;
 
     setState(prev => {
@@ -314,16 +406,16 @@ export const useWebRTC = (
         id: localUserId,
         name: localUserId,
         stream: localStream,
+        screenStream: screenStreamRef.current || undefined,
         isAudioMuted: existing?.isAudioMuted ?? false,
         isVideoOff: existing?.isVideoOff ?? false,
         isLocal: true,
+        isScreenSharing: existing?.isScreenSharing ?? false,
       });
 
       return { ...prev, users };
     });
-  }, [localStream, localUserId]);
-
-  /* ---------------- API ---------------- */
+  }, [localStream, screenStream, localUserId]);
 
   return {
     users: Array.from(state.users.values()),

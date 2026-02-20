@@ -1,13 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 
-// interface MediaStreamState {
-//   localStream: MediaStream | null;
-//   screenStream: MediaStream | null;
-//   isAudioMuted: boolean;
-//   isVideoOff: boolean;
-// //   isScreenSharing: boolean;
-// }
-
 const defaultConstraints: MediaStreamConstraints = {
   audio: {
     echoCancellation: true,
@@ -22,18 +14,12 @@ const defaultConstraints: MediaStreamConstraints = {
 };
 
 export const useMediaStream = () => {
-  // const [state, setState] = useState<MediaStreamState>({
-  //   localStream: null,
-  //   screenStream: null,
-  //   isAudioMuted: false,
-  //   isVideoOff: false,
-  //   // isScreenSharing: false,
-  // });
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
 
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
 
   const getMediaStream = useCallback(async (constraints?: MediaStreamConstraints) => {
     const stream = await navigator.mediaDevices.getUserMedia(
@@ -75,31 +61,29 @@ export const useMediaStream = () => {
     });
   }, []);
 
-//   const toggleScreenShare = useCallback(async () => {
-//     if (state.isScreenSharing && state.screenStream) {
-//       state.screenStream.getTracks().forEach(track => track.stop());
-//       setState(prev => ({ ...prev, screenStream: null, isScreenSharing: false }));
-//     } else {
-//       try {
-//         const screenStream = await navigator.mediaDevices.getDisplayMedia({
-//           video: true,
-//           audio: true,
-//         });
+  const toggleScreenShare = useCallback(async () => {
+    if (isScreenSharing && screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop());
+      setIsScreenSharing(false);
+      screenStreamRef.current = null;
+    } else {
+      try {
+        screenStreamRef.current = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        });
         
-//         screenStream.getVideoTracks()[0].onended = () => {
-//           setState(prev => ({ ...prev, screenStream: null, isScreenSharing: false }));
-//         };
+        screenStreamRef.current.getVideoTracks()[0].onended = () => {
+          setIsScreenSharing(false);
+          screenStreamRef.current = null;
+        };
         
-//         setState(prev => ({ 
-//           ...prev, 
-//           screenStream, 
-//           isScreenSharing: true 
-//         }));
-//       } catch (error) {
-//         console.error('Error sharing screen:', error);
-//       }
-//     }
-//   }, [state.isScreenSharing, state.screenStream]);
+        setIsScreenSharing(true);
+      } catch (error) {
+        console.error('Error sharing screen:', error);
+      }
+    }
+  }, [isScreenSharing]);
     const hasStoppedRef = useRef(false);
     
   useEffect(() => {
@@ -113,9 +97,11 @@ export const useMediaStream = () => {
     screenStream: screenStreamRef.current,
     isAudioMuted,
     isVideoOff,
+    isScreenSharing,
     getMediaStream,
     stopMediaStream,
     toggleAudio,
     toggleVideo,
+    toggleScreenShare
   };
 };

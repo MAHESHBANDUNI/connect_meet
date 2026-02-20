@@ -7,10 +7,6 @@ import { createServer } from './server.js';
 const PORT = Number(process.env.PORT || 8000);
 
 function getWorkerCount(): number {
-//   if (process.env.NODE_ENV !== 'production') return 1;
-//   if (process.env.WEB_CONCURRENCY) {
-//     return Number(process.env.WEB_CONCURRENCY);
-//   }
   return os.cpus().length;
 }
 

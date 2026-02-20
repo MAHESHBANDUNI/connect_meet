@@ -74,7 +74,7 @@ export class AuthService {
         if (existingEmail.authProvider === "local") {
           user = await this.repo.updateOAuthUser(existingEmail.userId, {
             googleId: id,
-            authProvider: "google", // Optional: switch to google or keep local
+            authProvider: "google",
           });
         } else {
           user = existingEmail;

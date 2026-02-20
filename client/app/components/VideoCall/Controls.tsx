@@ -1,14 +1,14 @@
 "use client";
 
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone, ScreenShare, ScreenShareOff } from "lucide-react";
 
 interface ControlsProps {
   isAudioMuted: boolean;
   isVideoOff: boolean;
-//   isScreenSharing: boolean;
+  isScreenSharing: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
-//   onToggleScreenShare: () => void;
+  onToggleScreenShare: () => void;
   onEndCall: () => void;
   roomId: string;
 }
@@ -16,8 +16,10 @@ interface ControlsProps {
 export const Controls = ({
   isAudioMuted,
   isVideoOff,
+  isScreenSharing,
   onToggleAudio,
   onToggleVideo,
+  onToggleScreenShare,
   onEndCall,
   roomId
 }: ControlsProps) => {
@@ -63,6 +65,22 @@ export const Controls = ({
               <VideoOffIcon className="w-5 h-5 text-white" />
             ) : (
               <VideoIcon className="w-5 h-5 text-white" />
+            )}
+          </button>
+
+          {/* Screen Share */}
+          <button
+            onClick={onToggleScreenShare}
+            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+              isScreenSharing
+                ? 'bg-red-500'
+                : 'bg-white/10 hover:bg-white/20'
+            }`}
+          >
+            {isScreenSharing ? (
+              <ScreenShareOff className="w-5 h-5 text-white" />
+            ) : (
+              <ScreenShare className="w-5 h-5 text-white" />
             )}
           </button>
 

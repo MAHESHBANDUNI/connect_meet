@@ -8,7 +8,6 @@ export function generateMeetingCode(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   const parts: string[] = [];
   
-  // Generate 4 parts of 4 characters each
   for (let i = 0; i < 4; i++) {
     let part = '';
     for (let j = 0; j < 4; j++) {

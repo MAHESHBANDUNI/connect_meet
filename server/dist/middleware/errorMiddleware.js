@@ -2,10 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorMiddleware = void 0;
 const errorHandler_js_1 = require("../utils/errorHandler.js");
-/**
- * Global error handling middleware
- * This middleware should be placed after all other middleware and routes
- */
 const errorMiddleware = (error, req, res, next) => {
     let errorResponse;
     // Handle custom AppError instances (includes BadRequestError, NotFoundError, ConflictError, etc.)

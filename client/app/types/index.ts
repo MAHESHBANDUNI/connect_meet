@@ -2,8 +2,10 @@ export interface User {
   id: string;
   name?: string;
   stream?: MediaStream;
+  screenStream?: MediaStream;
   isAudioMuted: boolean;
   isVideoOff: boolean;
+  isScreenSharing: boolean;
   isLocal: boolean;
 }
 
@@ -33,6 +35,6 @@ export interface SignalData {
 
 export interface UserAction {
   userId: string;
-  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen-share';
+  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen';
   value: boolean;
 }
