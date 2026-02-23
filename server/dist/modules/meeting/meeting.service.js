@@ -70,8 +70,15 @@ class MeetingService {
         }));
         return meeting;
     }
-    async getMeetingById(id) {
-        const meeting = await this.repo.getMeetingById(id);
+    async getMeetingByCode(meetingCode) {
+        const meeting = await this.repo.getMeetingByCode(meetingCode);
+        if (!meeting) {
+            throw new errorHandler_1.NotFoundError("Meeting not found");
+        }
+        return meeting;
+    }
+    async getMeetingById(meetingId) {
+        const meeting = await this.repo.getMeetingById(meetingId);
         if (!meeting) {
             throw new errorHandler_1.NotFoundError("Meeting not found");
         }
@@ -88,7 +95,9 @@ class MeetingService {
             throw new errorHandler_1.ConflictError("User is not the host of the meeting");
         }
         const updatedMeeting = await this.repo.updateMeetingStatus(meetingId, status);
-        await this.repo.updateMeetingParticipantStatus(meetingId, user, "JOINED");
+        const joinedAt = new Date();
+        const newStatus = "JOINED";
+        await this.repo.updateMeetingParticipantStatus(meetingId, user, newStatus, joinedAt);
         return updatedMeeting;
     }
     async endMeeting(meetingId, user) {
@@ -107,6 +116,7 @@ class MeetingService {
         return updatedMeeting;
     }
     async joinMeeting(meetingId, user) {
+        console.log("Joining meeting with ID:", meetingId, "for user:", user);
         const meeting = await this.getMeetingById(meetingId);
         if (meeting.status !== 'LIVE') {
             throw new errorHandler_1.ConflictError("Meeting is not live");

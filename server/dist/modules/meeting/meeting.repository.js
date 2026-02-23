@@ -22,7 +22,19 @@ class MeetingRepository {
     }
     async getMeetingById(meetingId) {
         return index_js_1.db.query.meetings.findFirst({
-            where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId)
+            where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId),
+            with: {
+                participants: true,
+            },
+        });
+    }
+    async getMeetingByCode(meetingId) {
+        console.log("Fetching meeting with ID:", meetingId);
+        return index_js_1.db.query.meetings.findFirst({
+            where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingCode, meetingId),
+            with: {
+                participants: true,
+            },
         });
     }
     async mapParticipantsWithUserDetails(participantList) {
@@ -86,7 +98,7 @@ class MeetingRepository {
         return participant;
     }
     async updateMeetingParticipantStatus(meetingId, user, status, joinedAt, leftAt) {
-        await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, leftAt: leftAt ?? leftAt }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
+        await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
     }
     async getMeetingsByUser(userId) {
         const userMeetings = await index_js_1.db.query.meetingParticipants.findMany({

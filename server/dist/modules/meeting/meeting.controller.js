@@ -13,18 +13,22 @@ class MeetingController {
             const meeting = await this.service.createMeeting(data, user);
             res.status(201).json({ success: true, data: meeting });
         });
+        this.getMeetingByCode = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const meeting = await this.service.getMeetingByCode(req.params.id);
+            res.json({ success: true, data: meeting });
+        });
         this.getMeetingById = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-            const meeting = await this.service.getMeetingById(req.body.id);
+            const meeting = await this.service.getMeetingById(req.params.id);
             res.json({ success: true, data: meeting });
         });
         this.startMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
             const user = req?.user;
-            const { meetingId } = req.body;
+            const meetingId = req.params.id;
             const meeting = await this.service.startMeeting(meetingId, user);
             res.status(200).json({ success: true, data: meeting });
         });
         this.endMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-            const { meetingId } = req.body;
+            const meetingId = req.params.id;
             const user = req?.user;
             const meeting = await this.service.endMeeting(meetingId, user);
             res.status(200).json({ success: true, data: meeting });
@@ -36,7 +40,7 @@ class MeetingController {
             res.status(200).json({ success: true, data: meeting });
         });
         this.exitMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-            const { meetingId } = req.body;
+            const meetingId = req.params.id;
             const user = req?.user;
             const meeting = await this.service.exitMeeting(meetingId, user);
             res.status(200).json({ success: true, data: meeting });

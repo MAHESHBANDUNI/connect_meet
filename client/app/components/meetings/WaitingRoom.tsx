@@ -15,10 +15,12 @@ import {
   X,
 } from "lucide-react";
 import { successToast, errorToast } from "@/app/components/ui/toast";
+import { useSession } from "next-auth/react";
 
 interface WaitingRoomProps {
   meetingCode: string;
   meetingTitle: string;
+  meetingDetails: any;
   onJoin: (
     cameraEnabled: boolean,
     micEnabled: boolean,
@@ -26,13 +28,21 @@ interface WaitingRoomProps {
     micId?: string
   ) => void;
   onExit: () => void;
+  onStart: (
+    cameraEnabled: boolean,
+    micEnabled: boolean,
+    cameraId?: string,
+    micId?: string
+  ) => void;
 }
 
 export default function WaitingRoom({
   meetingCode,
   meetingTitle,
   onJoin,
+  onStart,
   onExit,
+  meetingDetails
 }: WaitingRoomProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
@@ -40,6 +50,7 @@ export default function WaitingRoom({
 
   const [hasMicPermission, setHasMicPermission] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const {data: session} = useSession();
 
   const [devices, setDevices] = useState<{
     cameras: MediaDeviceInfo[];
@@ -60,6 +71,47 @@ export default function WaitingRoom({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  useEffect(() => {
+    const requestPermissions = async () => {
+      try {
+        if (navigator.permissions) {
+          const camPermission = await navigator.permissions.query({
+            name: "camera" as PermissionName,
+          });
+          const micPermission = await navigator.permissions.query({
+            name: "microphone" as PermissionName,
+          });
+
+          if (
+            camPermission.state === "granted" &&
+            micPermission.state === "granted"
+          ) {
+            setHasCameraPermission(true);
+            setHasMicPermission(true);
+            return;
+          }
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+
+        setHasCameraPermission(true);
+        setHasMicPermission(true);
+
+        stream.getTracks().forEach((track) => track.stop());
+      } catch (error) {
+        console.error("Permission denied:", error);
+        setHasCameraPermission(false);
+        setHasMicPermission(false);
+        errorToast("Camera and microphone permissions are required.");
+      }
+    };
+
+    requestPermissions();
+    getDevices();
+  }, []);
 
   const getDevices = useCallback(async () => {
     try {
@@ -164,12 +216,27 @@ export default function WaitingRoom({
   }, [cameraEnabled, micEnabled, selectedDevices, startMedia, stopMedia]);
 
   const handleJoin = () => {
-    onJoin(
-      cameraEnabled,
-      micEnabled,
-      selectedDevices.cameraId,
-      selectedDevices.micId
+    const isCurrentUserHost = meetingDetails?.participants?.some(
+      (participant: any) =>
+        participant.userId === session?.user?.id &&
+        participant.participantRole === "HOST"
     );
+
+    if (isCurrentUserHost) {
+      onStart(
+        cameraEnabled,
+        micEnabled,
+        selectedDevices.cameraId,
+        selectedDevices.micId
+      );
+    } else {
+      onJoin(
+        cameraEnabled,
+        micEnabled,
+        selectedDevices.cameraId,
+        selectedDevices.micId
+      );
+    }
   };
 
   const copyMeetingCode = async () => {
@@ -309,9 +376,35 @@ export default function WaitingRoom({
           <div className="space-y-2 sm:space-y-3">
             <Button
               onClick={handleJoin}
+              disabled={
+                !meetingDetails?.participants?.some(
+                  (participant: any) =>
+                    participant.userId === session?.user?.id &&
+                    participant.participantRole === "HOST"
+                ) &&
+                !meetingDetails?.participants?.some(
+                  (participant: any) =>
+                    participant.participantRole === "HOST" &&
+                    participant.hasJoined === true
+                )
+              }
               className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-95"
             >
-              Join Meeting
+            {
+              meetingDetails?.participants?.some(
+                (participant: any) =>
+                  participant.userId === session?.user?.id &&
+                  participant.participantRole === "HOST"
+              )
+                ? "Start Meeting"
+                : meetingDetails?.participants?.some(
+                    (participant: any) =>
+                      participant.participantRole === "HOST" &&
+                      participant.hasJoined === true
+                  )
+                ? "Join Meeting"
+                : "Please wait for the host to join"
+            }
             </Button>
 
             <button

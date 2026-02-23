@@ -8,6 +8,7 @@ const controller = new MeetingController();
 router.get("/user/all", protect, controller.getUserMeetings);
 router.post("/create", protect,controller.createMeeting);
 router.get("/:id",controller.getMeetingById);
+router.get("/code/:id",controller.getMeetingByCode);
 router.post("/:id/start", protect, controller.startMeeting);
 router.post("/:id/end", protect, controller.endMeeting);
 router.post("/join", protect, controller.joinMeeting);

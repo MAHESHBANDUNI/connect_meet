@@ -22,6 +22,7 @@ export default function MeetingPage() {
   const [newEmail, setNewEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [meetingEnded, setMeetingEnded] = useState(false);
+  const [meetingDetails, setMeetingDetails] = useState<any>(null);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -84,32 +85,122 @@ export default function MeetingPage() {
     }
   };
 
+  const fetchMeetingDetails = async() => {
+    if(!meetingCode) return;
+    try{
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/code/${meetingCode}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if(!response.ok){
+        throw new Error('Failed to fetch meeting details');
+      }
+      const result = await response.json();
+      console.log("meeting details: ", result.data);
+      setMeetingDetails(result.data);
+    }
+    catch(err){
+      console.error("Failed to fetch meeting details:", err);
+    }
+  }
+
   useEffect(() => {
     if (session?.user?.id) {
       setUserId(`${session.user.name}:${session.user.id}`);
+      fetchMeetingDetails();
     }
   }, [session]);
 
-  const handleJoin = (
+  const handleJoin = async(
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
     micId?: string
   ) => {
-    // console.log("Joining meeting with:", {
-    //   cameraEnabled,
-    //   micEnabled,
-    //   cameraId,
-    //   micId,
-    // });
-    setIsInCall(true);
+    try{
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
+        body: JSON.stringify({
+          meetingId: meetingDetails?.meetingId
+        }),
+      });
+      if(!response.ok){
+        throw new Error('Failed to join meeting');
+      }
+      if(response.status === 200){
+        setIsInCall(true);
+      }
+    }
+    catch(err){
+      console.error("Failed to join meeting:", err);
+    }
   };
 
-  const handleLeaveRoom = () => {
-    setIsInCall(false);
-    setMeetingEnded(true);
+  const handleStart = async(
+    cameraEnabled: boolean,
+    micEnabled: boolean,
+    cameraId?: string,
+    micId?: string
+  ) => {
+    try{
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
+        body: JSON.stringify({}),
+      });
+      if(!response.ok){
+        throw new Error('Failed to start meeting');
+      }
+      if(response.status === 200){
+        setIsInCall(true);
+      }
+    }
+    catch(err){
+      console.error("Failed to start meeting:", err);
+    }
+  }
+
+  const handleLeaveRoom = async() => {
+    try{
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/exit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
+        body: JSON.stringify({}),
+      });
+      if(!response.ok){
+        throw new Error('Failed to leave meeting');
+      }
+      if(response.status === 200){
+        setIsInCall(false);
+        setMeetingEnded(true);
+      }
+    }
+    catch(err){
+      console.error("Failed to leave meeting:", err);
+    }
   };
 
+  const handleEndMeeting = async() => {
+    try{
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/end`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
+        body: JSON.stringify({}),
+      });
+      if(!response.ok){
+        throw new Error('Failed to end meeting');
+      }
+      if(response.status === 200){
+        setIsInCall(false);
+        setMeetingEnded(true);
+      }
+    }
+    catch(err){
+      console.error("Failed to join meeting:", err);
+    }
+  };
+  
   const handleExit = () => {
     router.push("/meetings");
   };
@@ -120,7 +211,14 @@ export default function MeetingPage() {
         <VideoCall
           roomId={roomId}
           userId={userId}
+          meetingDetails={meetingDetails}
+          user={{
+            id: session?.user?.id || '',
+            name: session?.user?.name || 'Guest',
+            role: session?.user?.role || ''
+          }}
           onLeave={handleLeaveRoom}
+          onEnd={handleEndMeeting}
           onAddParticipant={() => setIsInviteModalOpen(true)}
         />
         
@@ -289,7 +387,9 @@ export default function MeetingPage() {
     <WaitingRoom
       meetingCode={meetingCode}
       meetingTitle={`Meeting ${meetingCode}`}
+      meetingDetails={meetingDetails}
       onJoin={handleJoin}
+      onStart={handleStart}
       onExit={handleExit}
     />
   );

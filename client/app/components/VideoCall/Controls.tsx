@@ -71,7 +71,7 @@ export const Controls = ({
           {/* Screen Share */}
           <button
             onClick={onToggleScreenShare}
-            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isScreenSharing
                 ? 'bg-red-500'
                 : 'bg-white/10 hover:bg-white/20'

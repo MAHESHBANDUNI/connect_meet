@@ -1,6 +1,6 @@
 import {db} from "../../drizzle/index.js";
 import {meetings, users, meetingParticipants} from "../../drizzle/schema.js";
-import {and, eq, inArray} from "drizzle-orm";
+import {and, eq, inArray, or} from "drizzle-orm";
 import {CreateMeetingInput} from "./meeting.validation.js";
 import type {MeetingParticipantRole} from "./meeting.types";
 
@@ -28,9 +28,26 @@ export class MeetingRepository {
     }
 
     async getMeetingById(meetingId: string) {
-        return db.query.meetings.findFirst({
-            where: eq(meetings.meetingId, meetingId)
-        });
+      return db.query.meetings.findFirst({
+        where: 
+          eq(meetings.meetingId, meetingId)
+        ,
+        with: {
+          participants: true,
+        },
+      });
+    }
+
+    async getMeetingByCode(meetingId: string) {
+      console.log("Fetching meeting with ID:", meetingId);
+      return db.query.meetings.findFirst({
+        where: 
+          eq(meetings.meetingCode, meetingId)
+        ,
+        with: {
+          participants: true,
+        },
+      });
     }
 
     async mapParticipantsWithUserDetails(participantList: string[]) {
@@ -140,7 +157,7 @@ export class MeetingRepository {
     }
 
     async updateMeetingParticipantStatus(meetingId: string, user: {userId: string}, status: "JOINED" | "WAITING" | "LEFT", joinedAt?: Date, leftAt?: Date) {
-        await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, leftAt: leftAt ?? leftAt }).where(
+        await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where(
             and(
                 eq(meetingParticipants.userId, user.userId),
                 eq(meetingParticipants.meetingId, meetingId)

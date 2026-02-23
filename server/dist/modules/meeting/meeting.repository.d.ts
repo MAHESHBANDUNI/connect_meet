@@ -24,6 +24,43 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
+    } | undefined>;
+    getMeetingByCode(meetingId: string): Promise<{
+        createdAt: Date;
+        updatedAt: Date;
+        meetingId: string;
+        meetingCode: string;
+        topic: string;
+        description: string | null;
+        startTime: Date;
+        endTime: Date | null;
+        status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     } | undefined>;
     mapParticipantsWithUserDetails(participantList: string[]): Promise<Record<string, {
         userId: string;
@@ -59,6 +96,19 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     } | undefined>;
     checkMeetingParticipant(meetingId: string, user: {
         userId: string;

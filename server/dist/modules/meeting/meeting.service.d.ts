@@ -16,7 +16,7 @@ export declare class MeetingService {
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
     }>;
-    getMeetingById(id: string): Promise<{
+    getMeetingByCode(meetingCode: string): Promise<{
         createdAt: Date;
         updatedAt: Date;
         meetingId: string;
@@ -26,6 +26,43 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
+    }>;
+    getMeetingById(meetingId: string): Promise<{
+        createdAt: Date;
+        updatedAt: Date;
+        meetingId: string;
+        meetingCode: string;
+        topic: string;
+        description: string | null;
+        startTime: Date;
+        endTime: Date | null;
+        status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     }>;
     startMeeting(meetingId: string, user: User): Promise<{
         createdAt: Date;
@@ -37,6 +74,19 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     } | undefined>;
     endMeeting(meetingId: string, user: User): Promise<{
         createdAt: Date;
@@ -48,6 +98,19 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     } | undefined>;
     joinMeeting(meetingId: string, user: User): Promise<{
         createdAt: Date;
@@ -59,6 +122,19 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     }>;
     exitMeeting(meetingId: string, user: User): Promise<{
         createdAt: Date;
@@ -70,6 +146,19 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+        }[];
     }>;
     getUserMeetings(user: User): Promise<{
         participantCount: number;

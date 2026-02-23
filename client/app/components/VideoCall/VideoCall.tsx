@@ -12,11 +12,29 @@ import {ScreenPresentTile} from './ScreenPresentTile';
 interface VideoCallProps {
   roomId: string;
   userId: string;
+  onEnd: () => void;
+  meetingDetails: {
+    title: string;
+    meetingId: string;
+    meetingCode: string,
+    participants: {
+      userId: string;
+      firstName: string;
+      lastName: string;
+      participantRole: "HOST" | "PARTICIPANT";
+      hasJoined: boolean;
+    }[];
+  };
+  user: {
+    id: string;
+    name: string;
+    role: string;
+  };
   onLeave: () => void;
   onAddParticipant: () => void;
 }
 
-export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCallProps) => {
+export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, meetingDetails, user }: VideoCallProps) => {
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -90,7 +108,16 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
 
   const handleEndCall = () => {
     stopMediaStream();
-    onLeave();
+    const isCurrentUserHost = meetingDetails?.participants?.some(
+      (participant: any) =>
+        participant.userId === user?.id &&
+        participant.participantRole === "HOST"
+    );
+    if (isCurrentUserHost) {
+      onEnd();
+    } else {      
+      onLeave();
+    }
   };
 
   const handleSendMessage = (content: string) => {
@@ -208,115 +235,118 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
               </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                
-                {users.map((user) => {
-                  const isLocal = user.isLocal
-                  const displayName = user.id.split(":")[0]
-                  const firstLetter = displayName.charAt(0).toUpperCase()
-                  const presentingUser = users.find((user) => user.isScreenSharing)
-                
-                  return (
-                    <>
-                    {presentingUser && (
-                      <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
-                              {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
-                            </div>
-                    
-                            <div>
-                              <p className="text-sm font-semibold text-white">
-                                {presentingUser.id.split(":")[0]}{" "}
-                                {presentingUser.isLocal && "(You)"}
-                              </p>
-                              <p className="text-xs text-emerald-400 font-medium">
-                                Presenting now
-                              </p>
-                            </div>
-                          </div>
-                    
-                          <div className="px-3 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-lg">
-                            Screen sharing
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div
-                      key={user.id}
-                      className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${
-                        isLocal
-                          ? "bg-white/5 border border-white/5"
-                          : "hover:bg-white/5"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${
-                            isLocal
-                              ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
-                              : "bg-white/5 border border-white/5 text-white/60"
-                          }`}
-                        >
-                          {firstLetter}
-                        </div>
+                  {(() => {
+                    const presentingUser = users.find(user => user.isScreenSharing)
+                    return (
+                      <>
+                        {presentingUser && (
+                          <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
+                                  {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
+                                </div>
                         
-                        <div>
-                          <p
-                            className={`text-sm ${
-                              isLocal
-                                ? "font-semibold text-white"
-                                : "font-medium text-white/90"
-                            }`}
-                          >
-                            {displayName} {isLocal && "(You)"}
-                          </p>
-                        </div>
-                      </div>
-                          
-                      <div className="flex gap-2">
-                        {/* Audio */}
-                        {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
-                          <span
-                            className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
-                              isLocal ? "text-red-400" : ""
-                            }`}
-                          >
-                            <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
-                          </span>
-                        ) : (
-                          isLocal && (
-                            <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                              <MicIcon className="w-5 h-5" />
-                            </span>
-                          )
+                                <div>
+                                  <p className="text-sm font-semibold text-white">
+                                    {presentingUser.id.split(":")[0]}{" "}
+                                    {presentingUser.isLocal && "(You)"}
+                                  </p>
+                                  <p className="text-xs text-emerald-400 font-medium">
+                                    Presenting now
+                                  </p>
+                                </div>
+                              </div>
+                        
+                            </div>
+                          </div>
                         )}
-
-                        {/* Video */}
-                        {(isLocal ? isVideoOff : user.isVideoOff) ? (
-                          <span
-                            className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
-                              isLocal ? "text-red-400" : ""
-                            }`}
-                          >
-                            <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
-                          </span>
-                        ) : (
-                          isLocal && (
-                            <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                              <VideoIcon className="w-5 h-5" />
-                            </span>
+        
+                        {users.map((user) => {
+                          const isLocal = user.isLocal
+                          const displayName = user.id.split(":")[0]
+                          const firstLetter = displayName.charAt(0).toUpperCase()
+                        
+                          return (
+                            <>
+                            <div
+                              key={user.id}
+                              className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${
+                                isLocal
+                                  ? "bg-white/5 border border-white/5"
+                                  : "hover:bg-white/5"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${
+                                    isLocal
+                                      ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
+                                      : "bg-white/5 border border-white/5 text-white/60"
+                                  }`}
+                                >
+                                  {firstLetter}
+                                </div>
+                                
+                                <div>
+                                  <p
+                                    className={`text-sm ${
+                                      isLocal
+                                        ? "font-semibold text-white"
+                                        : "font-medium text-white/90"
+                                    }`}
+                                  >
+                                    {displayName} {isLocal && "(You)"}
+                                  </p>
+                                </div>
+                              </div>
+                                  
+                              <div className="flex gap-2">
+                                {/* Audio */}
+                                {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
+                                  <span
+                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
+                                      isLocal ? "text-red-400" : ""
+                                    }`}
+                                  >
+                                    <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
+                                  </span>
+                                ) : (
+                                  isLocal && (
+                                    <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                                      <MicIcon className="w-5 h-5" />
+                                    </span>
+                                  )
+                                )}
+        
+                                {/* Video */}
+                                {(isLocal ? isVideoOff : user.isVideoOff) ? (
+                                  <span
+                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
+                                      isLocal ? "text-red-400" : ""
+                                    }`}
+                                  >
+                                    <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
+                                  </span>
+                                ) : (
+                                  isLocal && (
+                                    <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                                      <VideoIcon className="w-5 h-5" />
+                                    </span>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                            </>
                           )
-                        )}
-                      </div>
+                        })}
+                      </>
+                    )
+                  })()}
                     </div>
-                    </>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </aside>
+                  </div>
+                )}
+              </aside>
       </main>
 
       <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">
