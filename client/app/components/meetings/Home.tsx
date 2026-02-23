@@ -363,7 +363,7 @@ function MeetingCard({
                             <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${statusStyles[meeting.status]}`}>
                                 {statusLabels[meeting.status]}
                             </span>
-                            {meeting.userRole && meeting.userRole !== 'PARTICIPANT' && (
+                            {meeting.userRole && (
                                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-50 text-purple-700 ring-1 ring-purple-600/20">
                                     {meeting.userRole}
                                 </span>
