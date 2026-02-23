@@ -208,37 +208,111 @@ export const VideoCall = ({ roomId, userId, onLeave, onAddParticipant }: VideoCa
               </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                {/* Local Participant */}
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/20 text-blue-400 font-bold">
-                      {userId.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{userId.split(":")[0]} (You)</p>
-                      {/* <p className="text-[10px] text-white/40">Host</p> */}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {isAudioMuted ? <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400"><MicOff className="w-5 h-5" /></span>:<span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"><MicIcon className="w-5 h-5" /></span>}
-                    {isVideoOff ? <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400"><VideoOffIcon className="w-5 h-5" /></span>:<span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"><VideoIcon className="w-5 h-5" /></span>}
-                  </div>
-                </div>
-                {/* Remote Participants */}
-                {users.filter((user) => !user.isLocal).map((user) => (
-                  <div key={user.id} className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 text-white/60 font-medium">
-                        {(user.id.split(":")[0]).charAt(0).toUpperCase()}
+                
+                {users.map((user) => {
+                  const isLocal = user.isLocal
+                  const displayName = user.id.split(":")[0]
+                  const firstLetter = displayName.charAt(0).toUpperCase()
+                  const presentingUser = users.find((user) => user.isScreenSharing)
+                
+                  return (
+                    <>
+                    {presentingUser && (
+                      <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
+                              {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
+                            </div>
+                    
+                            <div>
+                              <p className="text-sm font-semibold text-white">
+                                {presentingUser.id.split(":")[0]}{" "}
+                                {presentingUser.isLocal && "(You)"}
+                              </p>
+                              <p className="text-xs text-emerald-400 font-medium">
+                                Presenting now
+                              </p>
+                            </div>
+                          </div>
+                    
+                          <div className="px-3 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-lg">
+                            Screen sharing
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-medium text-white/90">{user.id.split(":")[0]}</p>
+                    )}
+                    <div
+                      key={user.id}
+                      className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${
+                        isLocal
+                          ? "bg-white/5 border border-white/5"
+                          : "hover:bg-white/5"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${
+                            isLocal
+                              ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
+                              : "bg-white/5 border border-white/5 text-white/60"
+                          }`}
+                        >
+                          {firstLetter}
+                        </div>
+                        
+                        <div>
+                          <p
+                            className={`text-sm ${
+                              isLocal
+                                ? "font-semibold text-white"
+                                : "font-medium text-white/90"
+                            }`}
+                          >
+                            {displayName} {isLocal && "(You)"}
+                          </p>
+                        </div>
+                      </div>
+                          
+                      <div className="flex gap-2">
+                        {/* Audio */}
+                        {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
+                          <span
+                            className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
+                              isLocal ? "text-red-400" : ""
+                            }`}
+                          >
+                            <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
+                          </span>
+                        ) : (
+                          isLocal && (
+                            <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                              <MicIcon className="w-5 h-5" />
+                            </span>
+                          )
+                        )}
+
+                        {/* Video */}
+                        {(isLocal ? isVideoOff : user.isVideoOff) ? (
+                          <span
+                            className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
+                              isLocal ? "text-red-400" : ""
+                            }`}
+                          >
+                            <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
+                          </span>
+                        ) : (
+                          isLocal && (
+                            <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                              <VideoIcon className="w-5 h-5" />
+                            </span>
+                          )
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      {user.isAudioMuted && <span className="p-1 bg-transparent backdrop-blur-md rounded-xl "><MicOff className="w-4 h-4 " /></span>}
-                      {user.isVideoOff && <span className="p-1 bg-transparent backdrop-blur-md rounded-xl "><VideoOffIcon className="w-4 h-4" /></span>}
-                    </div>
-                  </div>
-                ))}
+                    </>
+                  )
+                })}
               </div>
             </div>
           )}
