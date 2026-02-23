@@ -170,7 +170,7 @@ export const useWebRTC = (
     },
 
     onForceStopScreen: () => {
-      // Placeholder: will be properly initialized after stopScreenSharing is defined
+      stopScreenSharing();
     },
   });
 
