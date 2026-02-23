@@ -146,7 +146,18 @@ export const useWebRTC = (
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
-        if (action === 'toggle-screen') user.isScreenSharing = value;
+        if (action === 'toggle-screen') {
+          user.isScreenSharing = value;
+          // When sharing stops, clear the screenStream reference to hide the tile
+          if (!value) {
+            user.screenStream = undefined;
+            const remoteStreams = remoteStreamsRef.current.get(userId);
+            if (remoteStreams) {
+              remoteStreams.screen = undefined;
+              remoteStreamsRef.current.set(userId, remoteStreams);
+            }
+          }
+        }
 
         users.set(userId, user);
         return { ...prev, users };
