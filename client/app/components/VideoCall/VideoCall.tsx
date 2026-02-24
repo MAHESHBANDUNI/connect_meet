@@ -209,6 +209,8 @@ export const VideoCall = ({
     if (showParticipants) setShowParticipants(false);
   };
 
+  console.log("waitingUsers", waitingUsers);
+
   return (
     <div className="fixed inset-0 bg-[#0f1115] flex flex-col overflow-hidden">
       {/* Top Header */}
