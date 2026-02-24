@@ -128,7 +128,7 @@ io.on('connection', (socket) => {
         });
     });
     // Handle user actions (mute, video toggle, etc.)
-    socket.on('user-action', ({ roomId, userId, action, value }) => {
+    socket.on('user-action', ({ roomId, userId, action, value, targetUserId }) => {
         const room = rooms.get(roomId);
         if (!room)
             return;
@@ -165,12 +165,28 @@ io.on('connection', (socket) => {
             }
         }
         // Broadcast action to others
-        socket.to(roomId).emit('user-action', {
-            userId,
-            action,
-            value,
-            timestamp: Date.now()
-        });
+        if (targetUserId) {
+            // If there's a target, we might want to ensure the target gets it
+            // socket.to(roomId) broadcasts to everyone in the room EXCEPT the sender.
+            // If the host is the sender, the target (if in the room) will receive it via broadcast.
+            // However, it's safer to explicitly target the socket if we can, 
+            // but broadcast also works and allows others to see the status change.
+            socket.to(roomId).emit('user-action', {
+                userId,
+                action,
+                value,
+                targetUserId,
+                timestamp: Date.now()
+            });
+        }
+        else {
+            socket.to(roomId).emit('user-action', {
+                userId,
+                action,
+                value,
+                timestamp: Date.now()
+            });
+        }
     });
     socket.on('join-request', ({ roomId, userId }) => {
         const room = rooms.get(roomId);

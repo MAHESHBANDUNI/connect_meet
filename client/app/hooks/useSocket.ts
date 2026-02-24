@@ -8,7 +8,7 @@ interface SocketEventHandlers {
   onExistingUsers?: (data: { roomId: string; users: string[] }) => void;
   onSignal?: (data: { from: string; signal: any }) => void;
   onChatMessage?: (data: { userId: string; message: string; timestamp: number }) => void;
-  onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number }) => void;
+  onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number; targetUserId?: string }) => void;
   onForceStopScreen?: () => void;
   onJoinRequest?: (data: { userId: string; roomId: string }) => void;
   onJoinResponse?: (data: { approved: boolean }) => void;
@@ -114,9 +114,9 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
-  const sendUserAction = useCallback((roomId: string, userId: string, action: string, value: any) => {
+  const sendUserAction = useCallback((roomId: string, userId: string, action: string, value: any, targetUserId?: string) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('user-action', { roomId, userId, action, value });
+      socketRef.current.emit('user-action', { roomId, userId, action, value, targetUserId });
     }
   }, []);
 

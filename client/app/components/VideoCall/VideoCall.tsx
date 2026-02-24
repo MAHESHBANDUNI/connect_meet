@@ -6,7 +6,7 @@ import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon, UserMinus } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
 
 interface VideoCallProps {
@@ -89,9 +89,21 @@ export const VideoCall = ({
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
-    initialStatus: meetingDetails?.directJoinPermission ? 'JOINED' : 'WAITING',
     onAdmitted,
-    onRejected
+    onRejected,
+    onHostMuteAudio: () => {
+      if (!isAudioMuted) {
+        handleToggleAudio();
+      }
+    },
+    onHostMuteVideo: () => {
+      if (!isVideoOff) {
+        handleToggleVideo();
+      }
+    },
+    onHostDrop: () => {
+      handleEndCall();
+    }
   });
 
   console.log('Current Users in Call:', users);
@@ -150,6 +162,18 @@ export const VideoCall = ({
     } else {
       onLeave();
     }
+  };
+
+  const handleHostMuteAudio = (targetUserId: string) => {
+    sendUserAction(roomId, userId, 'host-mute-audio', true, targetUserId);
+  };
+
+  const handleHostMuteVideo = (targetUserId: string) => {
+    sendUserAction(roomId, userId, 'host-mute-video', true, targetUserId);
+  };
+
+  const handleHostDropUser = (targetUserId: string) => {
+    sendUserAction(roomId, userId, 'host-drop-user', true, targetUserId);
   };
 
   const handleSendMessage = (content: string) => {
@@ -364,36 +388,71 @@ export const VideoCall = ({
 
                                 <div className="flex gap-2">
                                   {/* Audio */}
-                                  {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
-                                    <span
-                                      className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
-                                        }`}
-                                    >
-                                      <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
-                                    </span>
-                                  ) : (
-                                    isLocal && (
-                                      <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                                        <MicIcon className="w-5 h-5" />
+                                  <div className="flex gap-1">
+                                    {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
+                                      <span
+                                        className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
+                                          }`}
+                                      >
+                                        <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
                                       </span>
-                                    )
-                                  )}
+                                    ) : (
+                                      <>
+                                        {isLocal && (
+                                          <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                                            <MicIcon className="w-5 h-5" />
+                                          </span>
+                                        )}
+                                        {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                          <button
+                                            onClick={() => handleHostMuteAudio(user.id)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg text-white/60 hover:text-red-400 transition-colors"
+                                            title="Mute Participant"
+                                          >
+                                            <MicIcon className="w-4 h-4" />
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
 
-                                  {/* Video */}
-                                  {(isLocal ? isVideoOff : user.isVideoOff) ? (
-                                    <span
-                                      className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
-                                        }`}
-                                    >
-                                      <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
-                                    </span>
-                                  ) : (
-                                    isLocal && (
-                                      <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                                        <VideoIcon className="w-5 h-5" />
+                                    {/* Video */}
+                                    {(isLocal ? isVideoOff : user.isVideoOff) ? (
+                                      <span
+                                        className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
+                                          }`}
+                                      >
+                                        <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
                                       </span>
-                                    )
-                                  )}
+                                    ) : (
+                                      <>
+                                        {isLocal && (
+                                          <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
+                                            <VideoIcon className="w-5 h-5" />
+                                          </span>
+                                        )}
+                                        {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                          <button
+                                            onClick={() => handleHostMuteVideo(user.id)}
+                                            className="p-1.5 hover:bg-white/10 rounded-lg text-white/60 hover:text-red-400 transition-colors"
+                                            title="Stop Participant Video"
+                                          >
+                                            <VideoIcon className="w-4 h-4" />
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+
+                                    {/* Drop */}
+                                    {!isLocal && isCurrentUserHost && meetingDetails?.dropPermission && (
+                                      <button
+                                        onClick={() => handleHostDropUser(user.id)}
+                                        className="p-1.5 hover:bg-red-500/10 rounded-lg text-red-500/60 hover:text-red-500 transition-colors"
+                                        title="Remove Participant"
+                                      >
+                                        <UserMinus className="w-4 h-4" />
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </>

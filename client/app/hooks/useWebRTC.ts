@@ -27,6 +27,9 @@ export const useWebRTC = (
     initialStatus?: 'JOINED' | 'WAITING' | 'INVITED';
     onAdmitted?: () => void;
     onRejected?: () => void;
+    onHostMuteAudio?: () => void;
+    onHostMuteVideo?: () => void;
+    onHostDrop?: () => void;
   }
 ) => {
   const [waitingUsers, setWaitingUsers] = useState<User[]>([]);
@@ -156,7 +159,19 @@ export const useWebRTC = (
 
     onSignal: ({ from, signal }) => handleSignal(from, signal),
 
-    onUserAction: ({ userId, action, value }) => {
+    onUserAction: ({ userId, action, value, targetUserId }) => {
+      // Handle host actions targeting local user
+      if (targetUserId === localUserId) {
+        if (action === 'host-mute-audio') {
+          options?.onHostMuteAudio?.();
+        } else if (action === 'host-mute-video') {
+          options?.onHostMuteVideo?.();
+        } else if (action === 'host-drop-user') {
+          options?.onHostDrop?.();
+        }
+        return;
+      }
+
       setState(prev => {
         const users = new Map(prev.users);
         const existingUser = users.get(userId);

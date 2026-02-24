@@ -25,8 +25,9 @@ interface ChatMessage {
 interface UserAction {
   roomId: string;
   userId: string;
-  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen';
+  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'host-mute-audio' | 'host-mute-video' | 'host-drop-user';
   value: boolean;
+  targetUserId?: string;
 }
 
 interface ServerStats {
@@ -199,7 +200,7 @@ io.on('connection', (socket: Socket) => {
   });
 
   // Handle user actions (mute, video toggle, etc.)
-  socket.on('user-action', ({ roomId, userId, action, value }: UserAction) => {
+  socket.on('user-action', ({ roomId, userId, action, value, targetUserId }: UserAction) => {
     const room = rooms.get(roomId);
     if (!room) return;
 
@@ -245,12 +246,22 @@ io.on('connection', (socket: Socket) => {
     }
 
     // Broadcast action to others
-    socket.to(roomId).emit('user-action', {
-      userId,
-      action,
-      value,
-      timestamp: Date.now()
-    });
+    if (targetUserId) {
+      socket.to(roomId).emit('user-action', {
+        userId,
+        action,
+        value,
+        targetUserId,
+        timestamp: Date.now()
+      });
+    } else {
+      socket.to(roomId).emit('user-action', {
+        userId,
+        action,
+        value,
+        timestamp: Date.now()
+      });
+    }
   });
 
   socket.on('join-request', ({ roomId, userId }) => {
