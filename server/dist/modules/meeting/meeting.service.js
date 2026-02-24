@@ -116,16 +116,33 @@ class MeetingService {
         return updatedMeeting;
     }
     async joinMeeting(meetingId, user) {
-        console.log("Joining meeting with ID:", meetingId, "for user:", user);
         const meeting = await this.getMeetingById(meetingId);
         if (meeting.status !== 'LIVE') {
             throw new errorHandler_1.ConflictError("Meeting is not live");
         }
         const joinAt = new Date();
-        const status = "JOINED";
+        const status = meeting.directJoinPermission ? "JOINED" : "WAITING";
         await this.repo.checkMeetingParticipant(meetingId, user);
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
-        return meeting;
+        return { ...meeting, participantStatus: status };
+    }
+    async admitParticipant(meetingId, hostUserId, targetUserId) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new errorHandler_1.ConflictError("User is not the host of the meeting");
+        }
+        await this.repo.updateMeetingParticipantStatus(meetingId, { userId: targetUserId }, "JOINED", new Date());
+        return { success: true };
+    }
+    async rejectParticipant(meetingId, hostUserId, targetUserId) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new errorHandler_1.ConflictError("User is not the host of the meeting");
+        }
+        await this.repo.updateMeetingParticipantStatus(meetingId, { userId: targetUserId }, "REJECTED");
+        return { success: true };
     }
     async exitMeeting(meetingId, user) {
         const meeting = await this.getMeetingById(meetingId);

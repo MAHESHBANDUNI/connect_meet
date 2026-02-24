@@ -22,15 +22,16 @@ const users = new Map();
 io.on('connection', (socket) => {
     console.log('New connection:', socket.id);
     // Join a room
-    socket.on('join-room', (roomId, userId) => {
-        console.log(`User ${userId} joining room ${roomId}`);
+    socket.on('join-room', (roomId, userId, isHost = false, isWaiting = false) => {
+        console.log(`User ${userId} joining room ${roomId} (Host: ${isHost}, Waiting: ${isWaiting})`);
         // Leave any previous room
         if (users.has(socket.id)) {
             const { roomId: oldRoomId } = users.get(socket.id);
             socket.leave(oldRoomId);
             if (rooms.has(oldRoomId)) {
                 rooms.get(oldRoomId).users.delete(socket.id);
-                if (rooms.get(oldRoomId).users.size === 0) {
+                rooms.get(oldRoomId).waitingUsers?.delete(socket.id);
+                if (rooms.get(oldRoomId).users.size === 0 && (!rooms.get(oldRoomId).waitingUsers || rooms.get(oldRoomId).waitingUsers.size === 0)) {
                     rooms.delete(oldRoomId);
                 }
                 // Notify old room
@@ -46,13 +47,37 @@ io.on('connection', (socket) => {
         if (!rooms.has(roomId)) {
             rooms.set(roomId, {
                 users: new Set(),
-                activeScreenSharer: null
+                waitingUsers: new Set(),
+                activeScreenSharer: null,
+                hostUserId: isHost ? userId : null
             });
         }
-        rooms.get(roomId).users.add(socket.id);
+        const room = rooms.get(roomId);
+        if (isHost) {
+            room.hostUserId = userId;
+        }
+        if (isWaiting) {
+            room.waitingUsers.add(socket.id);
+            users.set(socket.id, { userId, roomId });
+            // Notify host about waiting user
+            if (room.hostUserId) {
+                let hostSocketId = null;
+                for (const [sId, userData] of users.entries()) {
+                    if (userData.userId === room.hostUserId) {
+                        hostSocketId = sId;
+                        break;
+                    }
+                }
+                if (hostSocketId) {
+                    io.to(hostSocketId).emit('join-request', { userId, roomId });
+                }
+            }
+            return;
+        }
+        room.users.add(socket.id);
         users.set(socket.id, { userId, roomId });
         // Get all other users in the room
-        const otherUsers = Array.from(rooms.get(roomId).users)
+        const otherUsers = Array.from(room.users)
             .filter(id => id !== socket.id)
             .map(id => users.get(id).userId);
         // Notify new user of existing users
@@ -66,7 +91,7 @@ io.on('connection', (socket) => {
             roomId,
             timestamp: Date.now()
         });
-        console.log(`Room ${roomId}: ${rooms.get(roomId).users.size} users`);
+        console.log(`Room ${roomId}: ${room.users.size} users, ${room.waitingUsers.size} waiting`);
     });
     // Handle WebRTC signalling
     socket.on('signal', ({ to, from, signal }) => {
@@ -146,6 +171,76 @@ io.on('connection', (socket) => {
             value,
             timestamp: Date.now()
         });
+    });
+    socket.on('join-request', ({ roomId, userId }) => {
+        const room = rooms.get(roomId);
+        if (!room || !room.hostUserId) {
+            socket.emit('error', {
+                type: 'ROOM_NOT_FOUND',
+                message: 'Room does not exist'
+            });
+            return;
+        }
+        // Find host socket
+        let hostSocketId = null;
+        for (const [sId, userData] of users.entries()) {
+            if (userData.userId === room.hostUserId) {
+                hostSocketId = sId;
+                break;
+            }
+        }
+        if (!hostSocketId) {
+            socket.emit('error', {
+                type: 'HOST_NOT_FOUND',
+                message: 'Host is not connected'
+            });
+            return;
+        }
+        // Send join request to host only
+        io.to(hostSocketId).emit('join-request', {
+            userId,
+            roomId
+        });
+        console.log(`Join request from ${userId} sent to host`);
+    });
+    socket.on('join-response', ({ roomId, targetUserId, approved }) => {
+        const room = rooms.get(roomId);
+        if (!room)
+            return;
+        let targetSocketId = null;
+        for (const [sId, userData] of users.entries()) {
+            if (userData.userId === targetUserId && room.waitingUsers.has(sId)) {
+                targetSocketId = sId;
+                break;
+            }
+        }
+        if (!targetSocketId)
+            return;
+        if (approved) {
+            room.waitingUsers.delete(targetSocketId);
+            room.users.add(targetSocketId);
+            // Notify the target user they are admitted
+            io.to(targetSocketId).emit('join-response', { approved: true });
+            // Notify others about the new user
+            const userData = users.get(targetSocketId);
+            io.to(roomId).emit('user-connected', {
+                userId: userData.userId,
+                roomId,
+                timestamp: Date.now()
+            });
+            // Send existing users to the new user
+            const otherUsers = Array.from(room.users)
+                .filter(id => id !== targetSocketId)
+                .map(id => users.get(id).userId);
+            io.to(targetSocketId).emit('existing-users', {
+                roomId,
+                users: otherUsers
+            });
+        }
+        else {
+            room.waitingUsers.delete(targetSocketId);
+            io.to(targetSocketId).emit('join-response', { approved: false });
+        }
     });
     // Handle ping/pong for connection health
     socket.on('ping', () => {

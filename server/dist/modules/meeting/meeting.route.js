@@ -11,7 +11,9 @@ router.get("/:id", controller.getMeetingById);
 router.get("/code/:id", controller.getMeetingByCode);
 router.post("/:id/start", authMiddlerware_js_1.protect, controller.startMeeting);
 router.post("/:id/end", authMiddlerware_js_1.protect, controller.endMeeting);
-router.post("/join", authMiddlerware_js_1.protect, controller.joinMeeting);
+router.post("/:id/join", authMiddlerware_js_1.protect, controller.joinMeeting);
 router.post("/:id/exit", authMiddlerware_js_1.protect, controller.exitMeeting);
+router.post("/:id/admit", authMiddlerware_js_1.protect, controller.admitParticipant);
+router.post("/:id/reject", authMiddlerware_js_1.protect, controller.rejectParticipant);
 exports.default = router;
 //# sourceMappingURL=meeting.route.js.map

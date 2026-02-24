@@ -8,5 +8,9 @@ exports.CreateMeetingValidation = zod_1.z.object({
     startTime: zod_1.z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start time' }),
     cohosts: zod_1.z.array(zod_1.z.string().email('Invalid email address')).optional(),
     invitees: zod_1.z.array(zod_1.z.string().email('Invalid email address')).optional(),
+    directJoinPermission: zod_1.z.boolean().default(true),
+    mutePermission: zod_1.z.boolean().default(false),
+    screenSharePermission: zod_1.z.boolean().default(true),
+    dropPermission: zod_1.z.boolean().default(false),
 });
 //# sourceMappingURL=meeting.validation.js.map

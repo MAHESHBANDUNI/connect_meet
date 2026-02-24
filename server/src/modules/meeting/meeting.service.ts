@@ -1,27 +1,27 @@
 import { CreateMeetingInput } from "./meeting.validation";
 import { ConflictError, NotFoundError } from "../../utils/errorHandler";
-import type {User, MeetingParticipantRole, MeetingDetails} from "./meeting.types";
+import type { User, MeetingParticipantRole, MeetingDetails } from "./meeting.types";
 import { MeetingRepository } from "./meeting.repository";
 import { sendMeetingInvite } from "../../utils/emailHandler";
 
 export function generateMeetingCode(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const parts: string[] = [];
-  
-  for (let i = 0; i < 4; i++) {
-    let part = '';
-    for (let j = 0; j < 4; j++) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      part += chars[randomIndex];
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const parts: string[] = [];
+
+    for (let i = 0; i < 4; i++) {
+        let part = '';
+        for (let j = 0; j < 4; j++) {
+            const randomIndex = Math.floor(Math.random() * chars.length);
+            part += chars[randomIndex];
+        }
+        parts.push(part);
     }
-    parts.push(part);
-  }
-  
-  return parts.join('-');
+
+    return parts.join('-');
 }
 
 export class MeetingService {
-    constructor(private readonly repo = new MeetingRepository()) {}
+    constructor(private readonly repo = new MeetingRepository()) { }
 
     async createMeeting(data: CreateMeetingInput, user: User) {
         const meetingCode = generateMeetingCode();
@@ -83,11 +83,11 @@ export class MeetingService {
             startTime: meeting.startTime,
             meetingLink: `${process.env.CLIENT_URL}/meeting/${meetingCode}`,
         };
-    
+
         await Promise.allSettled(
             Object.entries(meetingParticipants).map(([email, participant]) => {
                 if (!email) return;
-            
+
                 return sendMeetingInvite(
                     {
                         email,
@@ -151,16 +151,37 @@ export class MeetingService {
     }
 
     async joinMeeting(meetingId: string, user: User) {
-        console.log("Joining meeting with ID:", meetingId, "for user:", user);
         const meeting = await this.getMeetingById(meetingId);
         if (meeting.status !== 'LIVE') {
             throw new ConflictError("Meeting is not live");
         }
         const joinAt = new Date();
-        const status = "JOINED";
+        const status = meeting.directJoinPermission ? "JOINED" : "WAITING";
         await this.repo.checkMeetingParticipant(meetingId, user);
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
-        return meeting;
+        return { ...meeting, participantStatus: status };
+    }
+
+    async admitParticipant(meetingId: string, hostUserId: string, targetUserId: string) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new ConflictError("User is not the host of the meeting");
+        }
+
+        await this.repo.updateMeetingParticipantStatus(meetingId, { userId: targetUserId }, "JOINED", new Date());
+        return { success: true };
+    }
+
+    async rejectParticipant(meetingId: string, hostUserId: string, targetUserId: string) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new ConflictError("User is not the host of the meeting");
+        }
+
+        await this.repo.updateMeetingParticipantStatus(meetingId, { userId: targetUserId }, "REJECTED");
+        return { success: true };
     }
 
     async exitMeeting(meetingId: string, user: User) {

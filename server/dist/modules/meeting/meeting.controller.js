@@ -34,7 +34,7 @@ class MeetingController {
             res.status(200).json({ success: true, data: meeting });
         });
         this.joinMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-            const { meetingId } = req.body;
+            const meetingId = req.params.id;
             const user = req?.user;
             const meeting = await this.service.joinMeeting(meetingId, user);
             res.status(200).json({ success: true, data: meeting });
@@ -49,6 +49,20 @@ class MeetingController {
             const user = req?.user;
             const meetings = await this.service.getUserMeetings(user);
             res.status(200).json({ success: true, data: meetings });
+        });
+        this.admitParticipant = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetingId = req.params.id;
+            const { userId } = req.body;
+            const result = await this.service.admitParticipant(meetingId, user.userId, userId);
+            res.status(200).json(result);
+        });
+        this.rejectParticipant = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetingId = req.params.id;
+            const { userId } = req.body;
+            const result = await this.service.rejectParticipant(meetingId, user.userId, userId);
+            res.status(200).json(result);
         });
     }
 }

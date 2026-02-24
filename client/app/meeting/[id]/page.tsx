@@ -7,6 +7,7 @@ import WaitingRoom from "@/app/components/meetings/WaitingRoom";
 import { VideoCall } from "@/app/components/VideoCall/VideoCall";
 import { PlusIcon, X, Send, Mail } from "lucide-react";
 import { MeetingEnd } from "@/app/components/MeetingEnd";
+import { errorToast, successToast } from "@/app/components/ui/toast";
 
 export default function MeetingPage() {
   const params = useParams();
@@ -23,6 +24,8 @@ export default function MeetingPage() {
   const [isSending, setIsSending] = useState(false);
   const [meetingEnded, setMeetingEnded] = useState(false);
   const [meetingDetails, setMeetingDetails] = useState<any>(null);
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [isRejected, setIsRejected] = useState(false);
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,7 +69,7 @@ export default function MeetingPage() {
           inviterEmail: session?.user?.email,
         }),
       });
-      
+
       alert(`Invitations sent to ${emailList.length} participant${emailList.length > 1 ? 's' : ''}`);
       setIsInviteModalOpen(false);
       setEmailList([]);
@@ -85,21 +88,21 @@ export default function MeetingPage() {
     }
   };
 
-  const fetchMeetingDetails = async() => {
-    if(!meetingCode) return;
-    try{
+  const fetchMeetingDetails = async () => {
+    if (!meetingCode) return;
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/code/${meetingCode}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error('Failed to fetch meeting details');
       }
       const result = await response.json();
       console.log("meeting details: ", result.data);
       setMeetingDetails(result.data);
     }
-    catch(err){
+    catch (err) {
       console.error("Failed to fetch meeting details:", err);
     }
   }
@@ -111,13 +114,13 @@ export default function MeetingPage() {
     }
   }, [session]);
 
-  const handleJoin = async(
+  const handleJoin = async (
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
     micId?: string
   ) => {
-    try{
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
@@ -125,87 +128,113 @@ export default function MeetingPage() {
           meetingId: meetingDetails?.meetingId
         }),
       });
-      if(!response.ok){
-        throw new Error('Failed to join meeting');
-      }
-      if(response.status === 200){
+      const result = await response.json();
+      if (result.data?.participantStatus === 'WAITING') {
+        setIsWaiting(true);
+      } else if (response.status === 200) {
         setIsInCall(true);
       }
     }
-    catch(err){
+    catch (err) {
       console.error("Failed to join meeting:", err);
     }
   };
 
-  const handleStart = async(
+  const handleStart = async (
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
     micId?: string
   ) => {
-    try{
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
         body: JSON.stringify({}),
       });
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error('Failed to start meeting');
       }
-      if(response.status === 200){
+      if (response.status === 200) {
         setIsInCall(true);
       }
     }
-    catch(err){
+    catch (err) {
       console.error("Failed to start meeting:", err);
     }
   }
 
-  const handleLeaveRoom = async() => {
-    try{
+  const handleLeaveRoom = async () => {
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/exit`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
         body: JSON.stringify({}),
       });
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error('Failed to leave meeting');
       }
-      if(response.status === 200){
+      if (response.status === 200) {
         setIsInCall(false);
         setMeetingEnded(true);
       }
     }
-    catch(err){
+    catch (err) {
       console.error("Failed to leave meeting:", err);
     }
   };
 
-  const handleEndMeeting = async() => {
-    try{
+  const handleEndMeeting = async () => {
+    try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/end`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
         body: JSON.stringify({}),
       });
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error('Failed to end meeting');
       }
-      if(response.status === 200){
+      if (response.status === 200) {
         setIsInCall(false);
         setMeetingEnded(true);
       }
     }
-    catch(err){
+    catch (err) {
       console.error("Failed to join meeting:", err);
     }
   };
-  
+
+  const handleJoinRequest = async () => {
+    try {
+      setIsSending(true);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token}`
+        },
+        body: JSON.stringify({
+          meetingId: meetingDetails?.meetingId
+        }),
+      });
+
+      const result = await response.json();
+      if (result.data?.participantStatus === 'WAITING') {
+        setIsWaiting(true);
+      }
+    } catch (err) {
+      console.error('Error joining meeting:', err);
+      errorToast('Failed to send join request');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleExit = () => {
     router.push("/meetings");
   };
 
-  if (isInCall) {
+  if (isInCall || isWaiting) {
     return (
       <>
         <VideoCall
@@ -220,8 +249,63 @@ export default function MeetingPage() {
           onLeave={handleLeaveRoom}
           onEnd={handleEndMeeting}
           onAddParticipant={() => setIsInviteModalOpen(true)}
+          onAdmitted={() => {
+            setIsWaiting(false);
+            setIsInCall(true);
+            successToast('Admitted to the meeting');
+          }}
+          onRejected={() => {
+            setIsWaiting(false);
+            setIsInCall(false);
+            setIsRejected(true);
+            errorToast('Join request denied');
+          }}
         />
-        
+
+        {isWaiting && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-md">
+            <div className="bg-[#1a1d23] p-8 rounded-3xl border border-white/10 max-w-md w-full text-center shadow-2xl">
+              <div className="w-20 h-20 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Asking to join...</h2>
+              <p className="text-white/60 mb-6 font-medium">
+                You'll join the meeting as soon as the host admits you.
+              </p>
+              <button
+                onClick={() => setIsInCall(false)}
+                className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold transition-all border border-white/10"
+              >
+                Cancel request
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isRejected && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] backdrop-blur-md">
+            <div className="bg-[#1a1d23] p-8 rounded-3xl border border-white/10 max-w-md w-full text-center shadow-2xl">
+              <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <X className="w-10 h-10 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Request denied</h2>
+              <p className="text-white/60 mb-6 font-medium">
+                The host denied your request to join this meeting.
+              </p>
+              <button
+                onClick={() => {
+                  setIsInCall(false);
+                  setIsRejected(false);
+                  setIsWaiting(false);
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all"
+              >
+                Back to safe zone
+              </button>
+            </div>
+          </div>
+        )}
+
         {isInviteModalOpen && (
           <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4 backdrop-blur-sm">
             <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full overflow-hidden">
@@ -376,11 +460,11 @@ export default function MeetingPage() {
   }
 
   if (meetingEnded) {
-      return (
-          <MeetingEnd
-              redirectUrl="/meetings"
-          />
-      );
+    return (
+      <MeetingEnd
+        redirectUrl="/meetings"
+      />
+    );
   }
 
   return (
@@ -391,6 +475,9 @@ export default function MeetingPage() {
       onJoin={handleJoin}
       onStart={handleStart}
       onExit={handleExit}
+      onJoinRequest={handleJoinRequest}
+      isWaiting={isWaiting}
+      isRejected={isRejected}
     />
   );
 }

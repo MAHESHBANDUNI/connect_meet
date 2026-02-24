@@ -34,6 +34,9 @@ interface WaitingRoomProps {
     cameraId?: string,
     micId?: string
   ) => void;
+  onJoinRequest: () => void;
+  isWaiting?: boolean;
+  isRejected?: boolean;
 }
 
 export default function WaitingRoom({
@@ -42,7 +45,10 @@ export default function WaitingRoom({
   onJoin,
   onStart,
   onExit,
-  meetingDetails
+  onJoinRequest,
+  meetingDetails,
+  isWaiting = false,
+  isRejected = false
 }: WaitingRoomProps) {
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [micEnabled, setMicEnabled] = useState(false);
@@ -50,7 +56,8 @@ export default function WaitingRoom({
 
   const [hasMicPermission, setHasMicPermission] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const {data: session} = useSession();
+  const { data: session } = useSession();
+  const [awaitingHostPermission, setAwaitingHostPermission] = useState(isWaiting);
 
   const [devices, setDevices] = useState<{
     cameras: MediaDeviceInfo[];
@@ -160,19 +167,19 @@ export default function WaitingRoom({
       const constraints: MediaStreamConstraints = {
         video: cameraEnabled
           ? {
-              deviceId: selectedDevices.cameraId
-                ? { exact: selectedDevices.cameraId }
-                : undefined,
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-            }
+            deviceId: selectedDevices.cameraId
+              ? { exact: selectedDevices.cameraId }
+              : undefined,
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
           : false,
         audio: micEnabled
           ? {
-              deviceId: selectedDevices.micId
-                ? { exact: selectedDevices.micId }
-                : undefined,
-            }
+            deviceId: selectedDevices.micId
+              ? { exact: selectedDevices.micId }
+              : undefined,
+          }
           : false,
       };
 
@@ -230,6 +237,12 @@ export default function WaitingRoom({
         selectedDevices.micId
       );
     } else {
+      // If direct join disabled → DO NOT call onJoin yet
+      if (meetingDetails.directJoinPermission === false) {
+        setAwaitingHostPermission(true);
+        onJoinRequest();
+        return;
+      }
       onJoin(
         cameraEnabled,
         micEnabled,
@@ -323,23 +336,21 @@ export default function WaitingRoom({
             <div className="absolute z-50 bottom-2 sm:bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 sm:gap-2 md:gap-3 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl">
               <button
                 onClick={() => setMicEnabled(!micEnabled)}
-                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                  micEnabled
-                    ? "bg-white text-slate-900 shadow-lg"
-                    : "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                }`}
+                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${micEnabled
+                  ? "bg-white text-slate-900 shadow-lg"
+                  : "bg-red-500 text-white shadow-lg shadow-red-500/20"
+                  }`}
                 aria-label={micEnabled ? "Mute microphone" : "Unmute microphone"}
               >
                 {micEnabled ? <Mic className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5" /> : <MicOff className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5" />}
               </button>
-              
+
               <button
                 onClick={() => setCameraEnabled(!cameraEnabled)}
-                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-                  cameraEnabled
-                    ? "bg-white text-slate-900 shadow-lg"
-                    : "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                }`}
+                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${cameraEnabled
+                  ? "bg-white text-slate-900 shadow-lg"
+                  : "bg-red-500 text-white shadow-lg shadow-red-500/20"
+                  }`}
                 aria-label={cameraEnabled ? "Turn off camera" : "Turn on camera"}
               >
                 {cameraEnabled ? <Video className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5" /> : <VideoOff className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5" />}
@@ -367,9 +378,19 @@ export default function WaitingRoom({
             <h2 className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-slate-900 mb-0.5 sm:mb-1 line-clamp-2">
               {meetingTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Ready to join the meeting?
-            </p>
+            {isRejected ? (
+              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
+                The host denied your join request.
+              </div>
+            ) : awaitingHostPermission || isWaiting ? (
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 text-sm text-center">
+                Awaiting host to let you in...
+              </div>
+            ) : (
+              <p className="text-xs sm:text-sm text-slate-500">
+                Ready to join the meeting?
+              </p>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -390,21 +411,21 @@ export default function WaitingRoom({
               }
               className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-95"
             >
-            {
-              meetingDetails?.participants?.some(
-                (participant: any) =>
-                  participant.userId === session?.user?.id &&
-                  participant.participantRole === "HOST"
-              )
-                ? "Start Meeting"
-                : meetingDetails?.participants?.some(
+              {
+                meetingDetails?.participants?.some(
+                  (participant: any) =>
+                    participant.userId === session?.user?.id &&
+                    participant.participantRole === "HOST"
+                )
+                  ? "Start Meeting"
+                  : meetingDetails?.participants?.some(
                     (participant: any) =>
                       participant.participantRole === "HOST" &&
                       participant.hasJoined === true
                   )
-                ? "Join Meeting"
-                : "Please wait for the host to join"
-            }
+                    ? "Join Meeting"
+                    : "Please wait for the host to join"
+              }
             </Button>
 
             <button

@@ -6,6 +6,8 @@ interface ControlsProps {
   isAudioMuted: boolean;
   isVideoOff: boolean;
   isScreenSharing: boolean;
+  isScreenSharingEnabled: boolean;
+  isUserHost: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
   onToggleScreenShare: () => void;
@@ -17,6 +19,8 @@ export const Controls = ({
   isAudioMuted,
   isVideoOff,
   isScreenSharing,
+  isScreenSharingEnabled,
+  isUserHost,
   onToggleAudio,
   onToggleVideo,
   onToggleScreenShare,
@@ -69,7 +73,7 @@ export const Controls = ({
           </button>
 
           {/* Screen Share */}
-          <button
+          {(isScreenSharingEnabled === true || (isScreenSharingEnabled === false && isUserHost)) && <button
             onClick={onToggleScreenShare}
             className={`hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isScreenSharing
@@ -82,7 +86,7 @@ export const Controls = ({
             ) : (
               <ScreenShare className="w-5 h-5 text-white" />
             )}
-          </button>
+          </button>}
 
           {/* More */}
           <div className="flex items-center justify-center w-4 sm:w-5 md:w-6 h-10 sm:h-12 md:h-14 bg-white/10 rounded-xl sm:rounded-2xl">

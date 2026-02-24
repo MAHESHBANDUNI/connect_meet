@@ -15,6 +15,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
     }>;
     getMeetingByCode(meetingCode: string): Promise<{
         createdAt: Date;
@@ -26,6 +30,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -50,6 +58,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -74,6 +86,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -98,6 +114,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -113,6 +133,7 @@ export declare class MeetingService {
         }[];
     } | undefined>;
     joinMeeting(meetingId: string, user: User): Promise<{
+        participantStatus: string;
         createdAt: Date;
         updatedAt: Date;
         meetingId: string;
@@ -122,6 +143,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -136,6 +161,12 @@ export declare class MeetingService {
             leftAt: Date | null;
         }[];
     }>;
+    admitParticipant(meetingId: string, hostUserId: string, targetUserId: string): Promise<{
+        success: boolean;
+    }>;
+    rejectParticipant(meetingId: string, hostUserId: string, targetUserId: string): Promise<{
+        success: boolean;
+    }>;
     exitMeeting(meetingId: string, user: User): Promise<{
         createdAt: Date;
         updatedAt: Date;
@@ -146,6 +177,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -178,6 +213,10 @@ export declare class MeetingService {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
     }[]>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map

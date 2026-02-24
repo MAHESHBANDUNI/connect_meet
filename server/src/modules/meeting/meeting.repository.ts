@@ -19,7 +19,11 @@ export class MeetingRepository {
                     description: data.description,
                     startTime: new Date(data.startTime),
                     meetingCode,
-                    status: 'SCHEDULED'
+                    status: 'SCHEDULED',
+                    directJoinPermission: data.directJoinPermission,
+                    mutePermission: data.mutePermission,
+                    screenSharePermission: data.screenSharePermission,
+                    dropPermission: data.dropPermission,
                 }
             ])
             .returning();
@@ -39,7 +43,6 @@ export class MeetingRepository {
     }
 
     async getMeetingByCode(meetingId: string) {
-      console.log("Fetching meeting with ID:", meetingId);
       return db.query.meetings.findFirst({
         where: 
           eq(meetings.meetingCode, meetingId)
@@ -156,7 +159,7 @@ export class MeetingRepository {
         return participant;
     }
 
-    async updateMeetingParticipantStatus(meetingId: string, user: {userId: string}, status: "JOINED" | "WAITING" | "LEFT", joinedAt?: Date, leftAt?: Date) {
+    async updateMeetingParticipantStatus(meetingId: string, user: {userId: string}, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date) {
         await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where(
             and(
                 eq(meetingParticipants.userId, user.userId),

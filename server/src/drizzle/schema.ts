@@ -44,6 +44,10 @@ export const meetings = pgTable("meetings",{
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
   status: text("status", {enum: [ 'SCHEDULED','LIVE','ENDED','CANCELLED']}).notNull().default('SCHEDULED'),
+  directJoinPermission: boolean("direct_join_permission").notNull().default(true),
+  mutePermission: boolean("mute_permission").notNull().default(false),
+  screenSharePermission: boolean("screen_share_permission").notNull().default(true),
+  dropPermission: boolean("drop_permission").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 })

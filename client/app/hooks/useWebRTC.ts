@@ -23,8 +23,17 @@ export const useWebRTC = (
   screenStream: MediaStream | null,
   options?: {
     onForceStopScreen?: () => void;
+    isHost?: boolean;
+    initialStatus?: 'JOINED' | 'WAITING' | 'INVITED';
+    onAdmitted?: () => void;
+    onRejected?: () => void;
   }
 ) => {
+  const [waitingUsers, setWaitingUsers] = useState<User[]>([]);
+  const [admissionStatus, setAdmissionStatus] = useState<'IDLE' | 'WAITING' | 'ADMITTED' | 'REJECTED'>(
+    options?.initialStatus === 'WAITING' ? 'WAITING' : 'IDLE'
+  );
+
   const [state, setState] = useState<WebRTCState>({
     users: new Map(),
     messages: [],
@@ -98,7 +107,13 @@ export const useWebRTC = (
     sendSignal,
     sendChatMessage,
     sendUserAction,
+    sendJoinResponse,
+    joinRoom,
   } = useSocket({
+    onConnected: () => {
+      joinRoom(roomId, localUserId, options?.isHost, options?.initialStatus === 'WAITING');
+    },
+
     onUserConnected: ({ userId }) => {
       if (userId !== localUserId) {
         setState(prev => {
@@ -189,6 +204,32 @@ export const useWebRTC = (
       stopScreenSharing();
       if (options?.onForceStopScreen) {
         options.onForceStopScreen();
+      }
+    },
+
+    onJoinRequest: ({ userId }) => {
+      if (options?.isHost) {
+        setWaitingUsers(prev => {
+          if (prev.find(u => u.id === userId)) return prev;
+          return [...prev, {
+            id: userId,
+            isAudioMuted: false,
+            isVideoOff: false,
+            isLocal: false,
+            isScreenSharing: false,
+            name: userId.split(':')[0]
+          }];
+        });
+      }
+    },
+
+    onJoinResponse: ({ approved }) => {
+      if (approved) {
+        setAdmissionStatus('ADMITTED');
+        options?.onAdmitted?.();
+      } else {
+        setAdmissionStatus('REJECTED');
+        options?.onRejected?.();
       }
     },
   });
@@ -520,6 +561,16 @@ export const useWebRTC = (
     },
     sendUserAction,
     setUsersLocalMedia,
+    admitParticipant: (targetUserId: string) => {
+      sendJoinResponse(roomId, targetUserId, true);
+      setWaitingUsers(prev => prev.filter(u => u.id !== targetUserId));
+    },
+    rejectParticipant: (targetUserId: string) => {
+      sendJoinResponse(roomId, targetUserId, false);
+      setWaitingUsers(prev => prev.filter(u => u.id !== targetUserId));
+    },
+    waitingUsers,
+    admissionStatus,
     isConnected: true,
   };
 };

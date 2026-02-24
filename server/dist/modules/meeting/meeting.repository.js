@@ -14,7 +14,11 @@ class MeetingRepository {
                 description: data.description,
                 startTime: new Date(data.startTime),
                 meetingCode,
-                status: 'SCHEDULED'
+                status: 'SCHEDULED',
+                directJoinPermission: data.directJoinPermission,
+                mutePermission: data.mutePermission,
+                screenSharePermission: data.screenSharePermission,
+                dropPermission: data.dropPermission,
             }
         ])
             .returning();
@@ -29,7 +33,6 @@ class MeetingRepository {
         });
     }
     async getMeetingByCode(meetingId) {
-        console.log("Fetching meeting with ID:", meetingId);
         return index_js_1.db.query.meetings.findFirst({
             where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingCode, meetingId),
             with: {

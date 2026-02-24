@@ -10,6 +10,8 @@ interface SocketEventHandlers {
   onChatMessage?: (data: { userId: string; message: string; timestamp: number }) => void;
   onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number }) => void;
   onForceStopScreen?: () => void;
+  onJoinRequest?: (data: { userId: string; roomId: string }) => void;
+  onJoinResponse?: (data: { approved: boolean }) => void;
   onError?: (error: { type: string; message: string }) => void;
 }
 
@@ -37,7 +39,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
 
     socket.on('connect', () => {
       console.log('Socket connected:', socket.id);
-      socket.emit('join-room', roomId, userId);
+      // We don't join immediately here anymore, but let the hook handle it
       handlersRef.current.onConnected?.(userId);
     });
 
@@ -69,8 +71,18 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
       handlersRef.current.onUserAction?.(data);
     });
 
-    socket.on('force-stop-screen', () => {
-      handlersRef.current.onForceStopScreen?.();
+    socket.on('join-request', (data) => {
+      console.log('Received join request:', data);
+      handlersRef.current.onJoinRequest?.(data);
+    });
+
+    socket.on('join-response', (data) => {
+      console.log('Received join response:', data);
+      handlersRef.current.onJoinResponse?.(data);
+    });
+
+    socket.on('user-action', (data) => {
+      handlersRef.current.onUserAction?.(data);
     });
 
     socket.on('error', (error) => {
@@ -81,7 +93,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
     });
-  }, []); 
+  }, []);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -108,6 +120,18 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
+  const joinRoom = useCallback((roomId: string, userId: string, isHost: boolean = false, isWaiting: boolean = false) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('join-room', roomId, userId, isHost, isWaiting);
+    }
+  }, []);
+
+  const sendJoinResponse = useCallback((roomId: string, targetUserId: string, approved: boolean) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('join-response', { roomId, targetUserId, approved });
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -120,6 +144,8 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     sendSignal,
     sendChatMessage,
     sendUserAction,
+    sendJoinResponse,
+    joinRoom,
     isConnected: socketRef.current?.connected || false,
   };
-};
+}

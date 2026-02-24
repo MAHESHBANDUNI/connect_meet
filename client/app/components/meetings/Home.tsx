@@ -76,7 +76,7 @@ export default function HomeComponent() {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session?.user?.token}`,
                 },
-                body: JSON.stringify({ topic: data?.topic, description: data?.description, startTime: data?.date, cohosts: data?.coHosts, invitees: data?.invitees }),
+                body: JSON.stringify({ topic: data?.topic, description: data?.description, startTime: data?.date, directJoinPermission: data?.directJoinPermission, mutePermission: data?.mutePermission, screenSharePermission: data?.screenSharePermission, dropPermission: data?.dropPermission, cohosts: data?.coHosts, invitees: data?.invitees }),
             });
             if (!response.ok) {
                 errorToast('Failed to schedule meeting');

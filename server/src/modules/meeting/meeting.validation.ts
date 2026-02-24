@@ -6,6 +6,10 @@ export const CreateMeetingValidation = z.object({
     startTime: z.string().refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid start time' }),
     cohosts: z.array(z.string().email('Invalid email address')).optional(),
     invitees: z.array(z.string().email('Invalid email address')).optional(),
+    directJoinPermission: z.boolean().default(true),
+    mutePermission: z.boolean().default(false),
+    screenSharePermission: z.boolean().default(true),
+    dropPermission: z.boolean().default(false),
 });
 
 export type CreateMeetingInput = z.infer<typeof CreateMeetingValidation>;

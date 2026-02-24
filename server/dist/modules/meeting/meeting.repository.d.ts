@@ -13,6 +13,10 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
     }>;
     getMeetingById(meetingId: string): Promise<{
         createdAt: Date;
@@ -24,6 +28,10 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -48,6 +56,10 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -96,6 +108,10 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
         participants: {
             createdAt: Date;
             updatedAt: Date;
@@ -127,7 +143,7 @@ export declare class MeetingRepository {
     } | undefined>;
     updateMeetingParticipantStatus(meetingId: string, user: {
         userId: string;
-    }, status: "JOINED" | "WAITING" | "LEFT", joinedAt?: Date, leftAt?: Date): Promise<void>;
+    }, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date): Promise<void>;
     getMeetingsByUser(userId: string): Promise<{
         participantCount: number;
         userRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
@@ -146,6 +162,10 @@ export declare class MeetingRepository {
         startTime: Date;
         endTime: Date | null;
         status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
     }[]>;
 }
 //# sourceMappingURL=meeting.repository.d.ts.map

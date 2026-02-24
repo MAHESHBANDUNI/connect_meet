@@ -37,6 +37,10 @@ exports.meetings = (0, pg_core_1.pgTable)("meetings", {
     startTime: (0, pg_core_1.timestamp)("start_time").notNull(),
     endTime: (0, pg_core_1.timestamp)("end_time"),
     status: (0, pg_core_1.text)("status", { enum: ['SCHEDULED', 'LIVE', 'ENDED', 'CANCELLED'] }).notNull().default('SCHEDULED'),
+    directJoinPermission: (0, pg_core_1.boolean)("direct_join_permission").notNull().default(true),
+    mutePermission: (0, pg_core_1.boolean)("mute_permission").notNull().default(false),
+    screenSharePermission: (0, pg_core_1.boolean)("screen_share_permission").notNull().default(true),
+    dropPermission: (0, pg_core_1.boolean)("drop_permission").notNull().default(false),
     createdAt: (0, pg_core_1.timestamp)("created_at").notNull().defaultNow(),
     updatedAt: (0, pg_core_1.timestamp)("updated_at").notNull().defaultNow().$onUpdateFn(() => new Date()),
 });

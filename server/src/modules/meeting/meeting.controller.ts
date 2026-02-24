@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import {MeetingService} from "./meeting.service";
+import { MeetingService } from "./meeting.service";
 import { CreateMeetingValidation } from "./meeting.validation";
 import { asyncHandler } from "../../utils/asyncHandler";
-import type {User} from "./meeting.types";
+import type { User } from "./meeting.types";
 
 export class MeetingController {
-    constructor(private readonly service = new MeetingService()) {}
+    constructor(private readonly service = new MeetingService()) { }
 
     createMeeting = asyncHandler(async (req: Request, res: Response) => {
         const user = req?.user as User;
@@ -16,12 +16,12 @@ export class MeetingController {
 
     getMeetingByCode = asyncHandler(async (req: Request, res: Response) => {
         const meeting = await this.service.getMeetingByCode(req.params.id as string);
-        res.json({success: true, data: meeting});
+        res.json({ success: true, data: meeting });
     });
 
     getMeetingById = asyncHandler(async (req: Request, res: Response) => {
         const meeting = await this.service.getMeetingById(req.params.id as string);
-        res.json({success: true, data: meeting});
+        res.json({ success: true, data: meeting });
     });
 
     startMeeting = asyncHandler(async (req: Request, res: Response) => {
@@ -39,12 +39,12 @@ export class MeetingController {
     });
 
     joinMeeting = asyncHandler(async (req: Request, res: Response) => {
-        const { meetingId } = req.body;
+        const  meetingId = req.params.id as string;
         const user = req?.user as User;
         const meeting = await this.service.joinMeeting(meetingId, user);
         res.status(200).json({ success: true, data: meeting });
     });
-    
+
     exitMeeting = asyncHandler(async (req: Request, res: Response) => {
         const meetingId = req.params.id as string;
         const user = req?.user as User;
@@ -56,5 +56,21 @@ export class MeetingController {
         const user = req?.user as User;
         const meetings = await this.service.getUserMeetings(user);
         res.status(200).json({ success: true, data: meetings });
+    });
+
+    admitParticipant = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetingId = req.params.id as string;
+        const { userId } = req.body;
+        const result = await this.service.admitParticipant(meetingId, user.userId, userId);
+        res.status(200).json(result);
+    });
+
+    rejectParticipant = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetingId = req.params.id as string;
+        const { userId } = req.body;
+        const result = await this.service.rejectParticipant(meetingId, user.userId, userId);
+        res.status(200).json(result);
     });
 }

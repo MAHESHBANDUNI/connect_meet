@@ -39,6 +39,10 @@ const meetingSchema = z.object({
   date: dateSchema,
   coHosts: z.array(emailSchema).max(5, "Maximum 5 co-hosts allowed"),
   invitees: z.array(emailSchema).max(20, "Maximum 20 invitees allowed"),
+  directJoinPermission: z.boolean().default(true),
+  mutePermission: z.boolean().default(false),
+  screenSharePermission: z.boolean().default(true),
+  dropPermission: z.boolean().default(false),
 });
 
 export type MeetingFormData = z.infer<typeof meetingSchema>;
@@ -62,6 +66,10 @@ const ScheduleMeetingModal = ({
     date: new Date(),
     coHosts: [],
     invitees: [],
+    directJoinPermission: true,
+    mutePermission: false,
+    screenSharePermission: true,
+    dropPermission: false,
   });
 
   const [saving, setSaving] = useState(false);
@@ -99,6 +107,10 @@ const ScheduleMeetingModal = ({
       date: new Date(),
       coHosts: [],
       invitees: [],
+      directJoinPermission: true,
+      mutePermission: false,
+      screenSharePermission: true,
+      dropPermission: false,
     });
     setEmailInputs({
       coHost: '',
@@ -321,6 +333,57 @@ const ScheduleMeetingModal = ({
             {touched.date && errors.date && (
               <p className="text-red-500 text-xs mt-1">{errors.date}</p>
             )}
+          </div>
+
+          {/* Permissions */}
+          <div className="space-y-3">
+            <Label className="block text-sm font-medium text-gray-700 mb-2">
+              Permissions
+            </Label>
+                    
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Allow participants to join directly</span>
+              <input
+                type="checkbox"
+                checked={formData.directJoinPermission}
+                onChange={(e) =>
+                  handleChange('directJoinPermission', e.target.checked)
+                }
+              />
+            </div>
+              
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Allow hosts to mute participants</span>
+              <input
+                type="checkbox"
+                checked={formData.mutePermission}
+                onChange={(e) =>
+                  handleChange('mutePermission', e.target.checked)
+                }
+              />
+            </div>
+              
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Allow screen sharing for anyone</span>
+              <input
+                type="checkbox"
+                checked={formData.screenSharePermission}
+                onChange={(e) =>
+                  handleChange('screenSharePermission', e.target.checked)
+                }
+              />
+            </div>
+              
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Allow hosts to drop participants</span>
+              <input
+                type="checkbox"
+                checked={formData.dropPermission}
+                onChange={(e) =>
+                  handleChange('dropPermission', e.target.checked)
+                }
+              />
+            </div>
           </div>
 
           {/* Co-hosts */}
