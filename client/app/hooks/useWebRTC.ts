@@ -20,7 +20,10 @@ export const useWebRTC = (
   localUserId: string,
   roomId: string,
   localStream: MediaStream | null,
-  screenStream: MediaStream | null
+  screenStream: MediaStream | null,
+  options?: {
+    onForceStopScreen?: () => void;
+  }
 ) => {
   const [state, setState] = useState<WebRTCState>({
     users: new Map(),
@@ -141,8 +144,10 @@ export const useWebRTC = (
     onUserAction: ({ userId, action, value }) => {
       setState(prev => {
         const users = new Map(prev.users);
-        const user = users.get(userId);
-        if (!user || user.isLocal) return prev;
+        const existingUser = users.get(userId);
+        if (!existingUser || existingUser.isLocal) return prev;
+
+        const user = { ...existingUser };
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
@@ -182,6 +187,9 @@ export const useWebRTC = (
 
     onForceStopScreen: () => {
       stopScreenSharing();
+      if (options?.onForceStopScreen) {
+        options.onForceStopScreen();
+      }
     },
   });
 
@@ -201,22 +209,30 @@ export const useWebRTC = (
       const stream = event.streams?.[0];
       if (!stream) return;
 
-      const existing = remoteStreamsRef.current.get(remoteUserId) || {};
-
-      // If we don't have a camera stream yet and this stream has a video track, it's likely the camera
-      // unless we already have evidence it's a screen share.
-      // A more robust way is to check the stream ID.
-
+      const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
       const isVideoTrack = event.track.kind === 'video';
       const isAudioTrack = event.track.kind === 'audio';
 
-      if (!existing.camera && isVideoTrack) {
-        existing.camera = stream;
-      } else if (existing.camera && stream.id !== existing.camera.id && isVideoTrack) {
-        // If it's a different stream ID and has video, it's the screen share
-        existing.screen = stream;
+      // Use the current state to help identify the track
+      const users = state.users;
+      const user = users.get(remoteUserId);
+
+      if (isVideoTrack) {
+        const isCamera = existing.camera && stream.id === existing.camera.id;
+        const isScreen = existing.screen && stream.id === existing.screen.id;
+
+        if (isCamera) {
+          existing.camera = stream;
+        } else if (isScreen) {
+          existing.screen = stream;
+        } else if (user?.isScreenSharing && existing.camera) {
+          existing.screen = stream;
+        } else if (!existing.camera) {
+          existing.camera = stream;
+        } else {
+          existing.screen = stream;
+        }
       } else if (isAudioTrack) {
-        // Audio tracks are usually part of the camera stream in this app
         existing.camera = stream;
       }
 
@@ -224,7 +240,9 @@ export const useWebRTC = (
 
       setState(prev => {
         const users = new Map(prev.users);
-        const user = users.get(remoteUserId) || {
+        const existingUser = users.get(remoteUserId);
+
+        const user = existingUser ? { ...existingUser } : {
           id: remoteUserId,
           isAudioMuted: false,
           isVideoOff: false,
@@ -234,8 +252,10 @@ export const useWebRTC = (
 
         user.stream = existing.camera;
         user.screenStream = existing.screen;
-        // Correctly update isScreenSharing based on whether we have a screen stream
-        user.isScreenSharing = !!existing.screen;
+
+        // If we are getting a track and we know they are screen sharing, 
+        // OR we have a second stream, mark as screen sharing
+        user.isScreenSharing = user.isScreenSharing || !!existing.screen;
 
         users.set(remoteUserId, user);
         return { ...prev, users };
@@ -338,8 +358,10 @@ export const useWebRTC = (
     (action: 'toggle-audio' | 'toggle-video' | 'toggle-screen', value: boolean) => {
       setState(prev => {
         const users = new Map(prev.users);
-        const user = users.get(localUserId);
-        if (!user) return prev;
+        const existingUser = users.get(localUserId);
+        if (!existingUser) return prev;
+
+        const user = { ...existingUser };
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;

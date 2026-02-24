@@ -7,7 +7,7 @@ import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
 import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon } from "lucide-react";
-import {ScreenPresentTile} from './ScreenPresentTile';
+import { ScreenPresentTile } from './ScreenPresentTile';
 
 interface VideoCallProps {
   roomId: string;
@@ -48,6 +48,7 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
     toggleAudio,
     toggleVideo,
     toggleScreenShare,
+    stopScreenShare,
     stopMediaStream,
     getMediaStream,
   } = useMediaStream();
@@ -60,7 +61,9 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
     sendChatMessage,
     sendUserAction,
     setUsersLocalMedia
-  } = useWebRTC(userId, roomId, activeStream, screenStream);
+  } = useWebRTC(userId, roomId, activeStream, screenStream, {
+    onForceStopScreen: stopScreenShare,
+  });
 
   console.log('Current Users in Call:', users);
   console.log('User Media Status:', { isAudioMuted, isVideoOff, isScreenSharing, localStream, screenStream });
@@ -115,7 +118,7 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
     );
     if (isCurrentUserHost) {
       onEnd();
-    } else {      
+    } else {
       onLeave();
     }
   };
@@ -158,12 +161,12 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
 
         {screenSharer ? (
           <div className="flex flex-col lg:flex-row w-full h-full">
-          
+
             {/* Share Screen Area */}
             <div className="flex-1 bg-[#26282c] flex items-center justify-center p-4 w-full lg:min-w-3/4 h-2/3 sm:h-full">
-               <div className='w-full h-full flex items-center justify-center'>
-                  <ScreenPresentTile user={screenSharer} />
-                </div>
+              <div className='w-full h-full flex items-center justify-center'>
+                <ScreenPresentTile user={screenSharer} />
+              </div>
             </div>
 
             <div
@@ -182,11 +185,11 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
             >
               {users.map(user => (
                 <>
-                <VideoTile key={user.id} user={user} screenSharer={screenSharer}/>
+                  <VideoTile key={user.id} user={user} screenSharer={screenSharer} />
                 </>
               ))}
             </div>
-            
+
           </div>
 
         ) : (
@@ -195,13 +198,13 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
             ${totalUsers === 1
               ? 'max-w-4xl mx-auto grid-cols-1'
               : totalUsers === 2
-              ? 'grid-cols-1 md:grid-cols-2'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                ? 'grid-cols-1 md:grid-cols-2'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
             }
           `}>
             {users.map(user => (
               <>
-              <VideoTile key={user.id} user={user} />
+                <VideoTile key={user.id} user={user} />
               </>
             ))}
           </div>
@@ -223,91 +226,87 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
           {showParticipants && (
             <div className="flex flex-col h-full bg-[#1a1d23]">
               <div className='flex flex-row justify-around items-center'>
-              <div className="px-6 py-5 border-b border-white/5 bg-black/10">
-                <h3 className="text-sm font-bold text-white tracking-tight">Participants</h3>
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">
-                  {totalUsers} People in this meeting
-                </p>
-              </div>
-              <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
-                <UserPlusIcon className="w-5 h-5 text-white m-1"/>
-                <p className='text-white text-sm'>Add people</p>
-              </button>
+                <div className="px-6 py-5 border-b border-white/5 bg-black/10">
+                  <h3 className="text-sm font-bold text-white tracking-tight">Participants</h3>
+                  <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">
+                    {totalUsers} People in this meeting
+                  </p>
+                </div>
+                <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
+                  <UserPlusIcon className="w-5 h-5 text-white m-1" />
+                  <p className='text-white text-sm'>Add people</p>
+                </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                  {(() => {
-                    const presentingUser = users.find(user => user.isScreenSharing)
-                    return (
-                      <>
-                        {presentingUser && (
-                          <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
-                                  {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
-                                </div>
-                        
-                                <div>
-                                  <p className="text-sm font-semibold text-white">
-                                    {presentingUser.id.split(":")[0]}{" "}
-                                    {presentingUser.isLocal && "(You)"}
-                                  </p>
-                                  <p className="text-xs text-emerald-400 font-medium">
-                                    Presenting now
-                                  </p>
-                                </div>
+                {(() => {
+                  const presentingUser = users.find(user => user.isScreenSharing)
+                  return (
+                    <>
+                      {presentingUser && (
+                        <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
+                                {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
                               </div>
-                        
+
+                              <div>
+                                <p className="text-sm font-semibold text-white">
+                                  {presentingUser.id.split(":")[0]}{" "}
+                                  {presentingUser.isLocal && "(You)"}
+                                </p>
+                                <p className="text-xs text-emerald-400 font-medium">
+                                  Presenting now
+                                </p>
+                              </div>
                             </div>
+
                           </div>
-                        )}
-        
-                        {users.map((user) => {
-                          const isLocal = user.isLocal
-                          const displayName = user.id.split(":")[0]
-                          const firstLetter = displayName.charAt(0).toUpperCase()
-                        
-                          return (
-                            <>
+                        </div>
+                      )}
+
+                      {users.map((user) => {
+                        const isLocal = user.isLocal
+                        const displayName = user.id.split(":")[0]
+                        const firstLetter = displayName.charAt(0).toUpperCase()
+
+                        return (
+                          <>
                             <div
                               key={user.id}
-                              className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${
-                                isLocal
+                              className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${isLocal
                                   ? "bg-white/5 border border-white/5"
                                   : "hover:bg-white/5"
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center gap-3">
                                 <div
-                                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${
-                                    isLocal
+                                  className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${isLocal
                                       ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
                                       : "bg-white/5 border border-white/5 text-white/60"
-                                  }`}
+                                    }`}
                                 >
                                   {firstLetter}
                                 </div>
-                                
+
                                 <div>
                                   <p
-                                    className={`text-sm ${
-                                      isLocal
+                                    className={`text-sm ${isLocal
                                         ? "font-semibold text-white"
                                         : "font-medium text-white/90"
-                                    }`}
+                                      }`}
                                   >
                                     {displayName} {isLocal && "(You)"}
                                   </p>
                                 </div>
                               </div>
-                                  
+
                               <div className="flex gap-2">
                                 {/* Audio */}
                                 {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
                                   <span
-                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
-                                      isLocal ? "text-red-400" : ""
-                                    }`}
+                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
+                                      }`}
                                   >
                                     <MicOff className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
                                   </span>
@@ -318,13 +317,12 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
                                     </span>
                                   )
                                 )}
-        
+
                                 {/* Video */}
                                 {(isLocal ? isVideoOff : user.isVideoOff) ? (
                                   <span
-                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${
-                                      isLocal ? "text-red-400" : ""
-                                    }`}
+                                    className={`p-1 bg-transparent backdrop-blur-md rounded-xl ${isLocal ? "text-red-400" : ""
+                                      }`}
                                   >
                                     <VideoOffIcon className={`${isLocal ? "w-5 h-5" : "w-4 h-4"}`} />
                                   </span>
@@ -337,16 +335,16 @@ export const VideoCall = ({ roomId, userId, onLeave, onEnd, onAddParticipant, me
                                 )}
                               </div>
                             </div>
-                            </>
-                          )
-                        })}
-                      </>
-                    )
-                  })()}
-                    </div>
-                  </div>
-                )}
-              </aside>
+                          </>
+                        )
+                      })}
+                    </>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+        </aside>
       </main>
 
       <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">

@@ -60,36 +60,42 @@ export const useMediaStream = () => {
     });
   }, []);
 
-  const toggleScreenShare = useCallback(async () => {
-    if (isScreenSharing && screenStreamRef.current) {
+  const stopScreenShare = useCallback(() => {
+    if (screenStreamRef.current) {
       screenStreamRef.current.getTracks().forEach(track => track.stop());
-      setIsScreenSharing(false);
       screenStreamRef.current = null;
+    }
+    setIsScreenSharing(false);
+  }, []);
+
+  const toggleScreenShare = useCallback(async () => {
+    if (isScreenSharing) {
+      stopScreenShare();
     } else {
       try {
         screenStreamRef.current = await navigator.mediaDevices.getDisplayMedia({
           video: true,
           audio: true,
         });
-        
+
         screenStreamRef.current.getVideoTracks()[0].onended = () => {
-          setIsScreenSharing(false);
-          screenStreamRef.current = null;
+          stopScreenShare();
         };
-        
+
         setIsScreenSharing(true);
       } catch (error) {
         console.error('Error sharing screen:', error);
       }
     }
-  }, [isScreenSharing]);
-    const hasStoppedRef = useRef(false);
-    
+  }, [isScreenSharing, stopScreenShare]);
+  const hasStoppedRef = useRef(false);
+
   useEffect(() => {
     return () => {
       stopMediaStream();
+      stopScreenShare();
     };
-  }, [stopMediaStream]);
+  }, [stopMediaStream, stopScreenShare]);
 
   return {
     localStream: localStreamRef.current,
@@ -99,6 +105,7 @@ export const useMediaStream = () => {
     isScreenSharing,
     getMediaStream,
     stopMediaStream,
+    stopScreenShare,
     toggleAudio,
     toggleVideo,
     toggleScreenShare,
