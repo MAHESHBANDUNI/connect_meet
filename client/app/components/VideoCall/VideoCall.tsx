@@ -320,7 +320,7 @@ export const VideoCall = ({
                     {waitingUsers
                       .filter(wUser => {
                         // Only show if the user being admitted is actually a participant in meetingDetails
-                        const participantDetail = meetingDetails?.participants?.find((p: any) => p.userId === wUser.id || `${p.firstName}:${p.userId}` === wUser.id);
+                        const participantDetail = meetingDetails?.participants?.find((p: any) => p.userId === wUser.id || `${p.firstName} ${p.lastName}:${p.userId}` === wUser.id);
                         return participantDetail?.participantRole === "PARTICIPANT";
                       })
                       .map((wUser) => (
