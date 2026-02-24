@@ -12,6 +12,7 @@ interface SocketEventHandlers {
   onForceStopScreen?: () => void;
   onJoinRequest?: (data: { userId: string; roomId: string }) => void;
   onJoinResponse?: (data: { approved: boolean }) => void;
+  onWaitingUsers?: (data: { users: { userId: string }[] }) => void;
   onError?: (error: { type: string; message: string }) => void;
 }
 
@@ -81,8 +82,9 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
       handlersRef.current.onJoinResponse?.(data);
     });
 
-    socket.on('user-action', (data) => {
-      handlersRef.current.onUserAction?.(data);
+    socket.on('waiting-users', (data) => {
+      console.log('Received waiting users:', data);
+      handlersRef.current.onWaitingUsers?.(data);
     });
 
     socket.on('error', (error) => {

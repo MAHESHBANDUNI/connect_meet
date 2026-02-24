@@ -38,6 +38,8 @@ interface VideoCallProps {
   onAddParticipant: () => void;
   onAdmitted?: () => void;
   onRejected?: () => void;
+  onAdmitParticipant?: (targetUserId: string) => void;
+  onRejectParticipant?: (targetUserId: string) => void;
 }
 
 export const VideoCall = ({
@@ -49,7 +51,9 @@ export const VideoCall = ({
   meetingDetails,
   user,
   onAdmitted,
-  onRejected
+  onRejected,
+  onAdmitParticipant,
+  onRejectParticipant
 }: VideoCallProps) => {
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -89,7 +93,7 @@ export const VideoCall = ({
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
-    initialStatus: meetingDetails?.directJoinPermission ? 'JOINED' : 'WAITING',
+    initialStatus: (meetingDetails?.directJoinPermission || isCurrentUserHost) ? 'JOINED' : 'WAITING',
     onAdmitted,
     onRejected,
     onHostMuteAudio: () => {
@@ -104,8 +108,20 @@ export const VideoCall = ({
     },
     onHostDrop: () => {
       handleEndCall();
-    }
+    },
+    onAdmitParticipant,
+    onRejectParticipant
   });
+
+  const getParticipantName = (participantId: string) => {
+    const participant = meetingDetails?.participants?.find(
+      (p: any) => p.userId === participantId || `${p.firstName}:${p.userId}` === participantId
+    );
+    if (participant) {
+      return `${participant.firstName} ${participant.lastName}`;
+    }
+    return participantId.split(':')[0];
+  };
 
   console.log('Current Users in Call:', users);
   console.log('User Media Status:', { isAudioMuted, isVideoOff, isScreenSharing, localStream, screenStream });
@@ -305,9 +321,9 @@ export const VideoCall = ({
                         <div key={wUser.id} className="flex items-center justify-between p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
-                              {wUser.id.split(":")[0].charAt(0).toUpperCase()}
+                              {getParticipantName(wUser.id).charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-sm font-medium text-white">{wUser.id.split(":")[0]}</p>
+                            <p className="text-sm font-medium text-white">{getParticipantName(wUser.id)}</p>
                           </div>
                           <div className="flex gap-2">
                             <button

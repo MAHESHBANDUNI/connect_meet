@@ -115,6 +115,18 @@ io.on('connection', (socket: Socket) => {
     const room = rooms.get(roomId)!;
     if (isHost) {
       room.hostUserId = userId;
+
+      // If there are waiting users, send them to the host immediately
+      if (room.waitingUsers.size > 0) {
+        const waitingList = Array.from(room.waitingUsers)
+          .map(sId => {
+            const userData = users.get(sId);
+            return userData ? { userId: userData.userId } : null;
+          })
+          .filter((u): u is { userId: string } => u !== null);
+
+        socket.emit('waiting-users', { users: waitingList });
+      }
     }
 
     if (isWaiting) {
@@ -143,7 +155,8 @@ io.on('connection', (socket: Socket) => {
     // Get all other users in the room
     const otherUsers = Array.from(room.users)
       .filter(id => id !== socket.id)
-      .map(id => users.get(id)!.userId);
+      .map(id => users.get(id)?.userId)
+      .filter((id): id is string => id !== undefined);
 
     // Notify new user of existing users
     socket.emit('existing-users', {

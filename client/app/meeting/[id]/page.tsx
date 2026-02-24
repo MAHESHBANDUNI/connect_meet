@@ -121,7 +121,7 @@ export default function MeetingPage() {
     micId?: string
   ) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/join`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
         body: JSON.stringify({
@@ -230,6 +230,42 @@ export default function MeetingPage() {
     }
   };
 
+  const handleAdmitParticipant = async (targetUserId: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/admit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token}`
+        },
+        body: JSON.stringify({ userId: targetUserId }),
+      });
+      if (!response.ok) throw new Error('Failed to admit participant');
+      successToast('Participant admitted');
+    } catch (err) {
+      console.error('Error admitting participant:', err);
+      errorToast('Failed to admit participant');
+    }
+  };
+
+  const handleRejectParticipant = async (targetUserId: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token}`
+        },
+        body: JSON.stringify({ userId: targetUserId }),
+      });
+      if (!response.ok) throw new Error('Failed to reject participant');
+      successToast('Participant rejected');
+    } catch (err) {
+      console.error('Error rejecting participant:', err);
+      errorToast('Failed to reject participant');
+    }
+  };
+
   const handleExit = () => {
     router.push("/meetings");
   };
@@ -260,6 +296,8 @@ export default function MeetingPage() {
             setIsRejected(true);
             errorToast('Join request denied');
           }}
+          onAdmitParticipant={handleAdmitParticipant}
+          onRejectParticipant={handleRejectParticipant}
         />
 
         {isWaiting && (

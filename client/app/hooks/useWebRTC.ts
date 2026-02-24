@@ -30,6 +30,8 @@ export const useWebRTC = (
     onHostMuteAudio?: () => void;
     onHostMuteVideo?: () => void;
     onHostDrop?: () => void;
+    onAdmitParticipant?: (targetUserId: string) => void;
+    onRejectParticipant?: (targetUserId: string) => void;
   }
 ) => {
   const [waitingUsers, setWaitingUsers] = useState<User[]>([]);
@@ -245,6 +247,27 @@ export const useWebRTC = (
       } else {
         setAdmissionStatus('REJECTED');
         options?.onRejected?.();
+      }
+    },
+
+    onWaitingUsers: ({ users }) => {
+      if (options?.isHost) {
+        setWaitingUsers(prev => {
+          const newWaiting = [...prev];
+          users.forEach(u => {
+            if (!newWaiting.find(existing => existing.id === u.userId)) {
+              newWaiting.push({
+                id: u.userId,
+                isAudioMuted: false,
+                isVideoOff: false,
+                isLocal: false,
+                isScreenSharing: false,
+                name: u.userId.split(':')[0]
+              });
+            }
+          });
+          return newWaiting;
+        });
       }
     },
   });
@@ -579,10 +602,12 @@ export const useWebRTC = (
     admitParticipant: (targetUserId: string) => {
       sendJoinResponse(roomId, targetUserId, true);
       setWaitingUsers(prev => prev.filter(u => u.id !== targetUserId));
+      options?.onAdmitParticipant?.(targetUserId);
     },
     rejectParticipant: (targetUserId: string) => {
       sendJoinResponse(roomId, targetUserId, false);
       setWaitingUsers(prev => prev.filter(u => u.id !== targetUserId));
+      options?.onRejectParticipant?.(targetUserId);
     },
     waitingUsers,
     admissionStatus,
