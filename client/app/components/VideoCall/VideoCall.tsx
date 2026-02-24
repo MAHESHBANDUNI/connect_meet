@@ -89,6 +89,7 @@ export const VideoCall = ({
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
+    initialStatus: meetingDetails?.directJoinPermission ? 'JOINED' : 'WAITING',
     onAdmitted,
     onRejected,
     onHostMuteAudio: () => {
@@ -294,30 +295,36 @@ export const VideoCall = ({
                 {isCurrentUserHost && waitingUsers.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] text-yellow-500 uppercase tracking-widest font-bold px-2">Awaiting Admission</h4>
-                    {waitingUsers.map((wUser) => (
-                      <div key={wUser.id} className="flex items-center justify-between p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
-                            {wUser.id.split(":")[0].charAt(0).toUpperCase()}
+                    {waitingUsers
+                      .filter(wUser => {
+                        // Only show if the user being admitted is actually a participant in meetingDetails
+                        const participantDetail = meetingDetails?.participants?.find((p: any) => p.userId === wUser.id || `${p.firstName}:${p.userId}` === wUser.id);
+                        return participantDetail?.participantRole === "PARTICIPANT";
+                      })
+                      .map((wUser) => (
+                        <div key={wUser.id} className="flex items-center justify-between p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
+                              {wUser.id.split(":")[0].charAt(0).toUpperCase()}
+                            </div>
+                            <p className="text-sm font-medium text-white">{wUser.id.split(":")[0]}</p>
                           </div>
-                          <p className="text-sm font-medium text-white">{wUser.id.split(":")[0]}</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => admitParticipant(wUser.id)}
+                              className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold rounded-lg transition-colors"
+                            >
+                              Admit
+                            </button>
+                            <button
+                              onClick={() => rejectParticipant(wUser.id)}
+                              className="px-2 py-1 bg-red-600/20 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-colors border border-red-500/30"
+                            >
+                              Deny
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => admitParticipant(wUser.id)}
-                            className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold rounded-lg transition-colors"
-                          >
-                            Admit
-                          </button>
-                          <button
-                            onClick={() => rejectParticipant(wUser.id)}
-                            className="px-2 py-1 bg-red-600/20 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-colors border border-red-500/30"
-                          >
-                            Deny
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 )}
 

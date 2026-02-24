@@ -155,9 +155,18 @@ export class MeetingService {
         if (meeting.status !== 'LIVE') {
             throw new ConflictError("Meeting is not live");
         }
+
+        const participant = await this.repo.checkMeetingParticipant(meetingId, user)
+            || await this.repo.checkMeetingHost(meetingId, user);
+
+        if (!participant) {
+            throw new NotFoundError("Participant not found");
+        }
+
         const joinAt = new Date();
-        const status = meeting.directJoinPermission ? "JOINED" : "WAITING";
-        await this.repo.checkMeetingParticipant(meetingId, user);
+        const isHostOrCoHost = participant.participantRole === 'HOST' || participant.participantRole === 'CO_HOST';
+        const status = (meeting.directJoinPermission || isHostOrCoHost) ? "JOINED" : "WAITING";
+
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
         return { ...meeting, participantStatus: status };
     }

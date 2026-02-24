@@ -166,11 +166,6 @@ io.on('connection', (socket) => {
         }
         // Broadcast action to others
         if (targetUserId) {
-            // If there's a target, we might want to ensure the target gets it
-            // socket.to(roomId) broadcasts to everyone in the room EXCEPT the sender.
-            // If the host is the sender, the target (if in the room) will receive it via broadcast.
-            // However, it's safer to explicitly target the socket if we can, 
-            // but broadcast also works and allows others to see the status change.
             socket.to(roomId).emit('user-action', {
                 userId,
                 action,
