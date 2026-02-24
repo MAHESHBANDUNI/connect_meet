@@ -93,7 +93,11 @@ export const VideoCall = ({
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
-    initialStatus: (meetingDetails?.directJoinPermission || isCurrentUserHost) ? 'JOINED' : 'WAITING',
+    initialStatus: meetingDetails
+      ? (meetingDetails.directJoinPermission || isCurrentUserHost)
+          ? 'JOINED'
+          : 'WAITING'
+      : undefined,
     onAdmitted,
     onRejected,
     onHostMuteAudio: () => {

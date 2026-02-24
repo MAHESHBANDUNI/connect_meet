@@ -1,8 +1,8 @@
-import {db} from "../../drizzle/index.js";
-import {meetings, users, meetingParticipants} from "../../drizzle/schema.js";
-import {and, eq, inArray, or} from "drizzle-orm";
-import {CreateMeetingInput} from "./meeting.validation.js";
-import type {MeetingParticipantRole} from "./meeting.types";
+import { db } from "../../drizzle/index.js";
+import { meetings, users, meetingParticipants } from "../../drizzle/schema.js";
+import { and, eq, inArray, or } from "drizzle-orm";
+import { CreateMeetingInput } from "./meeting.validation.js";
+import type { MeetingParticipantRole } from "./meeting.types";
 
 export class MeetingRepository {
 
@@ -27,30 +27,38 @@ export class MeetingRepository {
                 }
             ])
             .returning();
-        
+
         return meeting;
     }
 
     async getMeetingById(meetingId: string) {
-      return db.query.meetings.findFirst({
-        where: 
-          eq(meetings.meetingId, meetingId)
-        ,
-        with: {
-          participants: true,
-        },
-      });
+        return db.query.meetings.findFirst({
+            where:
+                eq(meetings.meetingId, meetingId)
+            ,
+            with: {
+                participants: {
+                    with: {
+                        user: true
+                    }
+                },
+            },
+        });
     }
 
     async getMeetingByCode(meetingId: string) {
-      return db.query.meetings.findFirst({
-        where: 
-          eq(meetings.meetingCode, meetingId)
-        ,
-        with: {
-          participants: true,
-        },
-      });
+        return db.query.meetings.findFirst({
+            where:
+                eq(meetings.meetingCode, meetingId)
+            ,
+            with: {
+                participants: {
+                    with: {
+                        user: true
+                    }
+                },
+            },
+        });
     }
 
     async mapParticipantsWithUserDetails(participantList: string[]) {
@@ -63,7 +71,7 @@ export class MeetingRepository {
             })
             .from(users)
             .where(inArray(users.email, participantList));
-        
+
         const userMap = userRecords.reduce<
             Record<
                 string,
@@ -77,16 +85,16 @@ export class MeetingRepository {
             if (!acc[user.email]) {
                 acc[user.email] = [];
             }
-        
+
             acc[user.email].push({
                 userId: user.userId,
                 firstName: user.firstName,
                 lastName: user.lastName,
             });
-        
+
             return acc;
         }, {});
-    
+
         const result: Record<
             string,
             {
@@ -95,11 +103,11 @@ export class MeetingRepository {
                 lastName: string;
             }[]
         > = {};
-        
+
         for (const email of participantList) {
             result[email] = userMap[email] ?? [];
         }
-    
+
         return result;
     }
 
@@ -132,7 +140,7 @@ export class MeetingRepository {
         return true;
     }
 
-    async checkMeetingHost(meetingId: string, user: {userId: string}) {
+    async checkMeetingHost(meetingId: string, user: { userId: string }) {
         const participant = await db.query.meetingParticipants.findFirst({
             where: and(
                 eq(meetingParticipants.userId, user.userId),
@@ -148,7 +156,7 @@ export class MeetingRepository {
         return this.getMeetingById(meetingId);
     }
 
-    async checkMeetingParticipant(meetingId: string, user: {userId: string}) {
+    async checkMeetingParticipant(meetingId: string, user: { userId: string }) {
         const participant = await db.query.meetingParticipants.findFirst({
             where: and(
                 eq(meetingParticipants.userId, user.userId),
@@ -159,7 +167,7 @@ export class MeetingRepository {
         return participant;
     }
 
-    async updateMeetingParticipantStatus(meetingId: string, user: {userId: string}, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date) {
+    async updateMeetingParticipantStatus(meetingId: string, user: { userId: string }, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date) {
         await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where(
             and(
                 eq(meetingParticipants.userId, user.userId),

@@ -52,6 +52,11 @@ export const useWebRTC = (
   >(new Map());
   const localStreamRef = useRef<MediaStream | null>(localStream);
   const screenStreamRef = useRef<MediaStream | null>(screenStream);
+  const isHostRef = useRef(options?.isHost);
+
+  useEffect(() => {
+    isHostRef.current = options?.isHost;
+  }, [options?.isHost]);
 
   useEffect(() => {
     localStreamRef.current = localStream;
@@ -225,7 +230,7 @@ export const useWebRTC = (
     },
 
     onJoinRequest: ({ userId }) => {
-      if (options?.isHost) {
+      if (isHostRef.current) {
         setWaitingUsers(prev => {
           if (prev.find(u => u.id === userId)) return prev;
           return [...prev, {
@@ -251,7 +256,7 @@ export const useWebRTC = (
     },
 
     onWaitingUsers: ({ users }) => {
-      if (options?.isHost) {
+      if (isHostRef.current) {
         setWaitingUsers(prev => {
           const newWaiting = [...prev];
           users.forEach(u => {
@@ -494,6 +499,7 @@ export const useWebRTC = (
 
   useEffect(() => {
     if (localUserId && roomId) {
+      if (options?.isHost === undefined) return;
       connect(roomId, localUserId);
     }
 
@@ -508,7 +514,7 @@ export const useWebRTC = (
       peerConnectionsRef.current.clear();
       remoteStreamsRef.current.clear();
     };
-  }, [localUserId, roomId, connect, disconnect]);
+  }, [localUserId, roomId, connect, disconnect, options?.isHost]);
 
   useEffect(() => {
     if (!localStream) return;
