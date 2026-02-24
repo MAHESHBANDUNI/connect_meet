@@ -319,8 +319,12 @@ export const VideoCall = ({
                     <h4 className="text-[10px] text-yellow-500 uppercase tracking-widest font-bold px-2">Awaiting Admission</h4>
                     {waitingUsers
                       .filter(wUser => {
-                        // Only show if the user being admitted is actually a participant in meetingDetails
-                        const participantDetail = meetingDetails?.participants?.find((p: any) => p.userId === wUser.id || `${p.firstName} ${p.lastName}:${p.userId}` === wUser.id);
+                        const userIdOnly = wUser.id.split(":")[1];
+                      
+                        const participantDetail = meetingDetails?.participants?.find(
+                          (p: any) => p.userId === userIdOnly
+                        );
+                      
                         return participantDetail?.participantRole === "PARTICIPANT";
                       })
                       .map((wUser) => (
