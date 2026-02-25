@@ -53,14 +53,18 @@ interface ScheduleMeetingModalProps {
   onSubmit: (data: MeetingFormData) => Promise<void>;
   saving: boolean;
   setSaving: (saving: boolean) => void;
+  mode?: "create" | "edit";
+  initialData?: Partial<MeetingFormData>;
 }
 
 const ScheduleMeetingModal = ({
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
+  mode,
+  initialData
 }: ScheduleMeetingModalProps) => {
-  const [formData, setFormData] = useState<MeetingFormData>({
+  const getDefaultFormData = (): MeetingFormData => ({
     topic: '',
     description: '',
     date: new Date(),
@@ -72,6 +76,8 @@ const ScheduleMeetingModal = ({
     dropPermission: false,
   });
 
+  const [formData, setFormData] = useState<MeetingFormData>(getDefaultFormData());
+
   const [saving, setSaving] = useState(false);
 
   const [emailInputs, setEmailInputs] = useState({
@@ -81,6 +87,20 @@ const ScheduleMeetingModal = ({
 
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!isOpen) return;
+  
+    if (mode === "edit" && initialData) {
+      setFormData({
+        ...getDefaultFormData(),
+        ...initialData,
+        date: initialData.date ? new Date(initialData.date) : new Date(),
+      });
+    } else {
+      setFormData(getDefaultFormData());
+    }
+  }, [isOpen, mode, initialData]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -235,7 +255,7 @@ const ScheduleMeetingModal = ({
       <div className="modal-content bg-white rounded-lg w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center border-b border-gray-200 p-4 bg-linear-to-r from-blue-600 to-blue-700">
-          <h2 className="text-xl text-white font-semibold">Schedule Meeting</h2>
+          <h2 className="text-xl text-white font-semibold">{mode === "edit" ? "Edit Meeting" : "Schedule Meeting"}</h2>
           <button
             onClick={handleClose}
             className="text-white p-1 hover:bg-blue-800 rounded-full transition-colors cursor-pointer"
@@ -518,12 +538,12 @@ const ScheduleMeetingModal = ({
               {saving ? (
                 <>
                   <Loader className="w-4 h-4 animate-spin" />
-                  Scheduling...
+                  {mode === "edit" ? "Updating..." : "Scheduling..."}
                 </>
               ) : (
                 <>
                   <Calendar className="w-4 h-4" />
-                  Schedule Meeting
+                  {mode === "edit" ? "Update Meeting" : "Schedule Meeting"}
                 </>
               )}
             </Button>

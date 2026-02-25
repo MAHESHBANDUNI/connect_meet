@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { MeetingService } from "./meeting.service";
-import { CreateMeetingValidation } from "./meeting.validation";
+import { CreateMeetingValidation, UpdateMeetingValidation } from "./meeting.validation";
 import { asyncHandler } from "../../utils/asyncHandler";
 import type { User } from "./meeting.types";
 
@@ -71,6 +71,21 @@ export class MeetingController {
         const meetingId = req.params.id as string;
         const { userId } = req.body;
         const result = await this.service.rejectParticipant(meetingId, user.userId, userId);
+        res.status(200).json(result);
+    });
+
+    cancelMeeting = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetingId = req.params.id as string;
+        const result = await this.service.cancelMeeting(meetingId, user.userId);
+        res.status(200).json(result);
+    });
+
+    updateMeeting = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetingId = req.params.id as string;
+        const updateMeetingDetails = UpdateMeetingValidation.parse(req.body);
+        const result = await this.service.updateMeeting(meetingId, user.userId, updateMeetingDetails);
         res.status(200).json(result);
     });
 }

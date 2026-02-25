@@ -1,4 +1,4 @@
-import { CreateMeetingInput } from "./meeting.validation";
+import { CreateMeetingInput, UpdateMeetingInput } from "./meeting.validation";
 import type { User } from "./meeting.types";
 import { MeetingRepository } from "./meeting.repository";
 export declare function generateMeetingCode(): string;
@@ -46,6 +46,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     }>;
     getMeetingById(meetingId: string): Promise<{
@@ -74,6 +87,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     }>;
     startMeeting(meetingId: string, user: User): Promise<{
@@ -102,6 +128,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     } | undefined>;
     endMeeting(meetingId: string, user: User): Promise<{
@@ -130,6 +169,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     } | undefined>;
     joinMeeting(meetingId: string, user: User): Promise<{
@@ -159,6 +211,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     }>;
     admitParticipant(meetingId: string, hostUserId: string, targetUserId: string): Promise<{
@@ -193,6 +258,19 @@ export declare class MeetingService {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     }>;
     getUserMeetings(user: User): Promise<{
@@ -218,5 +296,11 @@ export declare class MeetingService {
         screenSharePermission: boolean;
         dropPermission: boolean;
     }[]>;
+    cancelMeeting(meetingId: string, hostUserId: string): Promise<{
+        success: boolean;
+    }>;
+    updateMeeting(meetingId: string, hostUserId: string, updateMeetingDetails: UpdateMeetingInput): Promise<{
+        success: boolean;
+    }>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map

@@ -13,3 +13,5 @@ export const CreateMeetingValidation = z.object({
 });
 
 export type CreateMeetingInput = z.infer<typeof CreateMeetingValidation>;
+export const UpdateMeetingValidation = CreateMeetingValidation;
+export type UpdateMeetingInput = z.infer<typeof UpdateMeetingValidation>;

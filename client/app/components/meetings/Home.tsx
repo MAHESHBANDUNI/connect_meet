@@ -1,5 +1,5 @@
 "use client";
-import { VideoIcon, Clock, Users, Calendar, Copy, Check, MoreVertical, Edit, Trash2, XCircle, Play } from "lucide-react";
+import { VideoIcon, Clock, Users, Calendar, Copy, Check, MoreVertical, Edit, Trash2, X, Play } from "lucide-react";
 import ScheduleMeetingModal from "./ScheduleMeetingModal";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -9,12 +9,20 @@ import { useRouter } from "next/navigation";
 interface Meeting {
     meetingId: string;
     topic: string;
+    description?: string;
     startTime: string;
     endTime?: string;
     meetingCode: string;
     participantCount?: number;
+    directJoinPermission?: boolean;
+    mutePermission?: boolean;
+    screenSharePermission?: boolean;
+    dropPermission?: boolean;
     status: 'SCHEDULED' | 'LIVE' | 'ENDED' | 'CANCELLED';
-    participants?: any[];
+    participants?: Array<{
+      email: string;
+      participantRole: 'HOST' | 'CO_HOST' | 'PARTICIPANT' | 'PRESENTER' | 'GUEST';
+    }>;
     userRole?: 'HOST' | 'CO_HOST' | 'PARTICIPANT' | 'PRESENTER' | 'GUEST';
 }
 
@@ -28,7 +36,11 @@ export default function HomeComponent() {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const { data: session } = useSession();
+    const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+    const [participantsOpen, setParticipantsOpen] = useState(false);
     const router = useRouter();
+    const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+    const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
 
     useEffect(() => {
         if (session?.user?.token) {
@@ -68,27 +80,56 @@ export default function HomeComponent() {
     };
 
     const handleScheduleMeetingSubmit = async (data: any) => {
-        setSaving(true);
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.user?.token}`,
-                },
-                body: JSON.stringify({ topic: data?.topic, description: data?.description, startTime: data?.date, directJoinPermission: data?.directJoinPermission, mutePermission: data?.mutePermission, screenSharePermission: data?.screenSharePermission, dropPermission: data?.dropPermission, cohosts: data?.coHosts, invitees: data?.invitees }),
-            });
-            if (!response.ok) {
-                errorToast('Failed to schedule meeting');
-            }
-            if (response.ok) {
-                successToast('Meeting scheduled successfully');
-                fetchUserMeetings();
-            }
-        } finally {
-            setSaving(false);
-            setScheduleMeetingFormOpen(false);
+      setSaving(true);
+
+      try {
+        const url =
+          modalMode === "edit"
+            ? `${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${editingMeeting?.meetingId}/update`
+            : `${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/create`;
+
+        const method = modalMode === "edit" ? "PUT" : "POST";
+
+        const response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.user?.token}`,
+          },
+          body: JSON.stringify({
+            topic: data.topic,
+            description: data.description,
+            startTime: data.date,
+            directJoinPermission: data.directJoinPermission,
+            mutePermission: data.mutePermission,
+            screenSharePermission: data.screenSharePermission,
+            dropPermission: data.dropPermission,
+            cohosts: data.coHosts,
+            invitees: data.invitees,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error();
         }
+
+        successToast(
+          modalMode === "edit"
+            ? "Meeting updated successfully"
+            : "Meeting scheduled successfully"
+        );
+
+        fetchUserMeetings();
+      } catch {
+        errorToast(
+          modalMode === "edit"
+            ? "Failed to update meeting"
+            : "Failed to schedule meeting"
+        );
+      } finally {
+        setSaving(false);
+        setScheduleMeetingFormOpen(false);
+      }
     };
 
     const tabs: { value: TabType; label: string; count?: number }[] = [
@@ -154,6 +195,40 @@ export default function HomeComponent() {
         ) ?? false;
     };
 
+    const handleEditMeeting = (meeting: Meeting) => {
+      setModalMode("edit");
+      setEditingMeeting(meeting);
+      setScheduleMeetingFormOpen(true);
+    };
+
+    const openCreateMeetingModal = () => {
+      setModalMode("create");
+      setEditingMeeting(null);
+      setScheduleMeetingFormOpen(true);
+    };
+
+    const handleCancelMeeting= async (meetingId: string) => {
+        try{
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingId}/cancel`,{
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.user?.token}`},
+            })
+            if(!response.ok){
+                console.error('Failed to cancel meeting');
+            }
+            if(response.ok){
+                const result = await response.json();
+                console.log('Meeting cancelled successfully');
+            }
+        }
+        catch(err){
+            errorToast('Failed to cancel meeting');
+        }
+        finally{
+            fetchUserMeetings();
+        }
+    }
+
     return (
         <>
             <div className="min-h-screen bg-[#F8FAFC]">
@@ -170,8 +245,8 @@ export default function HomeComponent() {
                                 </p>
                             </div>
                             <button
-                                onClick={() => setScheduleMeetingFormOpen(true)}
-                                className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base"
+                                onClick={openCreateMeetingModal}
+                                className="cursor-pointer w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base"
                             >
                                 <VideoIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                                 Schedule meeting
@@ -190,7 +265,7 @@ export default function HomeComponent() {
                                     key={tab.value}
                                     onClick={() => setActiveTab(tab.value)}
                                     className={`
-                                      relative py-3 text-sm font-medium whitespace-nowrap
+                                      cursor-pointer relative py-3 text-sm font-medium whitespace-nowrap
                                       transition-colors duration-200
                                       ${
                                         isActive
@@ -255,6 +330,12 @@ export default function HomeComponent() {
                                                 formatDateTime={formatDateTime}
                                                 formatDuration={formatDuration}
                                                 onJoin={() => router.push(`/meeting/${meeting.meetingCode}`)}
+                                                handleCancelMeeting={handleCancelMeeting}
+                                                onViewParticipants={() => {
+                                                    setSelectedMeeting(meeting);
+                                                    setParticipantsOpen(true);
+                                                }}
+                                                onEdit={() => handleEditMeeting(meeting)}
                                             />
                                         ))}
                                     </div>
@@ -274,6 +355,12 @@ export default function HomeComponent() {
                                             formatDateTime={formatDateTime}
                                             formatDuration={formatDuration}
                                             onJoin={() => router.push(`/meeting/${meeting.meetingCode}`)}
+                                            handleCancelMeeting={handleCancelMeeting}
+                                            onViewParticipants={() => {
+                                              setSelectedMeeting(meeting);
+                                              setParticipantsOpen(true);
+                                            }}
+                                            onEdit={() => handleEditMeeting(meeting)}
                                         />
                                     ))}
                                 </div>
@@ -282,18 +369,44 @@ export default function HomeComponent() {
                     ) : (
                         <EmptyState 
                             type={activeTab} 
-                            onSchedule={() => setScheduleMeetingFormOpen(true)}
+                            onSchedule={openCreateMeetingModal}
                         />
                     )}
                 </div>
             </div>
 
             <ScheduleMeetingModal
-                isOpen={scheduleMeetingFormOpen}
-                onClose={() => setScheduleMeetingFormOpen(false)}
-                onSubmit={handleScheduleMeetingSubmit}
-                saving={saving}
-                setSaving={setSaving}
+              isOpen={scheduleMeetingFormOpen}
+              onClose={() => setScheduleMeetingFormOpen(false)}
+              onSubmit={handleScheduleMeetingSubmit}
+              saving={saving}
+              setSaving={setSaving}
+              mode={modalMode}
+              initialData={
+                editingMeeting
+                  ? {
+                      topic: editingMeeting.topic,
+                      description: editingMeeting.description ?? "",
+                      date: new Date(editingMeeting.startTime),
+                      directJoinPermission: editingMeeting.directJoinPermission ?? true,
+                      mutePermission: editingMeeting.mutePermission ?? false,
+                      screenSharePermission: editingMeeting.screenSharePermission ?? true,
+                      dropPermission: editingMeeting.dropPermission ?? false,
+                      coHosts:
+                        editingMeeting.participants
+                          ?.filter((participant) => participant.participantRole === "CO_HOST")
+                          .map((participant) => participant.email) ?? [],
+                      invitees:
+                        editingMeeting.participants
+                          ?.filter(
+                            (participant) =>
+                              participant.participantRole !== "HOST" &&
+                              participant.participantRole !== "CO_HOST"
+                          )
+                          .map((participant) => participant.email) ?? [],
+                    }
+                  : undefined
+              }
             />
 
             <style jsx>{`
@@ -305,6 +418,12 @@ export default function HomeComponent() {
                     scrollbar-width: none;
                 }
             `}</style>
+
+            <ParticipantsModal
+              isOpen={participantsOpen}
+              onClose={() => setParticipantsOpen(false)}
+              meeting={selectedMeeting}
+            />
         </>
     );
 }
@@ -317,7 +436,10 @@ function MeetingCard({
     copiedId, 
     formatDateTime, 
     formatDuration,
-    onJoin 
+    onJoin,
+    handleCancelMeeting,
+    onViewParticipants,
+    onEdit
 }: { 
     meeting: Meeting;
     isHost: boolean;
@@ -326,6 +448,9 @@ function MeetingCard({
     formatDateTime: (date: string) => string;
     formatDuration: (start: string, end?: string) => string;
     onJoin: () => void;
+    handleCancelMeeting: (meetingId: string) => void;
+    onViewParticipants: () => void;
+    onEdit: () => void;
 }) {
     const [showActions, setShowActions] = useState(false);
 
@@ -375,7 +500,7 @@ function MeetingCard({
                     <div className="relative">
                         <button
                             onClick={() => setShowActions(!showActions)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="cursor-pointer p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             aria-label="More options"
                         >
                             <MoreVertical className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -390,27 +515,36 @@ function MeetingCard({
                                 <div className="absolute right-0 mt-1 w-48 sm:w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-30">
                                     {isHost && meeting.status === 'SCHEDULED' && (
                                         <>
-                                            <button className="w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                                            <button 
+                                                onClick={() => {
+                                                  onEdit();
+                                                  setShowActions(false);
+                                                }}
+                                                 className="cursor-pointer w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
                                                 <Edit className="w-4 h-4" />
                                                 Edit meeting
                                             </button>
-                                            <button className="w-full px-4 py-3 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-3">
-                                                <XCircle className="w-4 h-4" />
+                                            <button onClick={() => handleCancelMeeting(meeting.meetingId)} className="cursor-pointer w-full px-4 py-3 text-sm text-left text-red-600 hover:bg-red-50 flex items-center gap-3">
+                                                <X className="w-4 h-4" />
                                                 Cancel meeting
                                             </button>
                                             <div className="border-t border-gray-100 my-1" />
                                         </>
                                     )}
-                                    <button className="w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                                    <button onClick={() => {
+                                              onViewParticipants();
+                                              setShowActions(false);
+                                            }}
+                                            className="cursor-pointer w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
                                         <Users className="w-4 h-4" />
                                         View participants
                                     </button>
-                                    {isHost && (
+                                    {/* {isHost && (
                                         <button className="w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
                                             <Trash2 className="w-4 h-4" />
                                             Delete
                                         </button>
-                                    )}
+                                    )} */}
                                 </div>
                             </>
                         )}
@@ -443,7 +577,7 @@ function MeetingCard({
                         </span>
                         <button
                             onClick={() => onCopy(meeting.meetingCode, meeting.meetingId)}
-                            className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1.5"
+                            className="cursor-pointer text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1.5"
                         >
                             {copiedId === meeting.meetingId ? (
                                 <>
@@ -468,12 +602,16 @@ function MeetingCard({
                     <div className="flex gap-2">
                         <button
                             onClick={onJoin}
-                            className="flex-1 px-3 py-2.5 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            className="cursor-pointer flex-1 px-3 py-2.5 sm:px-4 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             {isHost ? 'Start Meeting' : 'Join Meeting'}
                         </button>
                         {isHost && (
-                            <button className="px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                            <button 
+                              onClick={() => {
+                                onEdit();
+                              }}
+                              className="cursor-pointer px-3 py-2.5 sm:px-4 sm:py-3 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                                 <Edit className="w-4 h-4" />
                             </button>
                         )}
@@ -483,7 +621,7 @@ function MeetingCard({
                 {meeting.status === 'LIVE' && (
                     <button
                         onClick={onJoin}
-                        className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="cursor-pointer w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                         <Play className="w-4 h-4" />
                         Join live
@@ -531,7 +669,7 @@ function EmptyState({ type, onSchedule }: { type: TabType; onSchedule: () => voi
             {type === 'upcoming' && (
                 <button
                     onClick={onSchedule}
-                    className="inline-flex items-center px-6 py-3 sm:px-8 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-xl transition-colors shadow-sm hover:shadow"
+                    className="cursor-pointer inline-flex items-center px-6 py-3 sm:px-8 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-medium rounded-xl transition-colors shadow-sm hover:shadow"
                 >
                     <VideoIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Schedule a meeting
@@ -539,4 +677,60 @@ function EmptyState({ type, onSchedule }: { type: TabType; onSchedule: () => voi
             )}
         </div>
     );
+}
+
+function ParticipantsModal({
+  isOpen,
+  onClose,
+  meeting
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  meeting: Meeting | null;
+}) {
+  if (!isOpen || !meeting) return null;
+
+  return (
+    <div className="fixed inset-0 z-5000 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="bg-white w-full max-w-md rounded-xl shadow-xl border border-gray-200" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Participants ({meeting.participants?.length || 0})
+          </h3>
+          <button
+            onClick={onClose}
+            className="cursor-pointer p-2 hover:bg-gray-100 rounded-lg"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        <div className="max-h-96 overflow-y-auto">
+          {meeting.participants && meeting.participants.length > 0 ? (
+            <ul className="divide-y divide-gray-100">
+              {meeting.participants.map((participant: any, index: number) => (
+                <li key={index} className="px-6 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {participant.name || participant.email}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {participant.email}
+                    </p>
+                  </div>
+                  <span className="text-xs px-2 py-1 rounded-md bg-purple-50 text-purple-700 ring-1 ring-purple-600/20">
+                    {participant.participantRole}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-6 text-center text-sm text-gray-500">
+              No participants found.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

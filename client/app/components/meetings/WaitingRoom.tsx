@@ -324,7 +324,7 @@ export default function WaitingRoom({
                 </span>
                 <button
                   onClick={copyMeetingCode}
-                  className="p-1 hover:bg-white/20 rounded-full transition-all text-white/80 hover:text-white"
+                  className="cursor-pointer p-1 hover:bg-white/20 rounded-full transition-all text-white/80 hover:text-white"
                   title="Copy meeting code"
                 >
                   <Copy className="w-2.5 sm:w-3 md:w-3.5 h-2.5 sm:h-3 md:h-3.5" />
@@ -336,7 +336,7 @@ export default function WaitingRoom({
             <div className="absolute z-50 bottom-2 sm:bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 flex items-center gap-1 sm:gap-2 md:gap-3 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-black/40 backdrop-blur-xl rounded-full border border-white/10 shadow-2xl">
               <button
                 onClick={() => setMicEnabled(!micEnabled)}
-                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${micEnabled
+                className={`cursor-pointer p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${micEnabled
                   ? "bg-white text-slate-900 shadow-lg"
                   : "bg-red-500 text-white shadow-lg shadow-red-500/20"
                   }`}
@@ -347,7 +347,7 @@ export default function WaitingRoom({
 
               <button
                 onClick={() => setCameraEnabled(!cameraEnabled)}
-                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${cameraEnabled
+                className={`cursor-pointer p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 ${cameraEnabled
                   ? "bg-white text-slate-900 shadow-lg"
                   : "bg-red-500 text-white shadow-lg shadow-red-500/20"
                   }`}
@@ -360,7 +360,7 @@ export default function WaitingRoom({
 
               <button
                 onClick={() => setShowSettings(true)}
-                className={`p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 bg-white/10 text-white hover:bg-white/20`}
+                className={`cursor-pointer p-1.5 sm:p-2 md:p-2.5 lg:p-3 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 bg-white/10 text-white hover:bg-white/20`}
                 aria-label="Settings"
               >
                 <Settings className="w-3 sm:w-4 md:w-5 h-3 sm:h-4 md:h-5" />
@@ -430,7 +430,7 @@ export default function WaitingRoom({
 
             <button
               onClick={onExit}
-              className="w-full py-2 sm:py-2.5 text-red-500 font-medium hover:bg-red-50 rounded-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 group"
+              className="cursor-pointer w-full py-2 sm:py-2.5 text-red-500 font-medium hover:bg-red-50 rounded-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 group"
             >
               <LogOut className="w-3.5 sm:w-4 h-3.5 sm:h-4 group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-xs sm:text-sm">Return Home</span>
@@ -451,7 +451,7 @@ export default function WaitingRoom({
               </h3>
               <button
                 onClick={() => setShowSettings(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-full transition-colors"
+                className="cursor-pointer p-1.5 hover:bg-slate-100 rounded-full transition-colors"
                 aria-label="Close settings"
               >
                 <X className="w-4 h-4 text-slate-500" />
@@ -541,7 +541,7 @@ export default function WaitingRoom({
             <div className="sticky bottom-0 bg-white border-t border-slate-200 p-3 sm:p-4">
               <button
                 onClick={() => setShowSettings(false)}
-                className="w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="cursor-pointer w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Done
               </button>

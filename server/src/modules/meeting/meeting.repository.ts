@@ -1,6 +1,6 @@
 import { db } from "../../drizzle/index.js";
 import { meetings, users, meetingParticipants } from "../../drizzle/schema.js";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { CreateMeetingInput } from "./meeting.validation.js";
 import type { MeetingParticipantRole } from "./meeting.types";
 
@@ -151,7 +151,7 @@ export class MeetingRepository {
         return participant;
     }
 
-    async updateMeetingStatus(meetingId: string, status: "LIVE" | "ENDED", endTime?: Date) {
+    async updateMeetingStatus(meetingId: string, status: "LIVE" | "ENDED" | "CANCELLED", endTime?: Date) {
         await db.update(meetings).set({ status: status, endTime: endTime ?? endTime }).where(eq(meetings.meetingId, meetingId));
         return this.getMeetingById(meetingId);
     }
@@ -201,5 +201,49 @@ export class MeetingRepository {
             userRole: mp.participantRole,
             participants: mp.meeting.participants
         }));
+    }
+
+    async updateMeetingDetails(meetingId: string, updateMeetingDetails: CreateMeetingInput) {
+        await db
+            .update(meetings)
+            .set({
+                topic: updateMeetingDetails.topic,
+                description: updateMeetingDetails.description ?? null,
+                startTime: updateMeetingDetails.startTime ? new Date(updateMeetingDetails.startTime) : undefined,
+                directJoinPermission: updateMeetingDetails.directJoinPermission,
+                mutePermission: updateMeetingDetails.mutePermission,
+                screenSharePermission: updateMeetingDetails.screenSharePermission,
+                dropPermission: updateMeetingDetails.dropPermission,
+            })
+            .where(eq(meetings.meetingId, meetingId));
+    }
+
+    async replaceMeetingParticipants(
+        meetingId: string,
+        participantMap: Record<
+            string,
+            { userId: string | null; participantRole: MeetingParticipantRole }
+        >
+    ) {
+        await db
+            .delete(meetingParticipants)
+            .where(
+                and(
+                    eq(meetingParticipants.meetingId, meetingId),
+                    ne(meetingParticipants.participantRole, "HOST")
+                )
+            );
+
+        const records = Object.entries(participantMap).map(([email, participant]) => ({
+            meetingId,
+            email,
+            userId: participant.userId,
+            participantRole: participant.participantRole,
+            participantStatus: "INVITED" as const
+        }));
+
+        if (records.length > 0) {
+            await db.insert(meetingParticipants).values(records);
+        }
     }
 }

@@ -64,6 +64,19 @@ class MeetingController {
             const result = await this.service.rejectParticipant(meetingId, user.userId, userId);
             res.status(200).json(result);
         });
+        this.cancelMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetingId = req.params.id;
+            const result = await this.service.cancelMeeting(meetingId, user.userId);
+            res.status(200).json(result);
+        });
+        this.updateMeeting = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetingId = req.params.id;
+            const updateMeetingDetails = meeting_validation_1.UpdateMeetingValidation.parse(req.body);
+            const result = await this.service.updateMeeting(meetingId, user.userId, updateMeetingDetails);
+            res.status(200).json(result);
+        });
     }
 }
 exports.MeetingController = MeetingController;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateMeetingValidation = void 0;
+exports.UpdateMeetingValidation = exports.CreateMeetingValidation = void 0;
 const zod_1 = require("zod");
 exports.CreateMeetingValidation = zod_1.z.object({
     topic: zod_1.z.string().min(1, 'Topic is required'),
@@ -13,4 +13,5 @@ exports.CreateMeetingValidation = zod_1.z.object({
     screenSharePermission: zod_1.z.boolean().default(true),
     dropPermission: zod_1.z.boolean().default(false),
 });
+exports.UpdateMeetingValidation = exports.CreateMeetingValidation;
 //# sourceMappingURL=meeting.validation.js.map

@@ -1,4 +1,4 @@
-import { CreateMeetingInput } from "./meeting.validation";
+import { CreateMeetingInput, UpdateMeetingInput } from "./meeting.validation";
 import { ConflictError, NotFoundError } from "../../utils/errorHandler";
 import type { User, MeetingParticipantRole, MeetingDetails } from "./meeting.types";
 import { MeetingRepository } from "./meeting.repository";
@@ -67,7 +67,7 @@ export class MeetingService {
                 userId: userMap[email][0]?.userId ?? null,
                 firstName: userMap[email][0]?.firstName ?? null,
                 lastName: userMap[email][0]?.lastName ?? null,
-                participantRole: "PARTICIPANT"
+                participantRole: "CO_HOST"
             };
         }
 
@@ -208,5 +208,74 @@ export class MeetingService {
     async getUserMeetings(user: User) {
         const meetings = await this.repo.getMeetingsByUser(user.userId);
         return meetings;
+    }
+
+    async cancelMeeting(meetingId: string, hostUserId: string) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new ConflictError("User is not the host of the meeting");
+        }
+        await this.repo.updateMeetingStatus(meetingId, "CANCELLED");
+        await this.repo.updateMeetingParticipantStatus(meetingId, { userId: hostUserId }, "REJECTED");
+        return { success: true };
+    }
+
+    async updateMeeting(meetingId: string, hostUserId: string, updateMeetingDetails: UpdateMeetingInput) {
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new ConflictError("User is not the host of the meeting");
+        }
+
+        await this.repo.updateMeetingDetails(meetingId, updateMeetingDetails);
+
+        const hostEmails = new Set(
+            (meeting.participants ?? [])
+                .filter((participant: any) => participant.participantRole === "HOST")
+                .map((participant: any) => (participant.email || "").trim().toLowerCase())
+                .filter(Boolean)
+        );
+
+        const cohostSet = new Set(
+            (updateMeetingDetails.cohosts ?? [])
+                .map((email) => email.trim().toLowerCase())
+                .filter((email) => email && !hostEmails.has(email))
+        );
+
+        const inviteeSet = new Set(
+            (updateMeetingDetails.invitees ?? [])
+                .map((email) => email.trim().toLowerCase())
+                .filter((email) => email && !hostEmails.has(email))
+        );
+
+        for (const email of cohostSet) {
+            inviteeSet.delete(email);
+        }
+
+        const allEmails = Array.from(new Set([...inviteeSet, ...cohostSet]));
+        const userMap = await this.repo.mapParticipantsWithUserDetails(allEmails);
+
+        const participantMap: Record<
+            string,
+            { userId: string | null; participantRole: MeetingParticipantRole }
+        > = {};
+
+        for (const email of inviteeSet) {
+            participantMap[email] = {
+                userId: userMap[email][0]?.userId ?? null,
+                participantRole: "PARTICIPANT",
+            };
+        }
+
+        for (const email of cohostSet) {
+            participantMap[email] = {
+                userId: userMap[email][0]?.userId ?? null,
+                participantRole: "CO_HOST",
+            };
+        }
+
+        await this.repo.replaceMeetingParticipants(meetingId, participantMap);
+        return { success: true };
     }
 }

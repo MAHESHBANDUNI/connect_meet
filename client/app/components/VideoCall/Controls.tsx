@@ -1,16 +1,20 @@
 "use client";
 
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone, ScreenShare, ScreenShareOff } from "lucide-react";
+import { set } from "date-fns";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone, ScreenShare, ScreenShareOff, LucideCaptions } from "lucide-react";
 
 interface ControlsProps {
   isAudioMuted: boolean;
   isVideoOff: boolean;
   isScreenSharing: boolean;
   isScreenSharingEnabled: boolean;
+  isCaptionsEnabled: boolean;
+  setIsCaptionEnabled: (enabled: boolean) => void;
   isUserHost: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
   onToggleScreenShare: () => void;
+  onToggleLiveCaptions: () => void;
   onEndCall: () => void;
   roomId: string;
 }
@@ -20,10 +24,12 @@ export const Controls = ({
   isVideoOff,
   isScreenSharing,
   isScreenSharingEnabled,
+  isCaptionsEnabled,
   isUserHost,
   onToggleAudio,
   onToggleVideo,
   onToggleScreenShare,
+  setIsCaptionEnabled,
   onEndCall,
   roomId
 }: ControlsProps) => {
@@ -50,9 +56,9 @@ export const Controls = ({
             }`}
           >
             {isAudioMuted ? (
-              <MicOff className="w-5 h-5 text-white" />
+              <MicOff className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             ) : (
-              <MicIcon className="w-5 h-5 text-white" />
+              <MicIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             )}
           </button>
 
@@ -66,9 +72,9 @@ export const Controls = ({
             }`}
           >
             {isVideoOff ? (
-              <VideoOffIcon className="w-5 h-5 text-white" />
+              <VideoOffIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             ) : (
-              <VideoIcon className="w-5 h-5 text-white" />
+              <VideoIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             )}
           </button>
 
@@ -82,15 +88,31 @@ export const Controls = ({
             }`}
           >
             {isScreenSharing ? (
-              <ScreenShareOff className="w-5 h-5 text-white" />
+              <ScreenShareOff className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             ) : (
-              <ScreenShare className="w-5 h-5 text-white" />
+              <ScreenShare className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
             )}
           </button>}
 
+          {/* Live Captions */}
+          <button
+            onClick={() =>setIsCaptionEnabled(!isCaptionsEnabled)}
+            className={`hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+              isCaptionsEnabled
+                ? 'bg-blue-400'
+                : 'bg-white/10 hover:bg-white/20'
+            }`}
+          >
+            {isCaptionsEnabled ? (
+              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white font-bold" />
+            ) : (
+              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+            )}
+          </button>
+
           {/* More */}
           <div className="flex items-center justify-center w-4 sm:w-5 md:w-6 h-10 sm:h-12 md:h-14 bg-white/10 rounded-xl sm:rounded-2xl">
-            <Ellipsis className="w-4 h-4 sm:w-5 sm:h-5 text-white rotate-90" />
+            <Ellipsis className="w-5 h-5 sm:w-5 sm:h-5 text-white rotate-90" />
           </div>
 
           {/* End Call */}
@@ -98,7 +120,7 @@ export const Controls = ({
             onClick={onEndCall}
             className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-red-500 rounded-xl sm:rounded-2xl hover:bg-red-700 transition"
           >
-            <Phone className="w-5 h-5 text-white rotate-135" />
+            <Phone className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white rotate-135" />
           </button>
         </div>
       </div>

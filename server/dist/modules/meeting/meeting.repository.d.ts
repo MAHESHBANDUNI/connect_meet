@@ -44,6 +44,19 @@ export declare class MeetingRepository {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     } | undefined>;
     getMeetingByCode(meetingId: string): Promise<{
@@ -72,6 +85,19 @@ export declare class MeetingRepository {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     } | undefined>;
     mapParticipantsWithUserDetails(participantList: string[]): Promise<Record<string, {
@@ -98,7 +124,7 @@ export declare class MeetingRepository {
         joinedAt: Date | null;
         leftAt: Date | null;
     } | undefined>;
-    updateMeetingStatus(meetingId: string, status: "LIVE" | "ENDED", endTime?: Date): Promise<{
+    updateMeetingStatus(meetingId: string, status: "LIVE" | "ENDED" | "CANCELLED", endTime?: Date): Promise<{
         createdAt: Date;
         updatedAt: Date;
         meetingId: string;
@@ -124,6 +150,19 @@ export declare class MeetingRepository {
             hasJoined: boolean;
             joinedAt: Date | null;
             leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
         }[];
     } | undefined>;
     checkMeetingParticipant(meetingId: string, user: {
@@ -167,5 +206,10 @@ export declare class MeetingRepository {
         screenSharePermission: boolean;
         dropPermission: boolean;
     }[]>;
+    updateMeetingDetails(meetingId: string, updateMeetingDetails: CreateMeetingInput): Promise<void>;
+    replaceMeetingParticipants(meetingId: string, participantMap: Record<string, {
+        userId: string | null;
+        participantRole: MeetingParticipantRole;
+    }>): Promise<void>;
 }
 //# sourceMappingURL=meeting.repository.d.ts.map

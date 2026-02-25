@@ -28,7 +28,11 @@ class MeetingRepository {
         return index_js_1.db.query.meetings.findFirst({
             where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId),
             with: {
-                participants: true,
+                participants: {
+                    with: {
+                        user: true
+                    }
+                },
             },
         });
     }
@@ -36,7 +40,11 @@ class MeetingRepository {
         return index_js_1.db.query.meetings.findFirst({
             where: (0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingCode, meetingId),
             with: {
-                participants: true,
+                participants: {
+                    with: {
+                        user: true
+                    }
+                },
             },
         });
     }
@@ -127,6 +135,35 @@ class MeetingRepository {
             userRole: mp.participantRole,
             participants: mp.meeting.participants
         }));
+    }
+    async updateMeetingDetails(meetingId, updateMeetingDetails) {
+        await index_js_1.db
+            .update(schema_js_1.meetings)
+            .set({
+            topic: updateMeetingDetails.topic,
+            description: updateMeetingDetails.description ?? null,
+            startTime: updateMeetingDetails.startTime ? new Date(updateMeetingDetails.startTime) : undefined,
+            directJoinPermission: updateMeetingDetails.directJoinPermission,
+            mutePermission: updateMeetingDetails.mutePermission,
+            screenSharePermission: updateMeetingDetails.screenSharePermission,
+            dropPermission: updateMeetingDetails.dropPermission,
+        })
+            .where((0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId));
+    }
+    async replaceMeetingParticipants(meetingId, participantMap) {
+        await index_js_1.db
+            .delete(schema_js_1.meetingParticipants)
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.ne)(schema_js_1.meetingParticipants.participantRole, "HOST")));
+        const records = Object.entries(participantMap).map(([email, participant]) => ({
+            meetingId,
+            email,
+            userId: participant.userId,
+            participantRole: participant.participantRole,
+            participantStatus: "INVITED"
+        }));
+        if (records.length > 0) {
+            await index_js_1.db.insert(schema_js_1.meetingParticipants).values(records);
+        }
     }
 }
 exports.MeetingRepository = MeetingRepository;

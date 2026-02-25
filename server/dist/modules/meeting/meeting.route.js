@@ -10,10 +10,13 @@ router.post("/create", authMiddlerware_js_1.protect, controller.createMeeting);
 router.get("/:id", controller.getMeetingById);
 router.get("/code/:id", controller.getMeetingByCode);
 router.post("/:id/start", authMiddlerware_js_1.protect, controller.startMeeting);
+router.post("/:id/update", authMiddlerware_js_1.protect, controller.updateMeeting);
+router.put("/:id/update", authMiddlerware_js_1.protect, controller.updateMeeting);
 router.post("/:id/end", authMiddlerware_js_1.protect, controller.endMeeting);
 router.post("/:id/join", authMiddlerware_js_1.protect, controller.joinMeeting);
 router.post("/:id/exit", authMiddlerware_js_1.protect, controller.exitMeeting);
 router.post("/:id/admit", authMiddlerware_js_1.protect, controller.admitParticipant);
 router.post("/:id/reject", authMiddlerware_js_1.protect, controller.rejectParticipant);
+router.post("/:id/cancel", authMiddlerware_js_1.protect, controller.cancelMeeting);
 exports.default = router;
 //# sourceMappingURL=meeting.route.js.map

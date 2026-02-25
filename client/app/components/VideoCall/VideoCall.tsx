@@ -81,7 +81,7 @@ export const VideoCall = ({
 
   const activeStream = localStream;
 
-  const {
+  let {
     users,
     messages,
     sendChatMessage,
@@ -89,7 +89,10 @@ export const VideoCall = ({
     setUsersLocalMedia,
     admitParticipant,
     rejectParticipant,
-    waitingUsers
+    waitingUsers,
+    captionText,
+    isCaptionEnabled,
+    setIsCaptionEnabled
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
@@ -128,7 +131,115 @@ export const VideoCall = ({
   };
 
   console.log('Current Users in Call:', users);
+
   console.log('User Media Status:', { isAudioMuted, isVideoOff, isScreenSharing, localStream, screenStream });
+  const mockedUser=[...users, {
+    id: "Alice:2",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:3",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:4",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }, {
+    id: "Alice:5",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:6",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:7",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }, {
+    id: "Alice:8",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:9",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:10",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }, {
+    id: "Alice:11",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:12",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:13",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }, {
+    id: "Alice:14",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:15",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:16",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }, {
+    id: "Alice:17",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: false
+  },
+  {
+    id: "Bob:18",
+    isLocal: false,
+    isAudioMuted: true,
+    isVideoOff: false
+  },
+  {
+    id: "Charlie:19",
+    isLocal: false,
+    isAudioMuted: false,
+    isVideoOff: true
+  }
+];
+
+// users={mockedUser};
+
   const screenSharer = users.find(
     user => user.screenStream
   );
@@ -216,7 +327,7 @@ export const VideoCall = ({
   console.log("waitingUsers", waitingUsers);
 
   return (
-    <div className="fixed inset-0 bg-[#0f1115] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-[#363738] flex flex-col overflow-hidden">
       {/* Top Header */}
       <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
 
@@ -233,7 +344,7 @@ export const VideoCall = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex overflow-hidden relative bg-[#26282c]">
+      <main className="flex-1 flex overflow-hidden relative bg-[#3e3f41]">
 
         {screenSharer ? (
           <div className="flex flex-col lg:flex-row w-full h-full">
@@ -383,7 +494,7 @@ export const VideoCall = ({
                           </div>
                         )}
 
-                        {users.map((user) => {
+                        {mockedUser.map((user) => {
                           const isLocal = user.isLocal
                           const displayName = user.id.split(":")[0]
                           const firstLetter = displayName.charAt(0).toUpperCase()
@@ -430,7 +541,7 @@ export const VideoCall = ({
                                       </span>
                                     ) : (
                                       <>
-                                        {isLocal && (
+                                        {(isLocal || !user.isAudioMuted) && (
                                           <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
                                             <MicIcon className="w-5 h-5" />
                                           </span>
@@ -456,7 +567,7 @@ export const VideoCall = ({
                                       </span>
                                     ) : (
                                       <>
-                                        {isLocal && (
+                                        {(isLocal || !user.isVideoOff) && (
                                           <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
                                             <VideoIcon className="w-5 h-5" />
                                           </span>
@@ -497,6 +608,13 @@ export const VideoCall = ({
             </div>
           )}
         </aside>
+        {isCaptionEnabled && captionText && (
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 max-w-3xl w-[80%] bg-black/70 backdrop-blur-md text-white text-center rounded-2xl shadow-xl">
+            <p className="text-sm md:text-base font-medium leading-relaxed">
+              {captionText}
+            </p>
+          </div>
+        )}
       </main>
 
       <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">
@@ -506,6 +624,8 @@ export const VideoCall = ({
             isVideoOff={isVideoOff}
             isScreenSharing={isScreenSharing}
             isScreenSharingEnabled={meetingDetails?.screenSharePermission}
+            isCaptionsEnabled={isCaptionEnabled}
+            setIsCaptionEnabled={setIsCaptionEnabled}
             isUserHost={meetingDetails?.participants?.some(
               (participant: any) =>
                 participant.userId === user?.id &&
@@ -514,6 +634,7 @@ export const VideoCall = ({
             onToggleAudio={handleToggleAudio}
             onToggleVideo={handleToggleVideo}
             onToggleScreenShare={handleToggleScreenShare}
+            onToggleLiveCaptions={()=> {}}
             onEndCall={handleEndCall}
             roomId={roomId}
           />

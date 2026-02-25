@@ -53,6 +53,9 @@ export const useWebRTC = (
   const localStreamRef = useRef<MediaStream | null>(localStream);
   const screenStreamRef = useRef<MediaStream | null>(screenStream);
   const isHostRef = useRef(options?.isHost);
+  const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
+  const [captionText, setCaptionText] = useState('');
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     isHostRef.current = options?.isHost;
@@ -458,6 +461,64 @@ export const useWebRTC = (
     [localUserId]
   );
 
+  const initializeRecognition = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      console.error('Speech Recognition not supported in this browser');
+      return null;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    return recognition;
+  };
+
+  const startCaptions = () => {
+    const recognition = initializeRecognition();
+    if (!recognition) return;
+
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      setCaptionText(transcript);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+    };
+
+    recognition.onend = () => {
+      // Restart automatically if still enabled
+      if (isCaptionEnabled) {
+        recognition.start();
+      }
+    };
+
+    recognition.start();
+  };
+
+  const stopCaptions = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+
+    setCaptionText('');
+  };
+
   const stopScreenSharing = useCallback(async () => {
     const screen = screenStreamRef.current;
     if (!screen) return;
@@ -562,27 +623,37 @@ export const useWebRTC = (
   }, [screenStream, localUserId, sendSignal]);
 
   useEffect(() => {
-    setState(prev => {
-      const users = new Map(prev.users);
-      const existing = users.get(localUserId);
+      setState(prev => {
+        const users = new Map(prev.users);
+        const existing = users.get(localUserId);
+      
+        if (!localStream && !existing) return prev;
 
-      // We should only update if we actually have a localStream or if we are in the middle of a call
-      if (!localStream && !existing) return prev;
+        users.set(localUserId, {
+          id: localUserId,
+          name: localUserId,
+          stream: localStream || existing?.stream,
+          screenStream: screenStream || undefined,
+          isAudioMuted: existing?.isAudioMuted ?? false,
+          isVideoOff: existing?.isVideoOff ?? false,
+          isLocal: true,
+          isScreenSharing: !!screenStream,
+        });
 
-      users.set(localUserId, {
-        id: localUserId,
-        name: localUserId,
-        stream: localStream || existing?.stream,
-        screenStream: screenStream || undefined,
-        isAudioMuted: existing?.isAudioMuted ?? false,
-        isVideoOff: existing?.isVideoOff ?? false,
-        isLocal: true,
-        isScreenSharing: !!screenStream,
+        return { ...prev, users };
       });
+    }, [localStream, screenStream, localUserId]);
+    useEffect(() => {
+    if (isCaptionEnabled) {
+      startCaptions();
+    } else {
+      stopCaptions();
+    }
 
-      return { ...prev, users };
-    });
-  }, [localStream, screenStream, localUserId]);
+    return () => {
+      stopCaptions();
+    };
+  }, [isCaptionEnabled]);
 
   return {
     users: Array.from(state.users.values()),
@@ -618,5 +689,8 @@ export const useWebRTC = (
     waitingUsers,
     admissionStatus,
     isConnected: true,
+    isCaptionEnabled,
+    setIsCaptionEnabled,
+    captionText
   };
 };
