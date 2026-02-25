@@ -470,7 +470,7 @@ export const VideoCall = ({
                                       </>
                                     );
                                   })()}
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-2">
                                     {/* Video */}
                                     {(() => {
                                       const videoOff = isLocal ? isVideoOff : user.isVideoOff;

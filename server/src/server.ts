@@ -7,6 +7,7 @@ import 'dotenv/config';
 import userRoutes from './modules/user/user.route.js';
 import authRoutes from './modules/auth/auth.route.js';
 import meetingRoutes from './modules/meeting/meeting.route.js';
+import assemblyRoutes from './modules/assembly/assembly.route.js'
 import cors from 'cors';
 import crypto from 'crypto';
 import helmet from 'helmet';
@@ -61,6 +62,7 @@ export function createServer(): Express {
   server.use('/api/users', userRoutes);
   server.use('/api/auth', authRoutes);
   server.use('/api/meetings', meetingRoutes);
+  server.use('/api/assembly', assemblyRoutes);
 
   server.use(errorMiddleware);
 

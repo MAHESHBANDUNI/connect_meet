@@ -10,6 +10,7 @@ require("dotenv/config");
 const user_route_js_1 = __importDefault(require("./modules/user/user.route.js"));
 const auth_route_js_1 = __importDefault(require("./modules/auth/auth.route.js"));
 const meeting_route_js_1 = __importDefault(require("./modules/meeting/meeting.route.js"));
+const assembly_route_js_1 = __importDefault(require("./modules/assembly/assembly.route.js"));
 const cors_1 = __importDefault(require("cors"));
 const crypto_1 = __importDefault(require("crypto"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -54,6 +55,7 @@ function createServer() {
     server.use('/api/users', user_route_js_1.default);
     server.use('/api/auth', auth_route_js_1.default);
     server.use('/api/meetings', meeting_route_js_1.default);
+    server.use('/api/assembly', assembly_route_js_1.default);
     server.use(errorMiddleware_js_1.errorMiddleware);
     return server;
 }

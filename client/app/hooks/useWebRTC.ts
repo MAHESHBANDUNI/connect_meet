@@ -55,7 +55,7 @@ export const useWebRTC = (
   const isHostRef = useRef(options?.isHost);
   const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
   const [captionText, setCaptionText] = useState('');
-  const recognitionRef = useRef<any>(null);
+  const transcriptionSocketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     isHostRef.current = options?.isHost;
@@ -461,62 +461,125 @@ export const useWebRTC = (
     [localUserId]
   );
 
-  const initializeRecognition = () => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+  const getAssemblyToken = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/assembly/token`, {
+      method: "GET",
+    });
 
-    if (!SpeechRecognition) {
-      console.error('Speech Recognition not supported in this browser');
-      return null;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    return recognition;
+    const data = await response.json();
+    return data.token;
   };
 
-  const startCaptions = () => {
-    const recognition = initializeRecognition();
-    if (!recognition) return;
+  const createMixedAudioStream = () => {
+    const audioContext = new AudioContext();
+    const destination = audioContext.createMediaStreamDestination();
 
-    recognitionRef.current = recognition;
+    Object.values(remoteStreamsRef.current).forEach((stream) => {
+      stream.getAudioTracks().forEach((track: MediaStreamTrack) => {
+        const source = audioContext.createMediaStreamSource(
+          new MediaStream([track])
+        );
+        source.connect(destination);
+      });
+    });
 
-    recognition.onresult = (event: any) => {
-      let transcript = '';
+    return destination.stream;
+  };
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+  const downsampleBuffer = (
+    buffer: Float32Array,
+    sampleRate: number
+  ) => {
+    const targetRate = 16000;
+    const ratio = sampleRate / targetRate;
+    const newLength = Math.round(buffer.length / ratio);
+    const result = new Int16Array(newLength);
+
+    let offsetResult = 0;
+    let offsetBuffer = 0;
+
+    while (offsetResult < result.length) {
+      const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+      let accum = 0;
+      let count = 0;
+
+      for (let i = offsetBuffer; i < nextOffsetBuffer; i++) {
+        accum += buffer[i];
+        count++;
       }
 
-      setCaptionText(transcript);
+      const sample = accum / count;
+      result[offsetResult] = Math.max(-1, Math.min(1, sample)) * 0x7fff;
+
+      offsetResult++;
+      offsetBuffer = nextOffsetBuffer;
+    }
+
+    return result.buffer;
+  };
+
+  const connectToAssembly = async () => {
+    const token = await getAssemblyToken();
+    console.log("Received AssemblyAI token:", token);
+
+    const socket = new WebSocket(
+      `wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&token=${token}`
+    );
+
+    socket.onopen = () => {
+      console.log("Connected to AssemblyAI");
     };
 
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-    };
+    socket.onmessage = (message) => {
+      const data = JSON.parse(message.data);
 
-    recognition.onend = () => {
-      // Restart automatically if still enabled
-      if (isCaptionEnabled) {
-        recognition.start();
+      if (data.text) {
+        setCaptionText(data.text);
       }
     };
 
-    recognition.start();
+    return socket;
+  };
+
+  const startCaptions = async () => {
+    const stream = createMixedAudioStream();
+    const socket = await connectToAssembly();
+
+    const audioContext = new AudioContext({ sampleRate: 44100 });
+
+    // Load worklet
+    await audioContext.audioWorklet.addModule('/processor.js');
+
+    const source = audioContext.createMediaStreamSource(stream);
+
+    const workletNode = new AudioWorkletNode(
+      audioContext,
+      'pcm-processor'
+    );
+
+    source.connect(workletNode);
+    workletNode.connect(audioContext.destination);
+
+    workletNode.port.onmessage = (event) => {
+      const float32Data = event.data;
+
+      const downsampled = downsampleBuffer(
+        float32Data,
+        audioContext.sampleRate
+      );
+
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(downsampled);
+      }
+    };
+
+    transcriptionSocketRef.current = socket;
   };
 
   const stopCaptions = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
-    }
-
-    setCaptionText('');
+    transcriptionSocketRef.current?.close();
+    transcriptionSocketRef.current = null;
+    setCaptionText("");
   };
 
   const stopScreenSharing = useCallback(async () => {
