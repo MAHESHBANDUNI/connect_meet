@@ -426,8 +426,42 @@ export const VideoCall = ({
 
                                 <div className="flex gap-2">
                                   {/* Audio */}
-                                  <div className="flex gap-1">
                                     <span
+                                      className={`p-1 rounded-xl ${
+                                        (isLocal ? isAudioMuted : user.isAudioMuted)
+                                          ? "text-red-400"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                      {(isLocal && !isCurrentUserHost ? isAudioMuted : user.isAudioMuted) ? (
+                                        <MicOff className="w-5 h-5" />
+                                      ) : (
+                                        (isLocal && !isCurrentUserHost) && <MicIcon className="w-5 h-5" />
+                                      )}
+                                    </span>
+                                    
+                                    <span
+                                      className={`p-1 rounded-xl ${
+                                        (!isLocal && isCurrentUserHost ? isAudioMuted : user.isAudioMuted)
+                                          ? "text-red-400"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                    
+                                    {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission ? (
+                                      <button
+                                        onClick={() => handleHostMuteAudio(user.id)}
+                                        className=""
+                                        title="Stop Participant Audio"
+                                      >
+                                        <MicOff className="w-5 h-5" />
+                                      </button>
+                                    ) : (!isLocal && isCurrentUserHost && <MicIcon className="w-5 h-5" />)
+                                    }
+
+                                    </span>
+                                  <div className="flex gap-1">
+                                    {/* <span
                                       className={`p-1 rounded-xl ${
                                         (isLocal ? isAudioMuted : user.isAudioMuted)
                                           ? "text-red-400"
@@ -449,7 +483,7 @@ export const VideoCall = ({
                                       >
                                         <MicOff className="w-5 h-5" />
                                       </button>
-                                    )}
+                                    )} */}
 
                                     {/* Video */}
                                     <span
@@ -459,22 +493,33 @@ export const VideoCall = ({
                                           : "text-white"
                                       }`}
                                     >
-                                      {(isLocal ? isVideoOff : user.isVideoOff) ? (
+                                      {(isLocal && !isCurrentUserHost ? isVideoOff : user.isVideoOff) ? (
                                         <VideoOffIcon className="w-5 h-5" />
                                       ) : (
-                                        <VideoIcon className="w-5 h-5" />
+                                        (isLocal && !isCurrentUserHost) && <VideoIcon className="w-5 h-5" />
                                       )}
                                     </span>
                                     
-                                    {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                    <span
+                                      className={`p-1 rounded-xl ${
+                                        (!isLocal && isCurrentUserHost ? isVideoOff : user.isVideoOff)
+                                          ? "text-red-400"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                    
+                                    {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission ? (
                                       <button
                                         onClick={() => handleHostMuteVideo(user.id)}
-                                        className="p-1 rounded-xl text-yellow-400 hover:bg-white/10"
+                                        className=""
                                         title="Stop Participant Video"
                                       >
                                         <VideoOffIcon className="w-5 h-5" />
                                       </button>
-                                    )}
+                                    ) : (!isLocal && isCurrentUserHost && <VideoIcon className="w-5 h-5" />)
+                                    }
+
+                                    </span>
 
                                     {/* Drop */}
                                     {!isLocal && isCurrentUserHost && meetingDetails?.dropPermission && (
