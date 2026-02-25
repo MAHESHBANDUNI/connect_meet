@@ -56,9 +56,9 @@ export const Controls = ({
             }`}
           >
             {isAudioMuted ? (
-              <MicOff className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <MicOff className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             ) : (
-              <MicIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <MicIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             )}
           </button>
 
@@ -72,9 +72,9 @@ export const Controls = ({
             }`}
           >
             {isVideoOff ? (
-              <VideoOffIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <VideoOffIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             ) : (
-              <VideoIcon className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <VideoIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             )}
           </button>
 
@@ -88,25 +88,25 @@ export const Controls = ({
             }`}
           >
             {isScreenSharing ? (
-              <ScreenShareOff className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <ScreenShareOff className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             ) : (
-              <ScreenShare className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <ScreenShare className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             )}
           </button>}
 
           {/* Live Captions */}
           <button
             onClick={() =>setIsCaptionEnabled(!isCaptionsEnabled)}
-            className={`hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isCaptionsEnabled
                 ? 'bg-blue-400'
                 : 'bg-white/10 hover:bg-white/20'
             }`}
           >
             {isCaptionsEnabled ? (
-              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white font-bold" />
+              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 text-white font-bold" />
             ) : (
-              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             )}
           </button>
 
@@ -120,7 +120,7 @@ export const Controls = ({
             onClick={onEndCall}
             className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-red-500 rounded-xl sm:rounded-2xl hover:bg-red-700 transition"
           >
-            <Phone className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white rotate-135" />
+            <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white rotate-135" />
           </button>
         </div>
       </div>

@@ -427,55 +427,53 @@ export const VideoCall = ({
                                 <div className="flex gap-2">
                                   {/* Audio */}
                                   <div className="flex gap-1">
-                                    {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
-                                      <span
-                                        className={`p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400`}
+                                    <span
+                                      className={`p-1 rounded-xl ${
+                                        (isLocal ? isAudioMuted : user.isAudioMuted)
+                                          ? "text-red-400"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                      {(isLocal ? isAudioMuted : user.isAudioMuted) ? (
+                                        <MicOff className="w-5 h-5" />
+                                      ) : (
+                                        <MicIcon className="w-5 h-5" />
+                                      )}
+                                    </span>
+                                    
+                                    {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                      <button
+                                        onClick={() => handleHostMuteAudio(user.id)}
+                                        className="p-1 rounded-xl text-yellow-400 hover:bg-white/10"
+                                        title="Mute Participant"
                                       >
-                                        <MicOff className='w-5 h-5' />
-                                      </span>
-                                    ) : (
-                                      <>
-                                        {(isLocal || !user.isAudioMuted) && (
-                                          <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                                            <MicIcon className="w-5 h-5" />
-                                          </span>
-                                        )}
-                                        {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
-                                          <button
-                                            onClick={() => handleHostMuteAudio(user.id)}
-                                            className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"
-                                            title="Mute Participant"
-                                          >
-                                            <MicIcon className="w-5 h-5" />
-                                          </button>
-                                        )}
-                                      </>
+                                        <MicOff className="w-5 h-5" />
+                                      </button>
                                     )}
 
                                     {/* Video */}
-                                    {(isLocal ? isVideoOff : user.isVideoOff) ? (
-                                      <span
-                                        className="p-1 bg-transparent backdrop-blur-md rounded-xl text-red-400"
+                                    <span
+                                      className={`p-1 rounded-xl ${
+                                        (isLocal ? isVideoOff : user.isVideoOff)
+                                          ? "text-red-400"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                      {(isLocal ? isVideoOff : user.isVideoOff) ? (
+                                        <VideoOffIcon className="w-5 h-5" />
+                                      ) : (
+                                        <VideoIcon className="w-5 h-5" />
+                                      )}
+                                    </span>
+                                    
+                                    {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                      <button
+                                        onClick={() => handleHostMuteVideo(user.id)}
+                                        className="p-1 rounded-xl text-yellow-400 hover:bg-white/10"
+                                        title="Stop Participant Video"
                                       >
-                                        <VideoOffIcon className='w-5 h-5' />
-                                      </span>
-                                    ) : (
-                                      <>
-                                        {(isLocal || !user.isVideoOff) && (
-                                          <span className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white">
-                                            <VideoIcon className="w-5 h-5" />
-                                          </span>
-                                        )}
-                                        {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
-                                          <button
-                                            onClick={() => handleHostMuteVideo(user.id)}
-                                            className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"
-                                            title="Stop Participant Video"
-                                          >
-                                            <VideoIcon className="w-5 h-5" />
-                                          </button>
-                                        )}
-                                      </>
+                                        <VideoOffIcon className="w-5 h-5" />
+                                      </button>
                                     )}
 
                                     {/* Drop */}
