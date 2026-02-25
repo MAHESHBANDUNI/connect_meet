@@ -133,112 +133,6 @@ export const VideoCall = ({
   console.log('Current Users in Call:', users);
 
   console.log('User Media Status:', { isAudioMuted, isVideoOff, isScreenSharing, localStream, screenStream });
-  const mockedUser=[...users, {
-    id: "Alice:2",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:3",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:4",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }, {
-    id: "Alice:5",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:6",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:7",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }, {
-    id: "Alice:8",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:9",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:10",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }, {
-    id: "Alice:11",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:12",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:13",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }, {
-    id: "Alice:14",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:15",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:16",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }, {
-    id: "Alice:17",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: false
-  },
-  {
-    id: "Bob:18",
-    isLocal: false,
-    isAudioMuted: true,
-    isVideoOff: false
-  },
-  {
-    id: "Charlie:19",
-    isLocal: false,
-    isAudioMuted: false,
-    isVideoOff: true
-  }
-];
-
-// users={mockedUser};
 
   const screenSharer = users.find(
     user => user.screenStream
@@ -494,7 +388,7 @@ export const VideoCall = ({
                           </div>
                         )}
 
-                        {mockedUser.map((user) => {
+                        {users.map((user) => {
                           const isLocal = user.isLocal
                           const displayName = user.id.split(":")[0]
                           const firstLetter = displayName.charAt(0).toUpperCase()
