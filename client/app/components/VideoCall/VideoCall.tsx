@@ -431,7 +431,7 @@ export const VideoCall = ({
                                   
                                     return (
                                       <>
-                                        {!isCurrentUserHost && 
+                                        {!isCurrentUserHost || (isLocal && isCurrentUserHost) && 
                                           <span
                                             className={`p-1 rounded-xl ${
                                               muted ? "text-red-400" : "text-white"
@@ -447,13 +447,25 @@ export const VideoCall = ({
                                         
                                         {/* Host Control Button */}
                                         {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
-                                          <button
-                                            onClick={() => handleHostMuteAudio(user.id)}
-                                            className="p-1 rounded-xl text-yellow-400 hover:bg-white/10"
-                                            title="Mute Participant"
-                                          >
+                                          <>
+                                          { user?.isAudioMuted === true ? (
+                                            <button
+                                              onClick={() => handleHostMuteAudio(user.id)}
+                                              className="p-1 rounded-xl text-red-400"
+                                            >
                                             <MicOff className="w-5 h-5" />
-                                          </button>
+                                            </button>
+                                            ):(
+                                            <button
+                                              onClick={() => handleHostMuteAudio(user.id)}
+                                              className="p-1 rounded-xl text-white"
+                                              title="Mute Participant"
+                                            >
+                                            <MicIcon className="w-5 h-5" />
+                                            </button>
+                                          )
+                                          }
+                                          </>
                                         )}
                                       </>
                                     );
@@ -465,7 +477,7 @@ export const VideoCall = ({
                                     
                                       return (
                                         <>
-                                          {!isCurrentUserHost && 
+                                          {!isCurrentUserHost || (isLocal && isCurrentUserHost) && 
                                           <span
                                             className={`p-1 rounded-xl ${
                                               videoOff ? "text-red-400" : "text-white"
@@ -481,13 +493,25 @@ export const VideoCall = ({
                                           
                                           {/* Host Control Button */}
                                           {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                          <>
+                                          { user?.isVideoOff === true ? (
                                             <button
                                               onClick={() => handleHostMuteVideo(user.id)}
-                                              className="p-1 rounded-xl text-yellow-400 hover:bg-white/10"
-                                              title="Stop Participant Video"
+                                              className="p-1 rounded-xl text-red-400"
                                             >
                                               <VideoOffIcon className="w-5 h-5" />
                                             </button>
+                                            ):(
+                                            <button
+                                              onClick={() => handleHostMuteVideo(user.id)}
+                                              className="p-1 rounded-xl text-white"
+                                              title="Stop Participant Video"
+                                            >
+                                              <VideoIcon className="w-5 h-5" />
+                                            </button>
+                                            )
+                                          }
+                                          </>
                                           )}
                                         </>
                                       );
