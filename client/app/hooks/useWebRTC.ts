@@ -362,16 +362,25 @@ export const useWebRTC = (
           screen: undefined,
         };
 
-      if (event.track.kind === "video") {
+      const currentUser = state.users.get(remoteUserId);
+      const isMarkedScreenSharing = !!currentUser?.isScreenSharing;
+
+      if (event.track.kind === 'audio') {
         if (!existing.camera) {
           existing.camera = stream;
-        } else {
-          existing.screen = stream;
         }
       }
 
-      if (event.track.kind === "audio") {
-        existing.camera = stream;
+      if (event.track.kind === 'video') {
+        const isSameAsCamera = existing.camera?.id === stream.id;
+
+        if (!existing.camera || isSameAsCamera) {
+          existing.camera = stream;
+        } else if (isMarkedScreenSharing) {
+          existing.screen = stream;
+        } else {
+          existing.camera = stream;
+        }
       }
 
       remoteStreamsRef.current.set(remoteUserId, existing);
@@ -392,13 +401,13 @@ export const useWebRTC = (
 
         updatedUser.stream = existing.camera;
         updatedUser.screenStream = existing.screen;
-        updatedUser.isScreenSharing = !!existing.screen;
+        updatedUser.isScreenSharing = updatedUser.isScreenSharing && !!existing.screen;
 
         users.set(remoteUserId, updatedUser);
         return { ...prev, users };
       });
     },
-    []
+    [state.users]
   );
 
   const getOrCreatePC = useCallback(
