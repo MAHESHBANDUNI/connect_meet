@@ -431,17 +431,19 @@ export const VideoCall = ({
                                   
                                     return (
                                       <>
-                                        <span
-                                          className={`p-1 rounded-xl ${
-                                            muted ? "text-red-400" : "text-white"
-                                          }`}
-                                        >
-                                          {muted ? (
-                                            <MicOff className="w-5 h-5" />
-                                          ) : (
-                                            <MicIcon className="w-5 h-5" />
-                                          )}
-                                        </span>
+                                        {!isCurrentUserHost && 
+                                          <span
+                                            className={`p-1 rounded-xl ${
+                                              muted ? "text-red-400" : "text-white"
+                                            }`}
+                                          >
+                                            {muted ? (
+                                              <MicOff className="w-5 h-5" />
+                                            ) : (
+                                              <MicIcon className="w-5 h-5" />
+                                            )}
+                                          </span>
+                                        }
                                         
                                         {/* Host Control Button */}
                                         {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
@@ -463,6 +465,7 @@ export const VideoCall = ({
                                     
                                       return (
                                         <>
+                                          {!isCurrentUserHost && 
                                           <span
                                             className={`p-1 rounded-xl ${
                                               videoOff ? "text-red-400" : "text-white"
@@ -474,6 +477,7 @@ export const VideoCall = ({
                                               <VideoIcon className="w-5 h-5" />
                                             )}
                                           </span>
+                                          }
                                           
                                           {/* Host Control Button */}
                                           {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
