@@ -431,7 +431,7 @@ export const VideoCall = ({
                                   
                                     return (
                                       <>
-                                        {!isCurrentUserHost || (isLocal && isCurrentUserHost) && 
+                                        {(!isCurrentUserHost || (isLocal && isCurrentUserHost)) && 
                                           <span
                                             className={`p-1 rounded-xl ${
                                               muted ? "text-red-400" : "text-white"
@@ -477,7 +477,7 @@ export const VideoCall = ({
                                     
                                       return (
                                         <>
-                                          {!isCurrentUserHost || (isLocal && isCurrentUserHost) && 
+                                          {(!isCurrentUserHost || (isLocal && isCurrentUserHost)) && 
                                           <span
                                             className={`p-1 rounded-xl ${
                                               videoOff ? "text-red-400" : "text-white"
