@@ -124,6 +124,7 @@ export const useWebRTC = (
     sendUserAction,
     sendJoinResponse,
     joinRoom,
+    isConnected
   } = useSocket({
     onConnected: () => {
       joinRoom(roomId, localUserId, options?.isHost, options?.initialStatus === 'WAITING');
@@ -838,7 +839,7 @@ export const useWebRTC = (
     },
     waitingUsers,
     admissionStatus,
-    isConnected: true,
+    isConnected,
     startCaptions,
     stopCaptions,
     partialText,
