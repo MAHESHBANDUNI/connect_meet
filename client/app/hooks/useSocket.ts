@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 interface SocketEventHandlers {
@@ -19,13 +19,14 @@ interface SocketEventHandlers {
 export const useSocket = (handlers: SocketEventHandlers = {}) => {
   const socketRef = useRef<Socket | null>(null);
   const handlersRef = useRef(handlers);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     handlersRef.current = handlers;
   }, [handlers]);
 
   const connect = useCallback((roomId: string, userId: string) => {
-    if (socketRef.current?.connected) return;
+    if (socketRef.current) return;
 
     const socketUrl = process.env.NEXT_PUBLIC_SOCKET_SERVER_URL;
 
@@ -39,8 +40,8 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     const socket = socketRef.current;
 
     socket.on('connect', () => {
-      console.log('Socket connected:', socket.id);
-      // We don't join immediately here anymore, but let the hook handle it
+      console.log('Socket connected:', socket.id);  
+      setIsConnected(true);
       handlersRef.current.onConnected?.(userId);
     });
 
@@ -94,13 +95,16 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
 
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason);
+      setIsConnected(false);
     });
   }, []);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
+      socketRef.current.removeAllListeners();
       socketRef.current.disconnect();
       socketRef.current = null;
+      setIsConnected(false);
     }
   }, []);
 
@@ -148,6 +152,6 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     sendUserAction,
     sendJoinResponse,
     joinRoom,
-    isConnected: socketRef.current?.connected || false,
+    isConnected,
   };
 }

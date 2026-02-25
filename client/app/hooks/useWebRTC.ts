@@ -53,9 +53,11 @@ export const useWebRTC = (
   const localStreamRef = useRef<MediaStream | null>(localStream);
   const screenStreamRef = useRef<MediaStream | null>(screenStream);
   const isHostRef = useRef(options?.isHost);
-  const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
-  const [captionText, setCaptionText] = useState('');
+  const [finalText, setFinalText] = useState("");
+  const [partialText, setPartialText] = useState("");
   const transcriptionSocketRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
 
   useEffect(() => {
     isHostRef.current = options?.isHost;
@@ -291,35 +293,83 @@ export const useWebRTC = (
     [localUserId, sendSignal]
   );
 
+  // const onTrack = useCallback(
+  //   (event: RTCTrackEvent, remoteUserId: string) => {
+  //     const stream = event.streams?.[0];
+  //     if (!stream) return;
+
+  //     const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
+  //     const isVideoTrack = event.track.kind === 'video';
+  //     const isAudioTrack = event.track.kind === 'audio';
+
+  //     const users = state.users;
+  //     const user = users.get(remoteUserId);
+
+  //     if (isVideoTrack) {
+  //       const isCamera = existing.camera && stream.id === existing.camera.id;
+  //       const isScreen = existing.screen && stream.id === existing.screen.id;
+
+  //       if (isCamera) {
+  //         existing.camera = stream;
+  //       } else if (isScreen) {
+  //         existing.screen = stream;
+  //       } else if (user?.isScreenSharing && existing.camera) {
+  //         existing.screen = stream;
+  //       } else if (!existing.camera) {
+  //         existing.camera = stream;
+  //       } else {
+  //         existing.screen = stream;
+  //       }
+  //     } else if (isAudioTrack) {
+  //       existing.camera = stream;
+  //     }
+
+  //     remoteStreamsRef.current.set(remoteUserId, existing);
+
+  //     setState(prev => {
+  //       const users = new Map(prev.users);
+  //       const existingUser = users.get(remoteUserId);
+
+  //       const user = existingUser ? { ...existingUser } : {
+  //         id: remoteUserId,
+  //         isAudioMuted: false,
+  //         isVideoOff: false,
+  //         isLocal: false,
+  //         isScreenSharing: false,
+  //       };
+
+  //       user.stream = existing.camera;
+  //       user.screenStream = existing.screen;
+
+  //       user.isScreenSharing = user.isScreenSharing || !!existing.screen;
+
+  //       users.set(remoteUserId, user);
+  //       return { ...prev, users };
+  //     });
+  //   },
+  //   []
+  // );
+
   const onTrack = useCallback(
     (event: RTCTrackEvent, remoteUserId: string) => {
       const stream = event.streams?.[0];
       if (!stream) return;
 
-      const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
-      const isVideoTrack = event.track.kind === 'video';
-      const isAudioTrack = event.track.kind === 'audio';
+      const existing =
+        remoteStreamsRef.current.get(remoteUserId) || {
+          camera: undefined,
+          screen: undefined,
+        };
 
-      // Use the current state to help identify the track
-      const users = state.users;
-      const user = users.get(remoteUserId);
-
-      if (isVideoTrack) {
-        const isCamera = existing.camera && stream.id === existing.camera.id;
-        const isScreen = existing.screen && stream.id === existing.screen.id;
-
-        if (isCamera) {
-          existing.camera = stream;
-        } else if (isScreen) {
-          existing.screen = stream;
-        } else if (user?.isScreenSharing && existing.camera) {
-          existing.screen = stream;
-        } else if (!existing.camera) {
+      if (event.track.kind === "video") {
+        if (!existing.camera) {
           existing.camera = stream;
         } else {
           existing.screen = stream;
         }
-      } else if (isAudioTrack) {
+      }
+
+      if (event.track.kind === "audio") {
         existing.camera = stream;
       }
 
@@ -329,22 +379,21 @@ export const useWebRTC = (
         const users = new Map(prev.users);
         const existingUser = users.get(remoteUserId);
 
-        const user = existingUser ? { ...existingUser } : {
-          id: remoteUserId,
-          isAudioMuted: false,
-          isVideoOff: false,
-          isLocal: false,
-          isScreenSharing: false,
-        };
+        const updatedUser = existingUser
+          ? { ...existingUser }
+          : {
+              id: remoteUserId,
+              isAudioMuted: false,
+              isVideoOff: false,
+              isLocal: false,
+              isScreenSharing: false,
+            };
 
-        user.stream = existing.camera;
-        user.screenStream = existing.screen;
+        updatedUser.stream = existing.camera;
+        updatedUser.screenStream = existing.screen;
+        updatedUser.isScreenSharing = !!existing.screen;
 
-        // If we are getting a track and we know they are screen sharing, 
-        // OR we have a second stream, mark as screen sharing
-        user.isScreenSharing = user.isScreenSharing || !!existing.screen;
-
-        users.set(remoteUserId, user);
+        users.set(remoteUserId, updatedUser);
         return { ...prev, users };
       });
     },
@@ -470,17 +519,30 @@ export const useWebRTC = (
     return data.token;
   };
 
-  const createMixedAudioStream = () => {
-    const audioContext = new AudioContext();
+  const createMixedAudioStream = (audioContext: AudioContext) => {
     const destination = audioContext.createMediaStreamDestination();
 
-    Object.values(remoteStreamsRef.current).forEach((stream) => {
-      stream.getAudioTracks().forEach((track: MediaStreamTrack) => {
+    remoteStreamsRef.current.forEach((streams) => {
+      streams.camera?.getAudioTracks().forEach(track => {
         const source = audioContext.createMediaStreamSource(
           new MediaStream([track])
         );
         source.connect(destination);
       });
+    
+      streams.screen?.getAudioTracks().forEach(track => {
+        const source = audioContext.createMediaStreamSource(
+          new MediaStream([track])
+        );
+        source.connect(destination);
+      });
+    });
+
+    localStreamRef.current?.getAudioTracks().forEach(track => {
+      const source = audioContext.createMediaStreamSource(
+        new MediaStream([track])
+      );
+      source.connect(destination);
     });
 
     return destination.stream;
@@ -520,7 +582,6 @@ export const useWebRTC = (
 
   const connectToAssembly = async () => {
     const token = await getAssemblyToken();
-    console.log("Received AssemblyAI token:", token);
 
     const socket = new WebSocket(
       `wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&token=${token}`
@@ -530,25 +591,37 @@ export const useWebRTC = (
       console.log("Connected to AssemblyAI");
     };
 
-    socket.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-
-      if (data.text) {
-        setCaptionText(data.text);
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+    
+      if (data.message_type === "FinalTranscript") {
+        setFinalText(prev => prev + " " + data.text);
+        setPartialText("");
       }
+    
+      if (data.message_type === "PartialTranscript") {
+        setPartialText(data.text);
+      }
+    };
+
+    socket.onerror = (err) => {
+      console.error("AssemblyAI error", err);
+    };
+
+    socket.onclose = () => {
+      console.log("AssemblyAI connection closed");
     };
 
     return socket;
   };
 
   const startCaptions = async () => {
-    const stream = createMixedAudioStream();
-    const socket = await connectToAssembly();
-
-    const audioContext = new AudioContext({ sampleRate: 44100 });
-
-    // Load worklet
+    if (transcriptionSocketRef.current) return;
+    const audioContext = new AudioContext();
     await audioContext.audioWorklet.addModule('/processor.js');
+
+    const stream = createMixedAudioStream(audioContext);
+    const socket = await connectToAssembly();
 
     const source = audioContext.createMediaStreamSource(stream);
 
@@ -556,30 +629,49 @@ export const useWebRTC = (
       audioContext,
       'pcm-processor'
     );
-
+  
     source.connect(workletNode);
-    workletNode.connect(audioContext.destination);
-
+    const gain = audioContext.createGain();
+    gain.gain.value = 0; // silent
+    workletNode.connect(gain);
+    gain.connect(audioContext.destination);
+  
     workletNode.port.onmessage = (event) => {
       const float32Data = event.data;
-
+    
       const downsampled = downsampleBuffer(
         float32Data,
         audioContext.sampleRate
       );
-
+    
       if (socket.readyState === WebSocket.OPEN) {
         socket.send(downsampled);
       }
     };
-
+  
+    audioContextRef.current = audioContext;
+    workletNodeRef.current = workletNode;
     transcriptionSocketRef.current = socket;
   };
 
   const stopCaptions = () => {
-    transcriptionSocketRef.current?.close();
+    if (!transcriptionSocketRef.current) return;
+  
+    transcriptionSocketRef.current.send(
+      JSON.stringify({ terminate_session: true })
+    );
+  
+    transcriptionSocketRef.current.close();
     transcriptionSocketRef.current = null;
-    setCaptionText("");
+  
+    workletNodeRef.current?.disconnect();
+    audioContextRef.current?.close();
+  
+    audioContextRef.current = null;
+    workletNodeRef.current = null;
+  
+    setFinalText('');
+    setPartialText('');
   };
 
   const stopScreenSharing = useCallback(async () => {
@@ -628,6 +720,7 @@ export const useWebRTC = (
     }
 
     return () => {
+      stopCaptions();
       disconnect();
       peerConnectionsRef.current.forEach(pc => {
         pc.getSenders().forEach(sender => {
@@ -639,6 +732,13 @@ export const useWebRTC = (
       remoteStreamsRef.current.clear();
     };
   }, [localUserId, roomId, connect, disconnect, options?.isHost]);
+
+  useEffect(() => {
+    if (!transcriptionSocketRef.current || !audioContextRef.current) return;
+
+    stopCaptions();
+    startCaptions();
+  }, [state.users]);
 
   useEffect(() => {
     if (!localStream) return;
@@ -686,37 +786,24 @@ export const useWebRTC = (
   }, [screenStream, localUserId, sendSignal]);
 
   useEffect(() => {
-      setState(prev => {
-        const users = new Map(prev.users);
-        const existing = users.get(localUserId);
-      
-        if (!localStream && !existing) return prev;
-
-        users.set(localUserId, {
-          id: localUserId,
-          name: localUserId,
-          stream: localStream || existing?.stream,
-          screenStream: screenStream || undefined,
-          isAudioMuted: existing?.isAudioMuted ?? false,
-          isVideoOff: existing?.isVideoOff ?? false,
-          isLocal: true,
-          isScreenSharing: !!screenStream,
-        });
-
-        return { ...prev, users };
+    setState(prev => {
+      const users = new Map(prev.users);
+      const existing = users.get(localUserId);
+    
+      users.set(localUserId, {
+        id: localUserId,
+        name: localUserId,
+        stream: localStream || existing?.stream,
+        screenStream: screenStream || undefined,
+        isAudioMuted: existing?.isAudioMuted ?? false,
+        isVideoOff: existing?.isVideoOff ?? false,
+        isLocal: true,
+        isScreenSharing: !!screenStream,
       });
-    }, [localStream, screenStream, localUserId]);
-    useEffect(() => {
-    if (isCaptionEnabled) {
-      startCaptions();
-    } else {
-      stopCaptions();
-    }
-
-    return () => {
-      stopCaptions();
-    };
-  }, [isCaptionEnabled]);
+    
+      return { ...prev, users };
+    });
+  }, [localStream, screenStream, localUserId]);
 
   return {
     users: Array.from(state.users.values()),
@@ -752,8 +839,9 @@ export const useWebRTC = (
     waitingUsers,
     admissionStatus,
     isConnected: true,
-    isCaptionEnabled,
-    setIsCaptionEnabled,
-    captionText
+    startCaptions,
+    stopCaptions,
+    partialText,
+    finalText
   };
 };

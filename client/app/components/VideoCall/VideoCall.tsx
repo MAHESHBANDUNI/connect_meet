@@ -58,6 +58,7 @@ export const VideoCall = ({
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
 
   const isCurrentUserHost = meetingDetails?.participants?.some(
     (participant: any) =>
@@ -90,9 +91,10 @@ export const VideoCall = ({
     admitParticipant,
     rejectParticipant,
     waitingUsers,
-    captionText,
-    isCaptionEnabled,
-    setIsCaptionEnabled
+    partialText,
+    finalText,
+    startCaptions,
+    stopCaptions
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
@@ -217,6 +219,16 @@ export const VideoCall = ({
     setShowChat(!showChat);
     if (showParticipants) setShowParticipants(false);
   };
+
+  const onStartCaptions = () =>{
+    setIsCaptionEnabled(true);
+    startCaptions();
+  }
+
+  const onStopCaptions = () =>{
+    setIsCaptionEnabled(false);
+    stopCaptions();
+  }
 
   console.log("waitingUsers", waitingUsers);
 
@@ -541,10 +553,11 @@ export const VideoCall = ({
             </div>
           )}
         </aside>
-        {isCaptionEnabled && captionText && (
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 max-w-3xl w-[80%] bg-black/70 backdrop-blur-md text-white text-center rounded-2xl shadow-xl">
+        {isCaptionEnabled && (finalText || partialText) && (
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 max-w-2xl w-[60%] bg-black/70 backdrop-blur-md text-white text-center rounded-2xl shadow-xl">
             <p className="text-sm md:text-base font-medium leading-relaxed">
-              {captionText}
+              <span>{finalText} </span>
+              <span className="opacity-60">{partialText}</span>
             </p>
           </div>
         )}
@@ -558,7 +571,8 @@ export const VideoCall = ({
             isScreenSharing={isScreenSharing}
             isScreenSharingEnabled={meetingDetails?.screenSharePermission}
             isCaptionsEnabled={isCaptionEnabled}
-            setIsCaptionEnabled={setIsCaptionEnabled}
+            onStartCaptions={onStartCaptions}
+            onStopCaptions={onStopCaptions}
             isUserHost={meetingDetails?.participants?.some(
               (participant: any) =>
                 participant.userId === user?.id &&

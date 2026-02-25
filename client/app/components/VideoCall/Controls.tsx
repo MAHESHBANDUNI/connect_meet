@@ -9,7 +9,8 @@ interface ControlsProps {
   isScreenSharing: boolean;
   isScreenSharingEnabled: boolean;
   isCaptionsEnabled: boolean;
-  setIsCaptionEnabled: (enabled: boolean) => void;
+  onStartCaptions: () => void;
+  onStopCaptions: () => void;
   isUserHost: boolean;
   onToggleAudio: () => void;
   onToggleVideo: () => void;
@@ -29,7 +30,8 @@ export const Controls = ({
   onToggleAudio,
   onToggleVideo,
   onToggleScreenShare,
-  setIsCaptionEnabled,
+  onStartCaptions,
+  onStopCaptions,
   onEndCall,
   roomId
 }: ControlsProps) => {
@@ -96,7 +98,7 @@ export const Controls = ({
 
           {/* Live Captions */}
           <button
-            onClick={() =>setIsCaptionEnabled(!isCaptionsEnabled)}
+            onClick={isCaptionsEnabled ? onStopCaptions : onStartCaptions}
             className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isCaptionsEnabled
                 ? 'bg-blue-400'
