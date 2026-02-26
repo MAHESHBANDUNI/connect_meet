@@ -1,7 +1,6 @@
 "use client";
 
-import { set } from "date-fns";
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Ellipsis, Phone, ScreenShare, ScreenShareOff, LucideCaptions } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Phone, ScreenShare, ScreenShareOff, LucideCaptions, Settings } from "lucide-react";
 
 interface ControlsProps {
   isAudioMuted: boolean;
@@ -16,6 +15,7 @@ interface ControlsProps {
   onToggleVideo: () => void;
   onToggleScreenShare: () => void;
   onToggleLiveCaptions: () => void;
+  onOpenDeviceSettings: () => void;
   onEndCall: () => void;
   roomId: string;
 }
@@ -32,6 +32,7 @@ export const Controls = ({
   onToggleScreenShare,
   onStartCaptions,
   onStopCaptions,
+  onOpenDeviceSettings,
   onEndCall,
   roomId
 }: ControlsProps) => {
@@ -112,10 +113,14 @@ export const Controls = ({
             )}
           </button>
 
-          {/* More */}
-          <div className="flex items-center justify-center w-4 sm:w-5 md:w-6 h-10 sm:h-12 md:h-14 bg-white/10 rounded-xl sm:rounded-2xl">
-            <Ellipsis className="w-5 h-5 sm:w-5 sm:h-5 text-white rotate-90" />
-          </div>
+          {/* Device Settings */}
+          <button
+            onClick={onOpenDeviceSettings}
+            className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/10 hover:bg-white/20 rounded-xl sm:rounded-2xl transition-all"
+            title="Audio and video settings"
+          >
+            <Settings className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </button>
 
           {/* End Call */}
           <button

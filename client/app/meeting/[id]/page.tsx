@@ -26,6 +26,13 @@ export default function MeetingPage() {
   const [meetingDetails, setMeetingDetails] = useState<any>(null);
   const [isWaiting, setIsWaiting] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
+  const [initialMediaConfig, setInitialMediaConfig] = useState({
+    cameraEnabled: true,
+    micEnabled: true,
+    cameraId: '',
+    micId: '',
+    speakerId: 'default',
+  });
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -118,8 +125,17 @@ export default function MeetingPage() {
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
-    micId?: string
+    micId?: string,
+    speakerId?: string
   ) => {
+    setInitialMediaConfig({
+      cameraEnabled,
+      micEnabled,
+      cameraId: cameraId || '',
+      micId: micId || '',
+      speakerId: speakerId || 'default',
+    });
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
         method: "POST",
@@ -144,8 +160,17 @@ export default function MeetingPage() {
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
-    micId?: string
+    micId?: string,
+    speakerId?: string
   ) => {
+    setInitialMediaConfig({
+      cameraEnabled,
+      micEnabled,
+      cameraId: cameraId || '',
+      micId: micId || '',
+      speakerId: speakerId || 'default',
+    });
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/start`, {
         method: "POST",
@@ -298,6 +323,7 @@ export default function MeetingPage() {
           }}
           onAdmitParticipant={handleAdmitParticipant}
           onRejectParticipant={handleRejectParticipant}
+          initialMediaConfig={initialMediaConfig}
         />
 
         {isWaiting && (

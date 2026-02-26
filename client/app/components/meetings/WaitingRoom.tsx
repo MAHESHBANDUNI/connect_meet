@@ -25,14 +25,16 @@ interface WaitingRoomProps {
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
-    micId?: string
+    micId?: string,
+    speakerId?: string
   ) => void;
   onExit: () => void;
   onStart: (
     cameraEnabled: boolean,
     micEnabled: boolean,
     cameraId?: string,
-    micId?: string
+    micId?: string,
+    speakerId?: string
   ) => void;
   onJoinRequest: () => void;
   isWaiting?: boolean;
@@ -234,7 +236,8 @@ export default function WaitingRoom({
         cameraEnabled,
         micEnabled,
         selectedDevices.cameraId,
-        selectedDevices.micId
+        selectedDevices.micId,
+        selectedDevices.speakerId
       );
     } else {
       // If direct join disabled → DO NOT call onJoin yet
@@ -247,7 +250,8 @@ export default function WaitingRoom({
         cameraEnabled,
         micEnabled,
         selectedDevices.cameraId,
-        selectedDevices.micId
+        selectedDevices.micId,
+        selectedDevices.speakerId
       );
     }
   };

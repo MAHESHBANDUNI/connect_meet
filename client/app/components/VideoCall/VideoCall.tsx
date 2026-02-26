@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMediaStream } from '@/app/hooks/useMediaStream';
 import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPenIcon, UserPlus, UserPlusIcon, Phone } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
+import { errorToast } from '../ui/toast';
 
 interface VideoCallProps {
   roomId: string;
@@ -40,6 +41,13 @@ interface VideoCallProps {
   onRejected?: () => void;
   onAdmitParticipant?: (targetUserId: string) => void;
   onRejectParticipant?: (targetUserId: string) => void;
+  initialMediaConfig?: {
+    cameraEnabled: boolean;
+    micEnabled: boolean;
+    cameraId?: string;
+    micId?: string;
+    speakerId?: string;
+  };
 }
 
 export const VideoCall = ({
@@ -53,11 +61,13 @@ export const VideoCall = ({
   onAdmitted,
   onRejected,
   onAdmitParticipant,
-  onRejectParticipant
+  onRejectParticipant,
+  initialMediaConfig
 }: VideoCallProps) => {
+  const hasInitializedMediaRef = useRef(false);
   const [showChat, setShowChat] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
 
   const isCurrentUserHost = meetingDetails?.participants?.some(
@@ -72,13 +82,24 @@ export const VideoCall = ({
     isAudioMuted,
     isVideoOff,
     isScreenSharing,
+    availableDevices,
+    selectedDevices,
     toggleAudio,
     toggleVideo,
     toggleScreenShare,
     stopScreenShare,
     stopMediaStream,
     getMediaStream,
-  } = useMediaStream();
+    switchCamera,
+    switchMicrophone,
+    switchSpeaker,
+  } = useMediaStream({
+    initialCameraEnabled: initialMediaConfig?.cameraEnabled,
+    initialMicEnabled: initialMediaConfig?.micEnabled,
+    initialCameraId: initialMediaConfig?.cameraId,
+    initialMicId: initialMediaConfig?.micId,
+    initialSpeakerId: initialMediaConfig?.speakerId,
+  });
 
   const activeStream = localStream;
 
@@ -143,22 +164,42 @@ export const VideoCall = ({
     user => user.screenStream
   );
 
-  const gridUsers = users.filter(
-    user => user.id !== screenSharer?.id
-  );
-
   useEffect(() => {
+    if (hasInitializedMediaRef.current) return;
+    hasInitializedMediaRef.current = true;
+
     const initialize = async () => {
       try {
-        await getMediaStream();
-        setIsInitialized(true);
+        await getMediaStream({
+          cameraId: initialMediaConfig?.cameraId,
+          micId: initialMediaConfig?.micId,
+          speakerId: initialMediaConfig?.speakerId,
+        });
       } catch (error) {
         console.error('Failed to initialize media:', error);
       }
     };
 
     initialize();
-  }, [getMediaStream]);
+  }, []);
+
+  const handleDeviceChange = async (
+    kind: 'cameraId' | 'micId' | 'speakerId',
+    value: string
+  ) => {
+    try {
+      if (kind === 'cameraId') {
+        await switchCamera(value);
+      } else if (kind === 'micId') {
+        await switchMicrophone(value);
+      } else {
+        switchSpeaker(value);
+      }
+    } catch (error) {
+      console.error(`Failed to switch ${kind}:`, error);
+      errorToast('Failed to switch media device.');
+    }
+  };
 
   const handleToggleAudio = () => {
     const newValue = !isAudioMuted;
@@ -261,7 +302,7 @@ export const VideoCall = ({
             {/* Share Screen Area */}
             <div className="flex-1 bg-[#26282c] flex items-center justify-center p-4 w-full lg:min-w-3/4 h-2/3 sm:h-full">
               <div className='w-full h-full flex items-center justify-center'>
-                <ScreenPresentTile user={screenSharer} />
+                <ScreenPresentTile user={screenSharer} speakerId={selectedDevices.speakerId} />
               </div>
             </div>
 
@@ -281,7 +322,7 @@ export const VideoCall = ({
             >
               {users.map(user => (
                 <>
-                  <VideoTile key={user.id} user={user} screenSharer={screenSharer} />
+                  <VideoTile key={user.id} user={user} screenSharer={screenSharer} speakerId={selectedDevices.speakerId} />
                 </>
               ))}
             </div>
@@ -300,7 +341,7 @@ export const VideoCall = ({
           `}>
             {users.map(user => (
               <>
-                <VideoTile key={user.id} user={user} />
+                <VideoTile key={user.id} user={user} speakerId={selectedDevices.speakerId} />
               </>
             ))}
           </div>
@@ -585,6 +626,7 @@ export const VideoCall = ({
             onToggleVideo={handleToggleVideo}
             onToggleScreenShare={handleToggleScreenShare}
             onToggleLiveCaptions={()=> {}}
+            onOpenDeviceSettings={() => setShowDeviceSettings(true)}
             onEndCall={handleEndCall}
             roomId={roomId}
           />
@@ -606,6 +648,108 @@ export const VideoCall = ({
           </button>
         </div>
       </footer>
+
+      {showDeviceSettings && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-t-xl sm:rounded-xl max-h-[90vh] overflow-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-3 sm:p-4 flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                Device Settings
+              </h3>
+              <button
+                onClick={() => setShowDeviceSettings(false)}
+                className="cursor-pointer p-1.5 hover:bg-slate-100 rounded-full transition-colors"
+                aria-label="Close settings"
+              >
+                <X className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                  <Camera className="w-3 h-3" />
+                  Camera
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedDevices.cameraId}
+                    onChange={e => handleDeviceChange('cameraId', e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    {availableDevices.cameras.map(device => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Camera ${device.deviceId.slice(0, 8)}...`}
+                      </option>
+                    ))}
+                    {availableDevices.cameras.length === 0 && (
+                      <option value="">No cameras found</option>
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                  <MicIcon className="w-3 h-3" />
+                  Microphone
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedDevices.micId}
+                    onChange={e => handleDeviceChange('micId', e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    {availableDevices.mics.map(device => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Mic ${device.deviceId.slice(0, 8)}...`}
+                      </option>
+                    ))}
+                    {availableDevices.mics.length === 0 && (
+                      <option value="">No microphones found</option>
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase flex items-center gap-1">
+                  <Headphones className="w-3 h-3" />
+                  Speaker
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedDevices.speakerId}
+                    onChange={e => handleDeviceChange('speakerId', e.target.value)}
+                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    {availableDevices.speakers.map(device => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Speaker ${device.deviceId.slice(0, 8)}...`}
+                      </option>
+                    ))}
+                    {availableDevices.speakers.length === 0 && (
+                      <option value="default">Default System Output</option>
+                    )}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-3 sm:p-4">
+              <button
+                onClick={() => setShowDeviceSettings(false)}
+                className="cursor-pointer w-full py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -2,14 +2,15 @@
 
 import { useEffect, useRef } from 'react';
 import { User } from '@/app/types';
-import { MicIcon, MicOff, VideoOffIcon } from 'lucide-react';
+import { MicOff } from 'lucide-react';
 
 interface VideoTileProps {
   user: User;
   screenSharer?: User | null;
+  speakerId?: string;
 }
 
-export const VideoTile = ({ user, screenSharer }: VideoTileProps) => {
+export const VideoTile = ({ user, screenSharer, speakerId = "default" }: VideoTileProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -19,6 +20,16 @@ export const VideoTile = ({ user, screenSharer }: VideoTileProps) => {
     videoRef.current.muted = user.isLocal;
     videoRef.current.play().catch(() => {});
   }, [user.stream, user.isLocal]);
+
+  useEffect(() => {
+    const video = videoRef.current as (HTMLVideoElement & {
+      setSinkId?: (id: string) => Promise<void>;
+    }) | null;
+
+    if (!video || user.isLocal || !video.setSinkId) return;
+
+    video.setSinkId(speakerId).catch(() => {});
+  }, [speakerId, user.isLocal]);
   
   const userName = user.id.split(":")[0];
 
