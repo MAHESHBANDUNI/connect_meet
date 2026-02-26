@@ -294,112 +294,111 @@ export const useWebRTC = (
     [localUserId, sendSignal]
   );
 
-const onTrack = useCallback(
-  (event: RTCTrackEvent, remoteUserId: string) => {
-    const track = event.track;
-    console.log('Track: ', event.track);
-    console.log('Trans track: ', event.transceiver.receiver);
-    const mid = event.transceiver.mid;
+// const onTrack = useCallback(
+//   (event: RTCTrackEvent, remoteUserId: string) => {
+//     const track = event.track;
+//     console.log('Track: ', event.track);
+//     console.log('Trans track: ', event.transceiver.receiver);
+//     const mid = event.transceiver.mid;
 
-    let existing =
-      remoteStreamsRef.current.get(remoteUserId) || {
-        camera: undefined,
-        screen: undefined,
-      };
+//     let existing =
+//       remoteStreamsRef.current.get(remoteUserId) || {
+//         camera: undefined,
+//         screen: undefined,
+//       };
 
-    const isScreen =
-      track.kind === 'video'
-        ? track.contentHint === 'detail'
-        : event.transceiver.receiver.track?.contentHint === 'detail';
+//     const isScreen =
+//       track.kind === 'video'
+//         ? track.contentHint === 'detail'
+//         : event.transceiver.receiver.track?.contentHint === 'detail';
 
-    if (isScreen) {
-      existing.screen = existing.screen || new MediaStream();
-      existing.screen.addTrack(track);
-    } else {
-      existing.camera = existing.camera || new MediaStream();
-      existing.camera.addTrack(track);
-    }
+//     if (isScreen) {
+//       existing.screen = existing.screen || new MediaStream();
+//       existing.screen.addTrack(track);
+//     } else {
+//       existing.camera = existing.camera || new MediaStream();
+//       existing.camera.addTrack(track);
+//     }
 
-    remoteStreamsRef.current.set(remoteUserId, existing);
+//     remoteStreamsRef.current.set(remoteUserId, existing);
 
-    setState(prev => {
-      const users = new Map(prev.users);
-      const user = users.get(remoteUserId) || {
-        id: remoteUserId,
-        isAudioMuted: false,
-        isVideoOff: false,
-        isLocal: false,
-        isScreenSharing: false,
-      };
+//     setState(prev => {
+//       const users = new Map(prev.users);
+//       const user = users.get(remoteUserId) || {
+//         id: remoteUserId,
+//         isAudioMuted: false,
+//         isVideoOff: false,
+//         isLocal: false,
+//         isScreenSharing: false,
+//       };
 
-      user.stream = existing.camera;
-      user.screenStream = existing.screen;
-      user.isScreenSharing = !!existing.screen;
+//       user.stream = existing.camera;
+//       user.screenStream = existing.screen;
+//       user.isScreenSharing = !!existing.screen;
 
-      users.set(remoteUserId, user);
-      return { ...prev, users };
-    });
-  },
-  []
-);
+//       users.set(remoteUserId, user);
+//       return { ...prev, users };
+//     });
+//   },
+//   []
+// );
 
-//First
-  // const onTrack = useCallback(
-  //   (event: RTCTrackEvent, remoteUserId: string) => {
-  //     const stream = event.streams?.[0];
-  //     if (!stream) return;
+  const onTrack = useCallback(
+    (event: RTCTrackEvent, remoteUserId: string) => {
+      const stream = event.streams?.[0];
+      if (!stream) return;
 
-  //     const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
-  //     const isVideoTrack = event.track.kind === 'video';
-  //     const isAudioTrack = event.track.kind === 'audio';
+      const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
+      const isVideoTrack = event.track.kind === 'video';
+      const isAudioTrack = event.track.kind === 'audio';
 
-  //     const users = state.users;
-  //     const user = users.get(remoteUserId);
+      const users = state.users;
+      const user = users.get(remoteUserId);
 
-  //     if (isVideoTrack) {
-  //       const isCamera = existing.camera && stream.id === existing.camera.id;
-  //       const isScreen = existing.screen && stream.id === existing.screen.id;
+      if (isVideoTrack) {
+        const isCamera = existing.camera && stream.id === existing.camera.id;
+        const isScreen = existing.screen && stream.id === existing.screen.id;
 
-  //       if (isCamera) {
-  //         existing.camera = stream;
-  //       } else if (isScreen) {
-  //         existing.screen = stream;
-  //       } else if (user?.isScreenSharing && existing.camera) {
-  //         existing.screen = stream;
-  //       } else if (!existing.camera) {
-  //         existing.camera = stream;
-  //       } else {
-  //         existing.screen = stream;
-  //       }
-  //     } else if (isAudioTrack) {
-  //       existing.camera = stream;
-  //     }
+        if (isCamera) {
+          existing.camera = stream;
+        } else if (isScreen) {
+          existing.screen = stream;
+        } else if (user?.isScreenSharing && existing.camera) {
+          existing.screen = stream;
+        } else if (!existing.camera) {
+          existing.camera = stream;
+        } else {
+          existing.screen = stream;
+        }
+      } else if (isAudioTrack) {
+        existing.camera = stream;
+      }
 
-  //     remoteStreamsRef.current.set(remoteUserId, existing);
+      remoteStreamsRef.current.set(remoteUserId, existing);
 
-  //     setState(prev => {
-  //       const users = new Map(prev.users);
-  //       const existingUser = users.get(remoteUserId);
+      setState(prev => {
+        const users = new Map(prev.users);
+        const existingUser = users.get(remoteUserId);
 
-  //       const user = existingUser ? { ...existingUser } : {
-  //         id: remoteUserId,
-  //         isAudioMuted: false,
-  //         isVideoOff: false,
-  //         isLocal: false,
-  //         isScreenSharing: false,
-  //       };
+        const user = existingUser ? { ...existingUser } : {
+          id: remoteUserId,
+          isAudioMuted: false,
+          isVideoOff: false,
+          isLocal: false,
+          isScreenSharing: false,
+        };
 
-  //       user.stream = existing.camera;
-  //       user.screenStream = existing.screen;
+        user.stream = existing.camera;
+        user.screenStream = existing.screen;
 
-  //       user.isScreenSharing = user.isScreenSharing || !!existing.screen;
+        user.isScreenSharing = user.isScreenSharing || !!existing.screen;
 
-  //       users.set(remoteUserId, user);
-  //       return { ...prev, users };
-  //     });
-  //   },
-  //   [state.users]
-  // );
+        users.set(remoteUserId, user);
+        return { ...prev, users };
+      });
+    },
+    [state.users]
+  );
 
   // const onTrack = useCallback(
   //   (event: RTCTrackEvent, remoteUserId: string) => {
