@@ -348,7 +348,7 @@ export const useWebRTC = (
         return { ...prev, users };
       });
     },
-    []
+    [state.users]
   );
 
   // const onTrack = useCallback(
