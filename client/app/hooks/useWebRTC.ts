@@ -297,6 +297,7 @@ export const useWebRTC = (
 const onTrack = useCallback(
   (event: RTCTrackEvent, remoteUserId: string) => {
     const track = event.track;
+    const mid = event.transceiver.mid;
 
     let existing =
       remoteStreamsRef.current.get(remoteUserId) || {
@@ -304,30 +305,17 @@ const onTrack = useCallback(
         screen: undefined,
       };
 
-    // Create stream per track
-    const newStream = new MediaStream([track]);
+    const isScreen =
+      track.kind === 'video'
+        ? track.contentHint === 'detail'
+        : event.transceiver.receiver.track?.contentHint === 'detail';
 
-    if (track.kind === 'video') {
-      if (track.contentHint === 'detail') {
-        // SCREEN VIDEO
-        existing.screen = existing.screen || new MediaStream();
-        existing.screen.addTrack(track);
-      } else {
-        // CAMERA VIDEO
-        existing.camera = existing.camera || new MediaStream();
-        existing.camera.addTrack(track);
-      }
-    }
-
-    if (track.kind === 'audio') {
-      // Attach audio to whichever stream this audio belongs to
-      // If screen video exists AND camera video does not → it's screen audio
-      if (existing.screen && !existing.camera) {
-        existing.screen.addTrack(track);
-      } else {
-        existing.camera = existing.camera || new MediaStream();
-        existing.camera.addTrack(track);
-      }
+    if (isScreen) {
+      existing.screen = existing.screen || new MediaStream();
+      existing.screen.addTrack(track);
+    } else {
+      existing.camera = existing.camera || new MediaStream();
+      existing.camera.addTrack(track);
     }
 
     remoteStreamsRef.current.set(remoteUserId, existing);
