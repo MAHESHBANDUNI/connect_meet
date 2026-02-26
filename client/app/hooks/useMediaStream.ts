@@ -42,8 +42,23 @@ const defaultConstraints = (selection: Partial<DeviceSelection>): MediaStreamCon
   },
 });
 
-const isMobileDevice = () =>
-  /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isMobileDevice = () => {
+  const nav = navigator as Navigator & {
+    userAgentData?: {
+      mobile?: boolean;
+    };
+  };
+
+  if (typeof nav.userAgentData?.mobile === 'boolean') {
+    return nav.userAgentData.mobile;
+  }
+
+  const ua = nav.userAgent || '';
+  const mobileUA = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const iPadLike = /iPad/i.test(ua) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+
+  return mobileUA || iPadLike;
+};
 
 const supportsSetSinkId = () =>
   typeof HTMLMediaElement !== 'undefined' &&
@@ -92,7 +107,7 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
     setAvailableDevices({ cameras, mics, speakers });
     setDeviceCapabilities({
       isMobile: mobile,
-      supportsSpeakerSelection: supportsSetSinkId() && !mobile && speakers.length > 0,
+      supportsSpeakerSelection: supportsSetSinkId() && !mobile,
       supportsMicSelection: !mobile || supportsInputIds(mics),
       supportsCameraSelection: !mobile || cameras.length > 1 || supportsInputIds(cameras),
     });

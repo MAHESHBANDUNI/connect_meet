@@ -147,6 +147,7 @@ export const VideoCall = ({
   console.log("Partial captions: ", partialText);
   console.log("Final captions: ", finalText);
   console.log('Available devices: ', availableDevices);
+  console.log('Selected devices: ',selectedDevices);
 
   const getParticipantName = (participantId: string) => {
     const participant = meetingDetails?.participants?.find(
