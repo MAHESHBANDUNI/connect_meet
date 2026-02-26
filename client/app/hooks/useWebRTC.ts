@@ -353,9 +353,14 @@ export const useWebRTC = (
 
   const onTrack = useCallback(
     (event: RTCTrackEvent, remoteUserId: string) => {
-      const stream = event.streams?.[0];
+      let stream = event.streams?.[0];
       console.log("events: ",event.streams);
-      if (!stream) return;
+      console.log("Checking Checking Checking Checking Checking Checking Checking Checking ")
+      // if (!stream) return;
+      if (!stream) {
+        stream = new MediaStream();
+        stream.addTrack(event.track);
+      }
 
       const existing =
         remoteStreamsRef.current.get(remoteUserId) || {
