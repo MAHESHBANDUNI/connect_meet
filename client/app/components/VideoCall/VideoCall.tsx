@@ -122,6 +122,9 @@ export const VideoCall = ({
     onRejectParticipant
   });
 
+  console.log("Partial captions: ", partialText);
+  console.log("Final captions: ", finalText);
+
   const getParticipantName = (participantId: string) => {
     const participant = meetingDetails?.participants?.find(
       (p: any) => p.userId === participantId || `${p.firstName}:${p.userId}` === participantId

@@ -408,7 +408,7 @@ export const useWebRTC = (
         return { ...prev, users };
       });
     },
-    [state.users]
+    []
   );
 
   const getOrCreatePC = useCallback(
@@ -455,7 +455,7 @@ export const useWebRTC = (
         console.error('Error creating offer:', err);
       }
     },
-    [getOrCreatePC, localUserId]
+    [getOrCreatePC, localUserId, sendSignal]
   );
 
   const handleSignal = useCallback(
@@ -588,51 +588,57 @@ export const useWebRTC = (
       offsetBuffer = nextOffsetBuffer;
     }
 
-    return result.buffer;
+    return result;
   };
 
   const connectToAssembly = async () => {
     const token = await getAssemblyToken();
 
-    const socket = new WebSocket(
-      `wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&token=${token}`
-    );
+    return new Promise<void>((resolve, reject) => {
+      transcriptionSocketRef.current = new WebSocket(
+        `wss://streaming.assemblyai.com/v3/ws?sample_rate=16000&token=${token}`
+      );
 
-    socket.onopen = () => {
-      console.log("Connected to AssemblyAI");
-    };
+      transcriptionSocketRef.current.onopen = () => {
+        console.log("WebSocket connected");
+        resolve();
+      };
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-    
-      if (data.message_type === "FinalTranscript") {
-        setFinalText(prev => prev + " " + data.text);
-        setPartialText("");
-      }
-    
-      if (data.message_type === "PartialTranscript") {
-        setPartialText(data.text);
-      }
-    };
+      transcriptionSocketRef.current.onerror = reject;
 
-    socket.onerror = (err) => {
-      console.error("AssemblyAI error", err);
-    };
+      transcriptionSocketRef.current.onclose = (event) => {
+        console.log("AssemblyAI connection closed", {
+          code: event.code,
+          reason: event.reason,
+          wasClean: event.wasClean,
+        });
+        transcriptionSocketRef.current = null;
+      };
 
-    socket.onclose = () => {
-      console.log("AssemblyAI connection closed");
-    };
+      transcriptionSocketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-    return socket;
+        if (data.message_type === "FinalTranscript") {
+          setFinalText(prev => prev + " " + data.text);
+          setPartialText("");
+        }
+
+        if (data.message_type === "PartialTranscript") {
+          setPartialText(data.text);
+        }
+      };
+    });
   };
 
   const startCaptions = async () => {
-    if (transcriptionSocketRef.current) return;
+    if (transcriptionSocketRef.current || audioContextRef.current) return;
     const audioContext = new AudioContext();
     await audioContext.audioWorklet.addModule('/processor.js');
 
     const stream = createMixedAudioStream(audioContext);
-    const socket = await connectToAssembly();
+    
+    await connectToAssembly();
+    if (!transcriptionSocketRef.current) return;
 
     const source = audioContext.createMediaStreamSource(stream);
 
@@ -646,7 +652,11 @@ export const useWebRTC = (
     gain.gain.value = 0; // silent
     workletNode.connect(gain);
     gain.connect(audioContext.destination);
-  
+    let pcmBufferQueue: Int16Array[] = [];
+    let bufferedSamples = 0;
+
+    const MIN_SAMPLES = 1600;
+
     workletNode.port.onmessage = (event) => {
       const float32Data = event.data;
     
@@ -655,14 +665,32 @@ export const useWebRTC = (
         audioContext.sampleRate
       );
     
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(downsampled);
+      pcmBufferQueue.push(downsampled);
+      bufferedSamples += downsampled.length;
+    
+      if (bufferedSamples >= MIN_SAMPLES) {
+        const merged = new Int16Array(bufferedSamples);
+        let offset = 0;
+      
+        for (const chunk of pcmBufferQueue) {
+          merged.set(chunk, offset);
+          offset += chunk.length;
+        }
+      
+        if (
+          transcriptionSocketRef.current &&
+          transcriptionSocketRef.current.readyState === WebSocket.OPEN
+        ) {
+          transcriptionSocketRef.current.send(merged.buffer);
+        }
+      
+        pcmBufferQueue = [];
+        bufferedSamples = 0;
       }
     };
   
     audioContextRef.current = audioContext;
     workletNodeRef.current = workletNode;
-    transcriptionSocketRef.current = socket;
   };
 
   const stopCaptions = () => {
@@ -744,12 +772,12 @@ export const useWebRTC = (
     };
   }, [localUserId, roomId, connect, disconnect, options?.isHost]);
 
-  useEffect(() => {
-    if (!transcriptionSocketRef.current || !audioContextRef.current) return;
+  // useEffect(() => {
+  //   if (!transcriptionSocketRef.current || !audioContextRef.current) return;
 
-    stopCaptions();
-    startCaptions();
-  }, [state.users]);
+  //   stopCaptions();
+  //   startCaptions();
+  // }, [state.users]);
 
   useEffect(() => {
     if (!localStream) return;
