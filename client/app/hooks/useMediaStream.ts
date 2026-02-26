@@ -100,16 +100,16 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
     const cameras = allDevices.filter(device => device.kind === 'videoinput');
     const mics = allDevices.filter(device => device.kind === 'audioinput');
     const speakers = allDevices.filter(device => device.kind === 'audiooutput');
-    const supportsInputIds =
+    const hasStableDeviceIds =
       (devices: MediaDeviceInfo[]) =>
-        devices.length > 1 && devices.every(device => !!device.deviceId);
+        devices.length > 0 && devices.every(device => !!device.deviceId);
 
     setAvailableDevices({ cameras, mics, speakers });
     setDeviceCapabilities({
       isMobile: mobile,
-      supportsSpeakerSelection: supportsSetSinkId() && !mobile,
-      supportsMicSelection: !mobile || supportsInputIds(mics),
-      supportsCameraSelection: !mobile || cameras.length > 1 || supportsInputIds(cameras),
+      supportsSpeakerSelection: supportsSetSinkId(),
+      supportsMicSelection: hasStableDeviceIds(mics),
+      supportsCameraSelection: hasStableDeviceIds(cameras),
     });
     setSelectedDevices(prev => ({
       cameraId: prev.cameraId || options?.initialCameraId || cameras[0]?.deviceId || '',

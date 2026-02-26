@@ -213,6 +213,9 @@ export const VideoCall = ({
     }
   };
 
+  const useMobileCameraFallback =
+    deviceCapabilities.isMobile && !deviceCapabilities.supportsCameraSelection;
+
   const handleToggleAudio = () => {
     const newValue = !isAudioMuted;
     toggleAudio();
@@ -683,7 +686,7 @@ export const VideoCall = ({
                   <Camera className="w-3 h-3" />
                   Camera
                 </label>
-                {deviceCapabilities.isMobile ? (
+                {useMobileCameraFallback ? (
                   <button
                     onClick={handleMobileCameraSwitch}
                     className="w-full py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors"
@@ -709,7 +712,7 @@ export const VideoCall = ({
                     <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
                 )}
-                {deviceCapabilities.isMobile && (
+                {useMobileCameraFallback && (
                   <p className="text-xs text-slate-500 mt-1">
                     On mobile, camera routing is handled as front/back switching.
                   </p>
