@@ -12,6 +12,13 @@ type AvailableDevices = {
   speakers: MediaDeviceInfo[];
 };
 
+type DeviceCapabilities = {
+  isMobile: boolean;
+  supportsSpeakerSelection: boolean;
+  supportsMicSelection: boolean;
+  supportsCameraSelection: boolean;
+};
+
 interface UseMediaStreamOptions {
   initialCameraEnabled?: boolean;
   initialMicEnabled?: boolean;
@@ -35,6 +42,13 @@ const defaultConstraints = (selection: Partial<DeviceSelection>): MediaStreamCon
   },
 });
 
+const isMobileDevice = () =>
+  /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+const supportsSetSinkId = () =>
+  typeof HTMLMediaElement !== 'undefined' &&
+  'setSinkId' in HTMLMediaElement.prototype;
+
 export const useMediaStream = (options?: UseMediaStreamOptions) => {
   const initialCameraEnabled = options?.initialCameraEnabled ?? true;
   const initialMicEnabled = options?.initialMicEnabled ?? true;
@@ -52,6 +66,13 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
     mics: [],
     speakers: [],
   });
+  const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('user');
+  const [deviceCapabilities, setDeviceCapabilities] = useState<DeviceCapabilities>({
+    isMobile: false,
+    supportsSpeakerSelection: false,
+    supportsMicSelection: true,
+    supportsCameraSelection: true,
+  });
   const [selectedDevices, setSelectedDevices] = useState<DeviceSelection>({
     cameraId: options?.initialCameraId || '',
     micId: options?.initialMicId || '',
@@ -59,12 +80,22 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
   });
 
   const refreshDevices = useCallback(async () => {
+    const mobile = isMobileDevice();
     const allDevices = await navigator.mediaDevices.enumerateDevices();
     const cameras = allDevices.filter(device => device.kind === 'videoinput');
     const mics = allDevices.filter(device => device.kind === 'audioinput');
     const speakers = allDevices.filter(device => device.kind === 'audiooutput');
+    const supportsInputIds =
+      (devices: MediaDeviceInfo[]) =>
+        devices.length > 1 && devices.every(device => !!device.deviceId);
 
     setAvailableDevices({ cameras, mics, speakers });
+    setDeviceCapabilities({
+      isMobile: mobile,
+      supportsSpeakerSelection: supportsSetSinkId() && !mobile && speakers.length > 0,
+      supportsMicSelection: !mobile || supportsInputIds(mics),
+      supportsCameraSelection: !mobile || cameras.length > 1 || supportsInputIds(cameras),
+    });
     setSelectedDevices(prev => ({
       cameraId: prev.cameraId || options?.initialCameraId || cameras[0]?.deviceId || '',
       micId: prev.micId || options?.initialMicId || mics[0]?.deviceId || '',
@@ -77,9 +108,23 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
       ...selectedDevices,
       ...nextSelection,
     };
+    const mobile = isMobileDevice();
+
+    const constraints: MediaStreamConstraints = defaultConstraints(effectiveSelection);
+    if (
+      mobile &&
+      constraints.video &&
+      typeof constraints.video === 'object' &&
+      !effectiveSelection.cameraId
+    ) {
+      constraints.video = {
+        ...constraints.video,
+        facingMode: { ideal: cameraFacingMode },
+      };
+    }
 
     const stream = await navigator.mediaDevices.getUserMedia(
-      defaultConstraints(effectiveSelection)
+      constraints
     );
 
     stream.getAudioTracks().forEach(track => {
@@ -101,7 +146,7 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
 
     await refreshDevices();
     return stream;
-  }, [isAudioMuted, isVideoOff, refreshDevices, selectedDevices]);
+  }, [cameraFacingMode, isAudioMuted, isVideoOff, refreshDevices, selectedDevices]);
 
   const stopMediaStream = useCallback(() => {
     [localStreamRef.current].forEach(stream => {
@@ -237,9 +282,54 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
 
   const switchCamera = useCallback(
     async (cameraId: string) => {
+      const mobile = isMobileDevice();
+
+      if (mobile && !cameraId) {
+        const nextFacing = cameraFacingMode === 'user' ? 'environment' : 'user';
+        const replacementStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: nextFacing },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+          },
+          audio: false,
+        });
+
+        const replacementTrack = replacementStream.getVideoTracks()[0];
+        if (!replacementTrack) {
+          replacementStream.getTracks().forEach(track => track.stop());
+          return;
+        }
+
+        replacementTrack.enabled = !isVideoOff;
+        const currentStream = localStreamRef.current;
+        const currentTracks = currentStream?.getTracks() || [];
+        const keptTracks = currentTracks.filter(track => track.kind !== 'video');
+        const replacedTracks = currentTracks.filter(track => track.kind === 'video');
+
+        const nextStream = new MediaStream([...keptTracks, replacementTrack]);
+        localStreamRef.current = nextStream;
+        setLocalStream(nextStream);
+
+        replacementStream.getTracks().forEach(track => {
+          if (track.id !== replacementTrack.id) {
+            track.stop();
+          }
+        });
+
+        setTimeout(() => {
+          replacedTracks.forEach(track => track.stop());
+        }, 300);
+
+        setCameraFacingMode(nextFacing);
+        setSelectedDevices(prev => ({ ...prev, cameraId: '' }));
+        return;
+      }
+
       await switchTrackDevice('video', cameraId);
     },
-    [switchTrackDevice]
+    [cameraFacingMode, isVideoOff, switchTrackDevice]
   );
 
   const switchSpeaker = useCallback((speakerId: string) => {
@@ -267,6 +357,7 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
     isVideoOff,
     isScreenSharing,
     availableDevices,
+    deviceCapabilities,
     selectedDevices,
     getMediaStream,
     refreshDevices,

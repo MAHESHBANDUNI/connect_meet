@@ -83,6 +83,7 @@ export const VideoCall = ({
     isVideoOff,
     isScreenSharing,
     availableDevices,
+    deviceCapabilities,
     selectedDevices,
     toggleAudio,
     toggleVideo,
@@ -145,6 +146,7 @@ export const VideoCall = ({
 
   console.log("Partial captions: ", partialText);
   console.log("Final captions: ", finalText);
+  console.log('Available devices: ', availableDevices);
 
   const getParticipantName = (participantId: string) => {
     const participant = meetingDetails?.participants?.find(
@@ -198,6 +200,15 @@ export const VideoCall = ({
     } catch (error) {
       console.error(`Failed to switch ${kind}:`, error);
       errorToast('Failed to switch media device.');
+    }
+  };
+
+  const handleMobileCameraSwitch = async () => {
+    try {
+      await switchCamera('');
+    } catch (error) {
+      console.error('Failed to toggle mobile camera:', error);
+      errorToast('Unable to switch mobile camera.');
     }
   };
 
@@ -671,23 +682,37 @@ export const VideoCall = ({
                   <Camera className="w-3 h-3" />
                   Camera
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedDevices.cameraId}
-                    onChange={e => handleDeviceChange('cameraId', e.target.value)}
-                    className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                {deviceCapabilities.isMobile ? (
+                  <button
+                    onClick={handleMobileCameraSwitch}
+                    className="w-full py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition-colors"
                   >
-                    {availableDevices.cameras.map(device => (
-                      <option key={device.deviceId} value={device.deviceId}>
-                        {device.label || `Camera ${device.deviceId.slice(0, 8)}...`}
-                      </option>
-                    ))}
-                    {availableDevices.cameras.length === 0 && (
-                      <option value="">No cameras found</option>
-                    )}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
+                    Switch front/back camera
+                  </button>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedDevices.cameraId}
+                      onChange={e => handleDeviceChange('cameraId', e.target.value)}
+                      className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                    >
+                      {availableDevices.cameras.map(device => (
+                        <option key={device.deviceId} value={device.deviceId}>
+                          {device.label || `Camera ${device.deviceId.slice(0, 8)}...`}
+                        </option>
+                      ))}
+                      {availableDevices.cameras.length === 0 && (
+                        <option value="">No cameras found</option>
+                      )}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                )}
+                {deviceCapabilities.isMobile && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    On mobile, camera routing is handled as front/back switching.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -699,6 +724,7 @@ export const VideoCall = ({
                   <select
                     value={selectedDevices.micId}
                     onChange={e => handleDeviceChange('micId', e.target.value)}
+                    disabled={!deviceCapabilities.supportsMicSelection}
                     className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   >
                     {availableDevices.mics.map(device => (
@@ -712,6 +738,11 @@ export const VideoCall = ({
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
+                {!deviceCapabilities.supportsMicSelection && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Microphone source is controlled by your mobile device/OS route.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">
@@ -723,6 +754,7 @@ export const VideoCall = ({
                   <select
                     value={selectedDevices.speakerId}
                     onChange={e => handleDeviceChange('speakerId', e.target.value)}
+                    disabled={!deviceCapabilities.supportsSpeakerSelection}
                     className="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   >
                     {availableDevices.speakers.map(device => (
@@ -736,6 +768,11 @@ export const VideoCall = ({
                   </select>
                   <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 </div>
+                {!deviceCapabilities.supportsSpeakerSelection && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Speaker output selection is not supported on this browser/device.
+                  </p>
+                )}
               </div>
             </div>
 
