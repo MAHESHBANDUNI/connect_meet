@@ -124,7 +124,7 @@ export default function Sidebar({
   if (status === "loading") {
     return (
       <aside className="fixed inset-y-0 left-0 z-100 bg-gray-50 w-20 lg:w-64 border-r border-gray-200 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </aside>
     )
   }

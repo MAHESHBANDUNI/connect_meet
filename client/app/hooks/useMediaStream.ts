@@ -167,6 +167,16 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
 
   const switchTrackDevice = useCallback(
     async (kind: 'audio' | 'video', deviceId: string) => {
+      if (!deviceId) return;
+
+      // If the local stream is not initialized yet, bootstrap it with the chosen device.
+      if (!localStreamRef.current) {
+        await getMediaStream(
+          kind === 'audio' ? { micId: deviceId } : { cameraId: deviceId }
+        );
+        return;
+      }
+
       const trackConstraints: MediaStreamConstraints =
         kind === 'audio'
           ? { audio: { deviceId: { exact: deviceId } }, video: false }
@@ -192,10 +202,7 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
       const currentStream = localStreamRef.current;
       const currentTracks = currentStream?.getTracks() || [];
       const keptTracks = currentTracks.filter(track => track.kind !== kind);
-
-      currentTracks
-        .filter(track => track.kind === kind)
-        .forEach(track => track.stop());
+      const replacedTracks = currentTracks.filter(track => track.kind === kind);
 
       const nextStream = new MediaStream([...keptTracks, replacementTrack]);
       localStreamRef.current = nextStream;
@@ -207,13 +214,18 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
         }
       });
 
+      // Delay stopping replaced tracks so WebRTC senders can swap tracks first.
+      setTimeout(() => {
+        replacedTracks.forEach(track => track.stop());
+      }, 300);
+
       if (kind === 'audio') {
         setSelectedDevices(prev => ({ ...prev, micId: deviceId }));
       } else {
         setSelectedDevices(prev => ({ ...prev, cameraId: deviceId }));
       }
     },
-    [isAudioMuted, isVideoOff]
+    [getMediaStream, isAudioMuted, isVideoOff]
   );
 
   const switchMicrophone = useCallback(
