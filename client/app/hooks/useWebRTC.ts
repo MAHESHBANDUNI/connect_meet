@@ -294,62 +294,122 @@ export const useWebRTC = (
     [localUserId, sendSignal]
   );
 
-  const onTrack = useCallback(
-    (event: RTCTrackEvent, remoteUserId: string) => {
-      const stream = event.streams?.[0];
-      if (!stream) return;
+const onTrack = useCallback(
+  (event: RTCTrackEvent, remoteUserId: string) => {
+    const track = event.track;
 
-      const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
-      const isVideoTrack = event.track.kind === 'video';
-      const isAudioTrack = event.track.kind === 'audio';
+    let existing =
+      remoteStreamsRef.current.get(remoteUserId) || {
+        camera: undefined,
+        screen: undefined,
+      };
 
-      const users = state.users;
-      const user = users.get(remoteUserId);
+    // Create stream per track
+    const newStream = new MediaStream([track]);
 
-      if (isVideoTrack) {
-        const isCamera = existing.camera && stream.id === existing.camera.id;
-        const isScreen = existing.screen && stream.id === existing.screen.id;
-
-        if (isCamera) {
-          existing.camera = stream;
-        } else if (isScreen) {
-          existing.screen = stream;
-        } else if (user?.isScreenSharing && existing.camera) {
-          existing.screen = stream;
-        } else if (!existing.camera) {
-          existing.camera = stream;
-        } else {
-          existing.screen = stream;
-        }
-      } else if (isAudioTrack) {
-        existing.camera = stream;
+    if (track.kind === 'video') {
+      if (track.contentHint === 'detail') {
+        // SCREEN VIDEO
+        existing.screen = existing.screen || new MediaStream();
+        existing.screen.addTrack(track);
+      } else {
+        // CAMERA VIDEO
+        existing.camera = existing.camera || new MediaStream();
+        existing.camera.addTrack(track);
       }
+    }
 
-      remoteStreamsRef.current.set(remoteUserId, existing);
+    if (track.kind === 'audio') {
+      // Attach audio to whichever stream this audio belongs to
+      // If screen video exists AND camera video does not → it's screen audio
+      if (existing.screen && !existing.camera) {
+        existing.screen.addTrack(track);
+      } else {
+        existing.camera = existing.camera || new MediaStream();
+        existing.camera.addTrack(track);
+      }
+    }
 
-      setState(prev => {
-        const users = new Map(prev.users);
-        const existingUser = users.get(remoteUserId);
+    remoteStreamsRef.current.set(remoteUserId, existing);
 
-        const user = existingUser ? { ...existingUser } : {
-          id: remoteUserId,
-          isAudioMuted: false,
-          isVideoOff: false,
-          isLocal: false,
-          isScreenSharing: false,
-        };
+    setState(prev => {
+      const users = new Map(prev.users);
+      const user = users.get(remoteUserId) || {
+        id: remoteUserId,
+        isAudioMuted: false,
+        isVideoOff: false,
+        isLocal: false,
+        isScreenSharing: false,
+      };
 
-        user.stream = existing.camera;
-        user.screenStream = existing.screen;
+      user.stream = existing.camera;
+      user.screenStream = existing.screen;
+      user.isScreenSharing = !!existing.screen;
 
-        user.isScreenSharing = user.isScreenSharing || !!existing.screen;
+      users.set(remoteUserId, user);
+      return { ...prev, users };
+    });
+  },
+  []
+);
 
-        users.set(remoteUserId, user);
-        return { ...prev, users };
-      });
-    },
-    [state.users]
-  );
+//First
+  // const onTrack = useCallback(
+  //   (event: RTCTrackEvent, remoteUserId: string) => {
+  //     const stream = event.streams?.[0];
+  //     if (!stream) return;
+
+  //     const existing = remoteStreamsRef.current.get(remoteUserId) || { camera: undefined, screen: undefined };
+  //     const isVideoTrack = event.track.kind === 'video';
+  //     const isAudioTrack = event.track.kind === 'audio';
+
+  //     const users = state.users;
+  //     const user = users.get(remoteUserId);
+
+  //     if (isVideoTrack) {
+  //       const isCamera = existing.camera && stream.id === existing.camera.id;
+  //       const isScreen = existing.screen && stream.id === existing.screen.id;
+
+  //       if (isCamera) {
+  //         existing.camera = stream;
+  //       } else if (isScreen) {
+  //         existing.screen = stream;
+  //       } else if (user?.isScreenSharing && existing.camera) {
+  //         existing.screen = stream;
+  //       } else if (!existing.camera) {
+  //         existing.camera = stream;
+  //       } else {
+  //         existing.screen = stream;
+  //       }
+  //     } else if (isAudioTrack) {
+  //       existing.camera = stream;
+  //     }
+
+  //     remoteStreamsRef.current.set(remoteUserId, existing);
+
+  //     setState(prev => {
+  //       const users = new Map(prev.users);
+  //       const existingUser = users.get(remoteUserId);
+
+  //       const user = existingUser ? { ...existingUser } : {
+  //         id: remoteUserId,
+  //         isAudioMuted: false,
+  //         isVideoOff: false,
+  //         isLocal: false,
+  //         isScreenSharing: false,
+  //       };
+
+  //       user.stream = existing.camera;
+  //       user.screenStream = existing.screen;
+
+  //       user.isScreenSharing = user.isScreenSharing || !!existing.screen;
+
+  //       users.set(remoteUserId, user);
+  //       return { ...prev, users };
+  //     });
+  //   },
+  //   [state.users]
+  // );
 
   // const onTrack = useCallback(
   //   (event: RTCTrackEvent, remoteUserId: string) => {
@@ -859,7 +919,7 @@ export const useWebRTC = (
         
           if (!alreadySending) {
             if (track.kind === 'video') {
-              track.contentHint = 'detail'; //mark as SCREEN
+              track.contentHint = 'detail';
             }
           
             pc.addTrack(track, screenStream);

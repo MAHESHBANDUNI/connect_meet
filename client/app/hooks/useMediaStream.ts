@@ -210,7 +210,7 @@ export const useMediaStream = (options?: UseMediaStreamOptions) => {
       try {
         screenStreamRef.current = await navigator.mediaDevices.getDisplayMedia({
           video: true,
-          audio: false,
+          audio: true,
         });
 
         screenStreamRef.current.getVideoTracks()[0].onended = () => {
