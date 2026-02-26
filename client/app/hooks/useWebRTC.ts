@@ -297,6 +297,8 @@ export const useWebRTC = (
 const onTrack = useCallback(
   (event: RTCTrackEvent, remoteUserId: string) => {
     const track = event.track;
+    console.log('Track: ', event.track);
+    console.log('Trans track: ', event.transceiver.receiver);
     const mid = event.transceiver.mid;
 
     let existing =

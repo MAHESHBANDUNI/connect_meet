@@ -10,6 +10,7 @@ interface VideoTileProps {
 
 export const ScreenPresentTile = ({ user, speakerId = "default" }: VideoTileProps) => {
   const screenRef = useRef<HTMLVideoElement>(null);
+  console.log('Screen sharer user: ',user);
 
   useEffect(() => {
     const video = screenRef.current;
