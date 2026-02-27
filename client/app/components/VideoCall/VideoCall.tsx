@@ -274,6 +274,24 @@ export const VideoCall = ({
 
   const totalUsers = users.length;
 
+  const participantCount = users.length;
+
+const layoutMode = screenSharer
+  ? isFullScreenShareTileEnabled
+    ? "presentation-full"
+    : "presentation"
+  : participantCount <= 2
+  ? "grid-small"
+  : participantCount <= 6
+  ? "grid-medium"
+  : "grid-large";
+
+const gridClassMap: Record<string, string> = {
+  "grid-small": "grid-cols-1 md:grid-cols-2",
+  "grid-medium": "grid-cols-2 md:grid-cols-3",
+  "grid-large": "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+};
+
   const toggleParticipants = () => {
     setShowParticipants(!showParticipants);
     if (showChat) setShowChat(false);

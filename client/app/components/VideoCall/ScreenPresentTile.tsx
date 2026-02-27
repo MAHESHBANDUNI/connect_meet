@@ -55,12 +55,12 @@ export const ScreenPresentTile = ({
   const userName = user.id.split(":")[0];
 
   return (
-    <div className="relative group rounded-3xl aspect-video overflow-hidden bg-[#1a1d23] shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all duration-500 hover:ring-blue-500/50 w-full h-full">
+    <div className="relative group rounded-3xl object-cover overflow-hidden bg-[#1a1d23] shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all duration-500 hover:ring-blue-500/50 w-full h-full">
       <video
         ref={screenRef}
         autoPlay
         playsInline
-        className="w-full h-full object-cover bg-black transition-opacity duration-700"
+        className="w-full h-full object-contain bg-black transition-opacity duration-700"
       />
 
       {/* Overlay */}
