@@ -69,6 +69,7 @@ export const VideoCall = ({
   const [showParticipants, setShowParticipants] = useState(false);
   const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
+  const [isFullScreenShareTileEnabled, setIsFullScreenShareTileEnabled] = useState(false);
 
   const isCurrentUserHost = meetingDetails?.participants?.some(
     (participant: any) =>
@@ -213,6 +214,10 @@ export const VideoCall = ({
     }
   };
 
+  const toggleFullScreenShareTile = async () => {
+    setIsFullScreenShareTileEnabled(!isFullScreenShareTileEnabled);
+  }
+
   const useMobileCameraFallback =
     deviceCapabilities.isMobile && !deviceCapabilities.supportsCameraSelection;
 
@@ -317,11 +322,11 @@ export const VideoCall = ({
             {/* Share Screen Area */}
             <div className="flex-1 bg-[#26282c] flex items-center justify-center p-4 w-full lg:min-w-3/4 h-2/3 sm:h-full">
               <div className='w-full h-full flex items-center justify-center'>
-                <ScreenPresentTile user={screenSharer} speakerId={selectedDevices.speakerId} />
+                <ScreenPresentTile user={screenSharer} speakerId={selectedDevices.speakerId} isFullScreenShareTileEnabled={isFullScreenShareTileEnabled} onToggleFullScreenShareTile={toggleFullScreenShareTile} />
               </div>
             </div>
 
-            <div
+            {!isFullScreenShareTileEnabled && <div
               className={`
                 grid
                 grid-cols-2
@@ -340,7 +345,7 @@ export const VideoCall = ({
                   <VideoTile key={user.id} user={user} screenSharer={screenSharer} speakerId={selectedDevices.speakerId} />
                 </>
               ))}
-            </div>
+            </div>}
 
           </div>
 

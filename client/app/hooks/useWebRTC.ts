@@ -58,6 +58,8 @@ export const useWebRTC = (
   const transcriptionSocketRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const isStartingRef = useRef(false);
+  const turnsRef = useRef<Record<number, string>>({});
 
   useEffect(() => {
     isHostRef.current = options?.isHost;
@@ -723,81 +725,104 @@ export const useWebRTC = (
       };
 
       transcriptionSocketRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-
-        if (data.message_type === "FinalTranscript") {
-          setFinalText(prev => prev + " " + data.text);
-          setPartialText("");
-        }
-
-        if (data.message_type === "PartialTranscript") {
-          setPartialText(data.text);
+        const message = JSON.parse(event.data);
+      
+        console.log("Transcription message:", message);
+      
+        if (message.type !== "Turn") return;
+      
+        const { transcript, end_of_turn } = message;
+      
+        if (!transcript) return;
+      
+        if (end_of_turn) {
+          // When user finishes speaking → move to final
+          setFinalText((prev) => {
+            const updated = prev ? prev + " " + transcript : transcript;
+            return updated;
+          });
+        
+          setPartialText(""); // clear live text
+        } else {
+          // While user is speaking → update live partial
+          setPartialText(transcript);
         }
       };
     });
   };
 
   const startCaptions = async () => {
-    if (transcriptionSocketRef.current || audioContextRef.current) return;
-    const audioContext = new AudioContext();
-    await audioContext.audioWorklet.addModule('/processor.js');
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
 
-    const stream = createMixedAudioStream(audioContext);
-    
-    await connectToAssembly();
-    if (!transcriptionSocketRef.current) return;
+    try{
+      if (transcriptionSocketRef.current || audioContextRef.current) return;
+      const audioContext = new AudioContext();
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+      await audioContext.audioWorklet.addModule('/processor.js');
 
-    const source = audioContext.createMediaStreamSource(stream);
+      const stream = createMixedAudioStream(audioContext);
 
-    const workletNode = new AudioWorkletNode(
-      audioContext,
-      'pcm-processor'
-    );
-  
-    source.connect(workletNode);
-    const gain = audioContext.createGain();
-    gain.gain.value = 0; // silent
-    workletNode.connect(gain);
-    gain.connect(audioContext.destination);
-    let pcmBufferQueue: Int16Array[] = [];
-    let bufferedSamples = 0;
+      await connectToAssembly();
+      if (!transcriptionSocketRef.current) return;
 
-    const MIN_SAMPLES = 1600;
+      const source = audioContext.createMediaStreamSource(stream);
 
-    workletNode.port.onmessage = (event) => {
-      const float32Data = event.data;
-    
-      const downsampled = downsampleBuffer(
-        float32Data,
-        audioContext.sampleRate
+      const workletNode = new AudioWorkletNode(
+        audioContext,
+        'pcm-processor'
       );
     
-      pcmBufferQueue.push(downsampled);
-      bufferedSamples += downsampled.length;
+      source.connect(workletNode);
+      const gain = audioContext.createGain();
+      gain.gain.value = 0; // silent
+      workletNode.connect(gain);
+      gain.connect(audioContext.destination);
+      let pcmBufferQueue: Int16Array[] = [];
+      let bufferedSamples = 0;
+
+      const MIN_SAMPLES = 1600;
+
+      workletNode.port.onmessage = (event) => {
+        const float32Data = event.data;
+      
+        const downsampled = downsampleBuffer(
+          float32Data,
+          audioContext.sampleRate
+        );
+      
+        pcmBufferQueue.push(downsampled);
+        bufferedSamples += downsampled.length;
+      
+        if (bufferedSamples >= MIN_SAMPLES) {
+          const merged = new Int16Array(bufferedSamples);
+          let offset = 0;
+        
+          for (const chunk of pcmBufferQueue) {
+            merged.set(chunk, offset);
+            offset += chunk.length;
+          }
+        
+          if (
+            transcriptionSocketRef.current &&
+            transcriptionSocketRef.current.readyState === WebSocket.OPEN
+          ) {
+            transcriptionSocketRef.current.send(merged.buffer);
+          }
+        
+          pcmBufferQueue = [];
+          bufferedSamples = 0;
+        }
+      };
     
-      if (bufferedSamples >= MIN_SAMPLES) {
-        const merged = new Int16Array(bufferedSamples);
-        let offset = 0;
-      
-        for (const chunk of pcmBufferQueue) {
-          merged.set(chunk, offset);
-          offset += chunk.length;
-        }
-      
-        if (
-          transcriptionSocketRef.current &&
-          transcriptionSocketRef.current.readyState === WebSocket.OPEN
-        ) {
-          transcriptionSocketRef.current.send(merged.buffer);
-        }
-      
-        pcmBufferQueue = [];
-        bufferedSamples = 0;
-      }
-    };
-  
-    audioContextRef.current = audioContext;
-    workletNodeRef.current = workletNode;
+      audioContextRef.current = audioContext;
+      workletNodeRef.current = workletNode;
+    }
+    finally{
+      isStartingRef.current = false;
+    }
   };
 
   const stopCaptions = () => {
