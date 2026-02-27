@@ -6,11 +6,21 @@ import { Send } from 'lucide-react';
 
 interface ChatProps {
   messages: Message[];
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, targetUserId?: string) => void;
   currentUserId: string;
+  participants: Array<{ id: string; name: string }>;
+  selectedRecipient: string;
+  onRecipientChange: (recipientId: string) => void;
 }
 
-export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
+export const Chat = ({
+  messages,
+  onSendMessage,
+  currentUserId,
+  participants,
+  selectedRecipient,
+  onRecipientChange
+}: ChatProps) => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -22,10 +32,11 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (inputValue.trim()) {
-      onSendMessage(inputValue.trim());
+      const targetUserId = selectedRecipient === 'all' ? undefined : selectedRecipient;
+      onSendMessage(inputValue.trim(), targetUserId);
       setInputValue('');
     }
   };
@@ -36,6 +47,9 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
       minute: '2-digit'
     });
   };
+
+  const getNameById = (id: string) =>
+    participants.find((participant) => participant.id === id)?.name || id.split(":")[0];
 
   return (
     <div className="flex flex-col h-full bg-[#1a1d23] overflow-hidden">
@@ -71,6 +85,10 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
         ) : (
           messages.map((message) => {
             const isLocal = message.userId === currentUserId;
+            const isDirect = !!message.isDirect;
+            const targetName =
+              message.targetUserId ? getNameById(message.targetUserId) : "Everyone";
+            const senderName = getNameById(message.userId);
             return (
               <div
                 key={message.id}
@@ -78,7 +96,7 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
               >
                 {!isLocal && (
                   <span className="text-[10px] font-bold text-white/40 mb-1 ml-2 uppercase tracking-wider">
-                    {message.userId.split(":")[0]}
+                    {senderName}
                   </span>
                 )}
                 <div
@@ -87,6 +105,11 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
                       : 'bg-white/5 text-white/90 border border-white/5 rounded-tl-none hover:bg-white/10'
                     }`}
                 >
+                  {isDirect && (
+                    <p className={`text-[10px] font-semibold mb-1 ${isLocal ? "text-blue-100/90" : "text-white/60"}`}>
+                      {isLocal ? `Direct to ${targetName}` : "Direct message"}
+                    </p>
+                  )}
                   <p className="text-sm leading-relaxed">{message.content}</p>
                 </div>
                 <span className={`text-[9px] font-medium text-white/30 mt-1 opacity-0 group-hover:opacity-100 transition-opacity ${isLocal ? 'mr-1' : 'ml-1'}`}>
@@ -101,13 +124,32 @@ export const Chat = ({ messages, onSendMessage, currentUserId }: ChatProps) => {
 
       {/* Input */}
       <div className="p-6 pt-2">
+        <div className="mb-3">
+          <select
+            value={selectedRecipient}
+            onChange={(e) => onRecipientChange(e.target.value)}
+            className="w-full rounded-xl border border-white/20 bg-black/20 px-3 py-2 text-xs text-white"
+          >
+            <option value="all">Everyone (Group Chat)</option>
+            {participants
+              .filter((participant) => participant.id !== currentUserId)
+              .map((participant) => (
+                <option key={participant.id} value={participant.id}>
+                  Direct to {participant.name}
+                </option>
+              ))}
+          </select>
+        </div>
         <div className="flex justify-between gap-3 bg-black/20 border border-white/20 rounded-2xl p-2 transition-all duration-300">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
+            placeholder={selectedRecipient === 'all' ? "Type your message..." : "Type your direct message..."}
             className="w-full bg-transparent text-sm text-white px-3 py-2 placeholder:text-white/20 "
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSubmit();
+            }}
           />
           <button
             type="button"

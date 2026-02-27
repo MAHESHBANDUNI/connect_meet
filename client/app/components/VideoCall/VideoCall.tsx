@@ -70,6 +70,7 @@ export const VideoCall = ({
   const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
   const [isFullScreenShareTileEnabled, setIsFullScreenShareTileEnabled] = useState(false);
+  const [chatRecipient, setChatRecipient] = useState<string>('all');
 
   const isCurrentUserHost = meetingDetails?.participants?.some(
     (participant: any) =>
@@ -268,8 +269,8 @@ export const VideoCall = ({
     sendUserAction(roomId, userId, 'host-drop-user', true, targetUserId);
   };
 
-  const handleSendMessage = (content: string) => {
-    sendChatMessage(content);
+  const handleSendMessage = (content: string, targetUserId?: string) => {
+    sendChatMessage(content, targetUserId);
   };
 
   const totalUsers = users.length;
@@ -298,8 +299,19 @@ const gridClassMap: Record<string, string> = {
   };
 
   const toggleChat = () => {
-    setShowChat(!showChat);
+    const nextShowChat = !showChat;
+    if (nextShowChat) {
+      setChatRecipient('all');
+    }
+    setShowChat(nextShowChat);
     if (showParticipants) setShowParticipants(false);
+  };
+
+  const openDirectChat = (targetUserId: string) => {
+    if (targetUserId === userId) return;
+    setChatRecipient(targetUserId);
+    setShowParticipants(false);
+    setShowChat(true);
   };
 
   const onStartCaptions = () =>{
@@ -396,6 +408,12 @@ const gridClassMap: Record<string, string> = {
               messages={messages}
               onSendMessage={handleSendMessage}
               currentUserId={userId}
+              participants={users.map((participant) => ({
+                id: participant.id,
+                name: getParticipantName(participant.id),
+              }))}
+              selectedRecipient={chatRecipient}
+              onRecipientChange={setChatRecipient}
             />
           )}
           {showParticipants && (
@@ -497,25 +515,33 @@ const gridClassMap: Record<string, string> = {
                                   }`}
                               >
                                 <div className="flex items-center gap-3">
-                                  <div
-                                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${isLocal
-                                      ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
-                                      : "bg-white/5 border border-white/5 text-white/60"
-                                      }`}
+                                  <button
+                                    type="button"
+                                    onClick={() => openDirectChat(user.id)}
+                                    disabled={isLocal}
+                                    className={`flex items-center gap-3 text-left ${isLocal ? "cursor-default" : "cursor-pointer hover:opacity-90"}`}
+                                    title={isLocal ? undefined : `Message ${displayName}`}
                                   >
-                                    {firstLetter}
-                                  </div>
-
-                                  <div>
-                                    <p
-                                      className={`text-sm ${isLocal
-                                        ? "font-semibold text-white"
-                                        : "font-medium text-white/90"
+                                    <div
+                                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${isLocal
+                                        ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
+                                        : "bg-white/5 border border-white/5 text-white/60"
                                         }`}
                                     >
-                                      {displayName} {isLocal && "(You)"}
-                                    </p>
-                                  </div>
+                                      {firstLetter}
+                                    </div>
+
+                                    <div>
+                                      <p
+                                        className={`text-sm ${isLocal
+                                          ? "font-semibold text-white"
+                                          : "font-medium text-white/90"
+                                          }`}
+                                      >
+                                        {displayName} {isLocal && "(You)"}
+                                      </p>
+                                    </div>
+                                  </button>
                                 </div>
 
                                 <div className="flex gap-2">

@@ -225,6 +225,8 @@ export const useWebRTC = (
             content: data.message,
             timestamp: new Date(data.timestamp),
             isLocal: false,
+            targetUserId: data.targetUserId,
+            isDirect: !!data.targetUserId || !!data.isDirect,
           },
         ],
       }));
@@ -984,8 +986,8 @@ export const useWebRTC = (
   return {
     users: Array.from(state.users.values()),
     messages: state.messages,
-    sendChatMessage: (content: string) => {
-      sendChatMessage(roomId, localUserId, content);
+    sendChatMessage: (content: string, targetUserId?: string) => {
+      sendChatMessage(roomId, localUserId, content, targetUserId);
       setState(prev => ({
         ...prev,
         messages: [
@@ -996,6 +998,8 @@ export const useWebRTC = (
             content,
             timestamp: new Date(),
             isLocal: true,
+            targetUserId,
+            isDirect: !!targetUserId,
           },
         ],
       }));

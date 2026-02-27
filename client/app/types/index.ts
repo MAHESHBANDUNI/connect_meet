@@ -16,6 +16,8 @@ export interface Message {
   content: string;
   timestamp: Date;
   isLocal: boolean;
+  targetUserId?: string;
+  isDirect?: boolean;
 }
 
 export interface RoomState {

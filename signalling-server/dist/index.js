@@ -130,11 +130,40 @@ io.on('connection', (socket) => {
         }
     });
     // Handle chat messages
-    socket.on('chat-message', ({ roomId, userId, message }) => {
+    socket.on('chat-message', ({ roomId, userId, message, targetUserId }) => {
+        const room = rooms.get(roomId);
+        if (!room)
+            return;
+        if (targetUserId) {
+            let targetSocketId = null;
+            for (const [sId, userData] of users.entries()) {
+                if (userData.userId === targetUserId && room.users.has(sId)) {
+                    targetSocketId = sId;
+                    break;
+                }
+            }
+            if (!targetSocketId) {
+                socket.emit('error', {
+                    type: 'USER_NOT_FOUND',
+                    message: `User ${targetUserId} is not available in this meeting`
+                });
+                return;
+            }
+            console.log(`Direct chat from ${userId} to ${targetUserId} in ${roomId}`);
+            io.to(targetSocketId).emit('chat-message', {
+                userId,
+                message,
+                targetUserId,
+                isDirect: true,
+                timestamp: Date.now()
+            });
+            return;
+        }
         console.log(`Chat from ${userId} in ${roomId}`);
         socket.to(roomId).emit('chat-message', {
             userId,
             message,
+            isDirect: false,
             timestamp: Date.now()
         });
     });

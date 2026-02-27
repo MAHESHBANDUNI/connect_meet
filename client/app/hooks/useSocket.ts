@@ -7,7 +7,7 @@ interface SocketEventHandlers {
   onUserDisconnected?: (data: { userId: string; roomId: string; reason: string; timestamp: number }) => void;
   onExistingUsers?: (data: { roomId: string; users: string[] }) => void;
   onSignal?: (data: { from: string; signal: any }) => void;
-  onChatMessage?: (data: { userId: string; message: string; timestamp: number }) => void;
+  onChatMessage?: (data: { userId: string; message: string; timestamp: number; targetUserId?: string; isDirect?: boolean }) => void;
   onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number; targetUserId?: string }) => void;
   onForceStopScreen?: () => void;
   onJoinRequest?: (data: { userId: string; roomId: string }) => void;
@@ -114,9 +114,9 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
-  const sendChatMessage = useCallback((roomId: string, userId: string, message: string) => {
+  const sendChatMessage = useCallback((roomId: string, userId: string, message: string, targetUserId?: string) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('chat-message', { roomId, userId, message });
+      socketRef.current.emit('chat-message', { roomId, userId, message, targetUserId });
     }
   }, []);
 
