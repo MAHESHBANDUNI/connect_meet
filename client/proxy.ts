@@ -23,8 +23,8 @@ const ROLE_CONFIG: Record<Role, RoleConfig> = {
     apiPrefixes: ["/api/admin", "/api/revalidate"],
   },
   USER: {
-    dashboard: "/dashboard",
-    allowedPaths: ["/dashboard", "/meeting"],
+    dashboard: "/meetings",
+    allowedPaths: ["/meetings", "/meeting"],
     apiPrefixes: [
       "/api/user",
     ],

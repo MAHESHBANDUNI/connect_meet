@@ -49,11 +49,11 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
               {showLogoutOption && (
                 <div className="absolute right-0 top-full mt-2 w-32 sm:w-48 bg-white border rounded-lg shadow-xl border-gray-200 z-50 py-1">
                   <button
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push('/meetings')}
                     type="button"
                     className="w-full text-left px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
-                    My Dashboard
+                    My Meetings
                   </button>
                   <button
                     onClick={handleLogout}
