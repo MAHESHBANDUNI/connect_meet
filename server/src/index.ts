@@ -3,6 +3,7 @@ import os from 'os';
 import http from 'http';
 import 'dotenv/config';
 import { createServer } from './server.js';
+import { startMeetingExpirationCronJobs } from './modules/meeting/meeting.cron.js';
 
 const PORT = Number(process.env.PORT || 8000);
 
@@ -12,6 +13,7 @@ function getWorkerCount(): number {
 
 if (cluster.isPrimary) {
   console.log(`Primary ${process.pid} started`);
+  const stopMeetingCronJobs = startMeetingExpirationCronJobs();
 
   const WORKERS = getWorkerCount();
   console.log(`Starting ${WORKERS-1} workers`);
@@ -33,6 +35,7 @@ if (cluster.isPrimary) {
 
   const shutdown = () => {
     console.log('Primary shutting down...');
+    stopMeetingCronJobs();
     for (const id in cluster.workers) {
       cluster.workers[id]?.process.kill('SIGTERM');
     }

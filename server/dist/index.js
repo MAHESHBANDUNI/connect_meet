@@ -8,12 +8,14 @@ const os_1 = __importDefault(require("os"));
 const http_1 = __importDefault(require("http"));
 require("dotenv/config");
 const server_js_1 = require("./server.js");
+const meeting_cron_js_1 = require("./modules/meeting/meeting.cron.js");
 const PORT = Number(process.env.PORT || 8000);
 function getWorkerCount() {
     return os_1.default.cpus().length;
 }
 if (cluster_1.default.isPrimary) {
     console.log(`Primary ${process.pid} started`);
+    const stopMeetingCronJobs = (0, meeting_cron_js_1.startMeetingExpirationCronJobs)();
     const WORKERS = getWorkerCount();
     console.log(`Starting ${WORKERS - 1} workers`);
     for (let i = 0; i < WORKERS - 1; i++) {
@@ -28,6 +30,7 @@ if (cluster_1.default.isPrimary) {
     });
     const shutdown = () => {
         console.log('Primary shutting down...');
+        stopMeetingCronJobs();
         for (const id in cluster_1.default.workers) {
             cluster_1.default.workers[id]?.process.kill('SIGTERM');
         }

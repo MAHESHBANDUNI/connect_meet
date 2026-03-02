@@ -18,6 +18,7 @@ export class MeetingRepository {
                     topic: data.topic,
                     description: data.description,
                     startTime: new Date(data.startTime),
+                    endTime: new Date(new Date(data.startTime).getTime() + 60 * 60 * 1000),
                     meetingCode,
                     status: 'SCHEDULED',
                     directJoinPermission: data.directJoinPermission,
