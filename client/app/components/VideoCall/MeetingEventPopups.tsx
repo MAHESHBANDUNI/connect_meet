@@ -26,7 +26,7 @@ const styleByType = {
 
 export function MeetingEventPopups({ events, onDismiss }: MeetingEventPopupsProps) {
   return (
-    <div className="pointer-events-none fixed right-4 top-20 z-40 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col gap-3">
+    <div className="pointer-events-none fixed right-2.5 sm:right-4 top-14 sm:top-20 z-40 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col gap-3">
       {events.map((event) => {
         const Icon = iconByType[event.type];
         const colorClass = styleByType[event.type];
