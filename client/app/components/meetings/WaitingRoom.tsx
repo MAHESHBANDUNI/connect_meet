@@ -261,7 +261,7 @@ export default function WaitingRoom({
       await navigator.clipboard.writeText(
         `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${meetingCode}`
       );
-      successToast("Meeting link copied to clipboard!");
+      successToast("Meeting link copied!");
     } catch {
       errorToast("Failed to copy meeting link.");
     }
