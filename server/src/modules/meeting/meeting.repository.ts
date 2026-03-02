@@ -211,6 +211,7 @@ export class MeetingRepository {
                 topic: updateMeetingDetails.topic,
                 description: updateMeetingDetails.description ?? null,
                 startTime: updateMeetingDetails.startTime ? new Date(updateMeetingDetails.startTime) : undefined,
+                endTime: updateMeetingDetails.startTime !== undefined ? new Date(new Date(updateMeetingDetails.startTime).getTime() + 60 * 60 * 1000) : undefined,
                 directJoinPermission: updateMeetingDetails.directJoinPermission,
                 mutePermission: updateMeetingDetails.mutePermission,
                 screenSharePermission: updateMeetingDetails.screenSharePermission,

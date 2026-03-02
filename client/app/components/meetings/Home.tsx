@@ -135,7 +135,7 @@ export default function HomeComponent() {
     const tabs: { value: TabType; label: string; count?: number }[] = [
         { value: 'upcoming', label: 'Upcoming', count: meetings.filter(m => m.status === 'SCHEDULED' || m.status === 'LIVE').length },
         { value: 'previous', label: 'Previous', count: meetings.filter(m => m.status === 'ENDED' || m.status === 'CANCELLED').length },
-        { value: 'personal-room', label: 'Personal Room' }
+        // { value: 'personal-room', label: 'Personal Room' }
     ];
 
     const formatDateTime = (dateStr: string) => {
@@ -560,7 +560,7 @@ function MeetingCard({
                     
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                        <span className="truncate">{formatDuration(meeting.startTime, meeting.endTime) || 'No duration set'}</span>
+                        <span className="truncate">{(meeting.startTime && meeting.endTime)?`${formatDuration(meeting.startTime, meeting.endTime)} duration` : 'No duration set'}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-sm text-gray-600">
