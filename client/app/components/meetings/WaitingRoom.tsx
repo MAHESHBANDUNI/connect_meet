@@ -232,13 +232,26 @@ export default function WaitingRoom({
     );
 
     if (isCurrentUserHost) {
-      onStart(
-        cameraEnabled,
-        micEnabled,
-        selectedDevices.cameraId,
-        selectedDevices.micId,
-        selectedDevices.speakerId
-      );
+      if(meetingDetails?.status === 'SCHEDULED')
+      {
+        onStart(
+          cameraEnabled,
+          micEnabled,
+          selectedDevices.cameraId,
+          selectedDevices.micId,
+          selectedDevices.speakerId
+        );
+      }
+      else if(meetingDetails?.status === 'LIVE')
+      {
+        onJoin(
+          cameraEnabled,
+          micEnabled,
+          selectedDevices.cameraId,
+          selectedDevices.micId,
+          selectedDevices.speakerId
+        );
+      }
     } else {
       // If direct join disabled → DO NOT call onJoin yet
       if (meetingDetails.directJoinPermission === false) {

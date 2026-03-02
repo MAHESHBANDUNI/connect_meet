@@ -13,6 +13,7 @@ interface SocketEventHandlers {
   onJoinRequest?: (data: { userId: string; roomId: string }) => void;
   onJoinResponse?: (data: { approved: boolean }) => void;
   onWaitingUsers?: (data: { users: { userId: string }[] }) => void;
+  onMeetingEnded?: (data: { roomId: string; endedBy: string; timestamp: number }) => void;
   onError?: (error: { type: string; message: string }) => void;
 }
 
@@ -88,6 +89,11 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
       handlersRef.current.onWaitingUsers?.(data);
     });
 
+    socket.on('meeting-ended', (data) => {
+      console.log('Meeting ended:', data);
+      handlersRef.current.onMeetingEnded?.(data);
+    });
+
     socket.on('error', (error) => {
       console.error('Socket error:', error);
       handlersRef.current.onError?.(error);
@@ -138,6 +144,12 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
+  const sendMeetingEnded = useCallback((roomId: string, userId: string) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('meeting-ended', { roomId, userId });
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -151,6 +163,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     sendChatMessage,
     sendUserAction,
     sendJoinResponse,
+    sendMeetingEnded,
     joinRoom,
     isConnected,
   };

@@ -221,12 +221,21 @@ export default function MeetingPage() {
       }
       if (response.status === 200) {
         setIsInCall(false);
+        setIsWaiting(false);
+        setIsRejected(false);
         setMeetingEnded(true);
       }
     }
     catch (err) {
-      console.error("Failed to join meeting:", err);
+      console.error("Failed to end meeting:", err);
     }
+  };
+
+  const handleMeetingEndedByHost = () => {
+    setIsInCall(false);
+    setIsWaiting(false);
+    setIsRejected(false);
+    setMeetingEnded(true);
   };
 
   const handleJoinRequest = async () => {
@@ -309,6 +318,7 @@ export default function MeetingPage() {
           }}
           onLeave={handleLeaveRoom}
           onEnd={handleEndMeeting}
+          onMeetingEndedByHost={handleMeetingEndedByHost}
           onAddParticipant={() => setIsInviteModalOpen(true)}
           onAdmitted={() => {
             setIsWaiting(false);

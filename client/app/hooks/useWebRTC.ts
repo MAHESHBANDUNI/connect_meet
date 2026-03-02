@@ -39,6 +39,7 @@ export const useWebRTC = (
     onHostMuteAudio?: () => void;
     onHostMuteVideo?: () => void;
     onHostDrop?: () => void;
+    onMeetingEnded?: (endedBy: string) => void;
     onAdmitParticipant?: (targetUserId: string) => void;
     onRejectParticipant?: (targetUserId: string) => void;
   }
@@ -149,6 +150,7 @@ export const useWebRTC = (
     sendChatMessage,
     sendUserAction,
     sendJoinResponse,
+    sendMeetingEnded,
     joinRoom,
     isConnected
   } = useSocket({
@@ -350,6 +352,10 @@ export const useWebRTC = (
           return newWaiting;
         });
       }
+    },
+
+    onMeetingEnded: ({ endedBy }) => {
+      options?.onMeetingEnded?.(endedBy);
     },
   });
 
@@ -1071,6 +1077,9 @@ export const useWebRTC = (
       }));
     },
     sendUserAction,
+    endMeetingForAll: () => {
+      sendMeetingEnded(roomId, localUserId);
+    },
     setUsersLocalMedia,
     admitParticipant: (targetUserId: string) => {
       sendJoinResponse(roomId, targetUserId, true);

@@ -14,7 +14,7 @@ import { MeetingEventPopups } from './MeetingEventPopups';
 interface VideoCallProps {
   roomId: string;
   userId: string;
-  onEnd: () => void;
+  onEnd: () => void | Promise<void>;
   meetingDetails: {
     title: string;
     meetingId: string;
@@ -37,6 +37,7 @@ interface VideoCallProps {
     role: string;
   };
   onLeave: () => void;
+  onMeetingEndedByHost?: () => void;
   onAddParticipant: () => void;
   onAdmitted?: () => void;
   onRejected?: () => void;
@@ -56,6 +57,7 @@ export const VideoCall = ({
   userId,
   onLeave,
   onEnd,
+  onMeetingEndedByHost,
   onAddParticipant,
   meetingDetails,
   user,
@@ -112,6 +114,7 @@ export const VideoCall = ({
     messages,
     sendChatMessage,
     sendUserAction,
+    endMeetingForAll,
     setUsersLocalMedia,
     admitParticipant,
     rejectParticipant,
@@ -144,6 +147,11 @@ export const VideoCall = ({
     },
     onHostDrop: () => {
       handleEndCall();
+    },
+    onMeetingEnded: (endedBy) => {
+      if (endedBy === userId) return;
+      stopMediaStream();
+      onMeetingEndedByHost?.();
     },
     onAdmitParticipant,
     onRejectParticipant
@@ -254,7 +262,10 @@ export const VideoCall = ({
         participant.participantRole === "HOST"
     );
     if (isCurrentUserHost) {
-      onEnd();
+      endMeetingForAll();
+      Promise.resolve(onEnd()).catch((error) => {
+        console.error('Failed to end meeting:', error);
+      });
     } else {
       onLeave();
     }
