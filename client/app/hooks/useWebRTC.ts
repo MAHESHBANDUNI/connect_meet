@@ -9,6 +9,15 @@ import {
 import { useSocket } from './useSocket';
 import { User, Message } from '@/app/types';
 
+export interface MeetingEventPopup {
+  id: string;
+  type: 'direct-message' | 'group-message' | 'join-request' | 'participant-joined' | 'participant-left';
+  title: string;
+  description: string;
+  timestamp: number;
+  userId?: string;
+}
+
 interface WebRTCState {
   users: Map<string, User>;
   messages: Message[];
@@ -35,6 +44,7 @@ export const useWebRTC = (
   }
 ) => {
   const [waitingUsers, setWaitingUsers] = useState<User[]>([]);
+  const [eventPopups, setEventPopups] = useState<MeetingEventPopup[]>([]);
   const [admissionStatus, setAdmissionStatus] = useState<'IDLE' | 'WAITING' | 'ADMITTED' | 'REJECTED'>(
     options?.initialStatus === 'WAITING' ? 'WAITING' : 'IDLE'
   );
@@ -72,6 +82,20 @@ export const useWebRTC = (
   useEffect(() => {
     screenStreamRef.current = screenStream;
   }, [screenStream]);
+
+  const getDisplayName = useCallback((compositeId: string) => {
+    return compositeId.split(':')[0] || compositeId;
+  }, []);
+
+  const pushEventPopup = useCallback((payload: Omit<MeetingEventPopup, 'id' | 'timestamp'>) => {
+    const popup: MeetingEventPopup = {
+      ...payload,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      timestamp: Date.now(),
+    };
+
+    setEventPopups(prev => [popup, ...prev].slice(0, 5));
+  }, []);
 
   const addRemoteStream = useCallback(
     (
@@ -148,11 +172,28 @@ export const useWebRTC = (
           return { ...prev, users };
         });
 
+        pushEventPopup({
+          type: 'participant-joined',
+          title: 'Participant joined',
+          description: `${getDisplayName(userId)} joined the meeting`,
+          userId,
+        });
+
         initializePeerConnection(userId);
       }
     },
 
-    onUserDisconnected: ({ userId }) => removeUser(userId),
+    onUserDisconnected: ({ userId }) => {
+      if (userId !== localUserId) {
+        pushEventPopup({
+          type: 'participant-left',
+          title: 'Participant left',
+          description: `${getDisplayName(userId)} left the meeting`,
+          userId,
+        });
+      }
+      removeUser(userId);
+    },
 
     onExistingUsers: ({ users }) => {
       setState(prev => {
@@ -230,6 +271,24 @@ export const useWebRTC = (
           },
         ],
       }));
+
+      if (data.userId !== localUserId) {
+        if (data.targetUserId && data.targetUserId === localUserId) {
+          pushEventPopup({
+            type: 'direct-message',
+            title: 'New direct message',
+            description: `${getDisplayName(data.userId)}: ${data.message}`,
+            userId: data.userId,
+          });
+        } else if (!data.targetUserId) {
+          pushEventPopup({
+            type: 'group-message',
+            title: 'New group message',
+            description: `${getDisplayName(data.userId)}: ${data.message}`,
+            userId: data.userId,
+          });
+        }
+      }
     },
 
     onForceStopScreen: () => {
@@ -251,6 +310,13 @@ export const useWebRTC = (
             isScreenSharing: false,
             name: userId.split(':')[0]
           }];
+        });
+
+        pushEventPopup({
+          type: 'join-request',
+          title: 'Join request',
+          description: `${getDisplayName(userId)} is asking to join`,
+          userId,
         });
       }
     },
@@ -1022,6 +1088,10 @@ export const useWebRTC = (
     startCaptions,
     stopCaptions,
     partialText,
-    finalText
+    finalText,
+    eventPopups,
+    dismissEventPopup: (popupId: string) => {
+      setEventPopups(prev => prev.filter(popup => popup.id !== popupId));
+    },
   };
 };

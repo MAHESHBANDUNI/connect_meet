@@ -9,6 +9,7 @@ import { Chat } from './Chat';
 import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
 import { errorToast } from '../ui/toast';
+import { MeetingEventPopups } from './MeetingEventPopups';
 
 interface VideoCallProps {
   roomId: string;
@@ -118,7 +119,9 @@ export const VideoCall = ({
     partialText,
     finalText,
     startCaptions,
-    stopCaptions
+    stopCaptions,
+    eventPopups,
+    dismissEventPopup
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
@@ -324,10 +327,23 @@ const gridClassMap: Record<string, string> = {
     stopCaptions();
   }
 
+  useEffect(() => {
+    if (eventPopups.length === 0) return;
+
+    const timers = eventPopups.map((event) =>
+      window.setTimeout(() => dismissEventPopup(event.id), 5000)
+    );
+
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [eventPopups, dismissEventPopup]);
+
   console.log("waitingUsers", waitingUsers);
 
   return (
     <div className="fixed inset-0 bg-[#363738] flex flex-col overflow-hidden">
+      <MeetingEventPopups events={eventPopups} onDismiss={dismissEventPopup} />
       {/* Top Header */}
       <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
 
