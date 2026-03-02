@@ -293,6 +293,23 @@ io.on('connection', (socket) => {
             io.to(targetSocketId).emit('join-response', { approved: false });
         }
     });
+    socket.on('meeting-ended', ({ roomId, userId }) => {
+        const room = rooms.get(roomId);
+        if (!room)
+            return;
+        if (room.hostUserId !== userId) {
+            socket.emit('error', {
+                type: 'FORBIDDEN',
+                message: 'Only host can end the meeting'
+            });
+            return;
+        }
+        io.to(roomId).emit('meeting-ended', {
+            roomId,
+            endedBy: userId,
+            timestamp: Date.now()
+        });
+    });
     // Handle ping/pong for connection health
     socket.on('ping', () => {
         socket.emit('pong', { timestamp: Date.now() });
