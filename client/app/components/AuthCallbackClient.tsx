@@ -17,7 +17,7 @@ export default function AuthCallbackClient() {
   const searchParams = useSearchParams();
 
   const userSignin = async (userDetails: User) => {
-    const result = await signIn("credentials", {
+    const result = await signIn("oauth-credentials", {
       id: userDetails.id,
       name: userDetails.name,
       email: userDetails.email,
