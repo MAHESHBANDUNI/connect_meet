@@ -16,6 +16,7 @@ export const configurePassport = () => {
             async (req, accessToken, refreshToken, profile, done) => {
                 try {
                     const { user, token } = await authService.handleOAuthUser(profile);
+                    console.log('passport user: ', user, 'Token: ',token);
                     return done(null, { ...user, token });
                 } catch (error) {
                     return done(error as Error, undefined);

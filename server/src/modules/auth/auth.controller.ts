@@ -38,7 +38,13 @@ export class AuthController {
         if (err || !user) {
           return res.redirect(`${process.env.CLIENT_URL}/auth/signin?error=oauth_failed`);
         }
-        res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${user.token}`);
+        const token = user.token;
+        const userData = { ...user };
+        delete userData.password;
+        delete userData.token;
+        const encodedToken = encodeURIComponent(token ?? "");
+        const encodedUser = encodeURIComponent(JSON.stringify(userData));
+        res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${encodedToken}&user=${encodedUser}`);
       });
     })(req, res, next);
   };

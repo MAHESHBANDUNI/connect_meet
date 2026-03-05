@@ -92,6 +92,30 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    CredentialsProvider({
+      id: "oauth-credentials",
+      name: "Oauth-Credentials",
+    
+      credentials: {
+        userDetails: { label: "User Details", type: "text" },
+      },
+    
+      async authorize(credentials) {
+        if (!credentials?.userDetails) {
+          throw new Error("Missing user details");
+        }
+      
+        const user = JSON.parse(credentials.userDetails);
+      
+        return {
+          id: user.userId,
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          role: user.role.roleName,
+          token: user.token,
+        };
+      },
+    })
   ],
 
   session: {

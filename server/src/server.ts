@@ -37,6 +37,7 @@ export function createServer(): Express {
   server.use(cors(corsOptions));
 
   server.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(req.url);
     res.locals.cspNonce = crypto.randomBytes(32).toString("base64");
     next();
   });

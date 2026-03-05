@@ -34,6 +34,7 @@ function createServer() {
     };
     server.use((0, cors_1.default)(corsOptions));
     server.use((req, res, next) => {
+        console.log(req.url);
         res.locals.cspNonce = crypto_1.default.randomBytes(32).toString("base64");
         next();
     });

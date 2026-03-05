@@ -2,17 +2,49 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  token: string;
+}
 
 export default function AuthCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const userSignin = async (userDetails: User) => {
+    const result = await signIn("credentials", {
+      id: userDetails.id,
+      name: userDetails.name,
+      email: userDetails.email,
+      role: userDetails.role,
+      token: userDetails.token,
+      redirect: false,
+    });
+    return result;
+  };
+
   useEffect(() => {
     const token = searchParams.get("token");
+    const userJson = searchParams.get("user");
 
-    if (token) {
-      localStorage.setItem("token", token);
-      router.push("/");
+    if (token && userJson) {
+      try {
+        const userParsed: User = { ...JSON.parse(userJson), token };
+        userSignin(userParsed).then((result) => {
+          if (result?.ok) {
+            router.push("/");
+          } else {
+            router.push("/auth/signin?error=signin_failed");
+          }
+        });
+      } catch (e) {
+        router.push("/auth/signin?error=invalid_user");
+      }
     } else {
       router.push("/auth/signin?error=no_token");
     }
