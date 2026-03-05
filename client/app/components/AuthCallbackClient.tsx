@@ -20,7 +20,8 @@ export default function AuthCallbackClient() {
   const userSignin = async (userDetails: User) => {
     console.log('User details: ',userDetails);
     const result = await signIn("oauth-credentials", {
-      userDetails
+      userDetails: JSON.stringify(userDetails),
+      redirect: false,
     });
     return result;
   };
