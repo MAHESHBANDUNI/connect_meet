@@ -97,11 +97,12 @@ export const authOptions: NextAuthOptions = {
       name: "Oauth-Credentials",
     
       credentials: {
-        userDetails: { label: "User Details", type: "text" },
+        userDetails: { label: "userDetails", type: "text" },
       },
     
       async authorize(credentials) {
         if (!credentials?.userDetails) {
+          console.log('User details 1: ',credentials?.userDetails);
           throw new Error("Missing user details");
         }
       

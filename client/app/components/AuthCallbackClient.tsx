@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 interface User {
-  id: string;
-  name: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   token: string;
@@ -17,13 +18,9 @@ export default function AuthCallbackClient() {
   const searchParams = useSearchParams();
 
   const userSignin = async (userDetails: User) => {
+    console.log('User details: ',userDetails);
     const result = await signIn("oauth-credentials", {
-      id: userDetails.id,
-      name: userDetails.name,
-      email: userDetails.email,
-      role: userDetails.role,
-      token: userDetails.token,
-      redirect: false,
+      userDetails
     });
     return result;
   };
