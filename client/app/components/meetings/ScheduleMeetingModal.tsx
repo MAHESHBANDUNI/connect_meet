@@ -310,7 +310,7 @@ const ScheduleMeetingModal = ({
                   variant="outline"
                   disabled={saving}
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "cursor-pointer w-full justify-start text-left font-normal",
                     !formData.date && "text-muted-foreground",
                     touched.date && errors.date && "border-red-500"
                   )}
@@ -430,6 +430,7 @@ const ScheduleMeetingModal = ({
                   disabled={saving || !emailInputs.coHost}
                   size="sm"
                   variant="secondary"
+                  className='cursor-pointer'
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -444,7 +445,7 @@ const ScheduleMeetingModal = ({
                         type="button"
                         onClick={() => removeEmail('coHosts', email)}
                         disabled={saving}
-                        className="text-gray-500 hover:text-red-500"
+                        className="cursor-pointer text-gray-500 hover:text-red-500"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -483,6 +484,7 @@ const ScheduleMeetingModal = ({
                   disabled={saving || !emailInputs.invitee}
                   size="sm"
                   variant="secondary"
+                  className='cursor-pointer '
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -497,7 +499,7 @@ const ScheduleMeetingModal = ({
                         type="button"
                         onClick={() => removeEmail('invitees', email)}
                         disabled={saving}
-                        className="text-gray-500 hover:text-red-500"
+                        className="cursor-pointer text-gray-500 hover:text-red-500"
                       >
                         <Trash2 className="w-3 h-3" />
                       </button>
@@ -526,6 +528,7 @@ const ScheduleMeetingModal = ({
               onClick={handleClose}
               variant="outline"
               disabled={saving}
+              className='cursor-pointer '
             >
               Cancel
             </Button>
@@ -533,7 +536,7 @@ const ScheduleMeetingModal = ({
             <Button
               type="submit"
               disabled={!isFormValid() || saving}
-              className="flex items-center gap-2"
+              className="cursor-pointer flex items-center gap-2"
             >
               {saving ? (
                 <>

@@ -223,7 +223,7 @@ export default function Sidebar({
                         <button
                           onClick={() => handleSubmenuToggle(item.name)}
                           className={`
-                            flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200
+                            cursor-pointer flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200
                             ${isActive
                               ? "bg-linear-to-r from-blue-50 to-blue-100 text-blue-700 border border-blue-200"
                               : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"}

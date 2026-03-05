@@ -52,7 +52,7 @@ export const Controls = ({
           {/* Audio */}
           <button
             onClick={onToggleAudio}
-            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`cursor-pointer flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isAudioMuted
                 ? 'bg-red-500'
                 : 'bg-white/10 hover:bg-white/20'
@@ -68,7 +68,7 @@ export const Controls = ({
           {/* Video */}
           <button
             onClick={onToggleVideo}
-            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`cursor-pointer flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isVideoOff
                 ? 'bg-red-500'
                 : 'bg-white/10 hover:bg-white/20'
@@ -84,7 +84,7 @@ export const Controls = ({
           {/* Screen Share */}
           {(isScreenSharingEnabled === true || (isScreenSharingEnabled === false && isUserHost)) && <button
             onClick={onToggleScreenShare}
-            className={`hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`cursor-pointer hidden md:flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isScreenSharing
                 ? 'bg-red-500'
                 : 'bg-white/10 hover:bg-white/20'
@@ -100,7 +100,7 @@ export const Controls = ({
           {/* Live Captions */}
           <button
             onClick={isCaptionsEnabled ? onStopCaptions : onStartCaptions}
-            className={`flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+            className={`cursor-pointer flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
               isCaptionsEnabled
                 ? 'bg-blue-400'
                 : 'bg-white/10 hover:bg-white/20'

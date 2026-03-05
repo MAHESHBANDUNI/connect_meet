@@ -112,7 +112,7 @@ export const Chat = ({
               setActiveDirectUserId('');
               onRecipientChange('all');
             }}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+            className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               activeTab === 'group' ? 'bg-blue-600 text-white' : 'text-white/70 hover:text-white'
             }`}
           >
@@ -121,7 +121,7 @@ export const Chat = ({
           <button
             type="button"
             onClick={() => setActiveTab('direct')}
-            className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+            className={`cursor-pointer rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
               activeTab === 'direct' ? 'bg-blue-600 text-white' : 'text-white/70 hover:text-white'
             }`}
           >
@@ -142,7 +142,7 @@ export const Chat = ({
                   setActiveDirectUserId(participant.id);
                   onRecipientChange(participant.id);
                 }}
-                className="w-full flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left transition-colors"
+                className="cursor-pointer w-full flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left transition-colors"
               >
                 <div className="w-9 h-9 rounded-xl bg-white/10 text-white/80 flex items-center justify-center text-sm font-semibold">
                   {participant.name.charAt(0).toUpperCase()}
@@ -221,7 +221,7 @@ export const Chat = ({
               onClick={() => {
                 setActiveDirectUserId('');
               }}
-              className="text-[11px] text-blue-400 hover:text-blue-300"
+              className="cursor-pointer text-[11px] text-blue-400 hover:text-blue-300"
             >
               Change
             </button>
@@ -243,7 +243,7 @@ export const Chat = ({
             type="button"
             onClick={handleSubmit}
             disabled={!inputValue.trim() || (activeTab === 'direct' && !activeDirectUserId)}
-            className="w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 disabled:hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/20 active:scale-95 focus:outline-none focus:ring-0"
+            className="cursor-pointer w-10 h-10 bg-blue-600 hover:bg-blue-500 disabled:opacity-20 disabled:hover:bg-blue-600 text-white rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/20 active:scale-95 focus:outline-none focus:ring-0"
           >
             <Send className="w-4 h-4" />
           </button>

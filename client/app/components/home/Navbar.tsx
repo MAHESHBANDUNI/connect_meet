@@ -42,10 +42,10 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
 
             {!session?.user ? (
               <>
-                <button onClick={() => router.push('/auth/signin')} className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                <button onClick={() => router.push('/auth/signin')} className="cursor-pointer px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
                   Sign In
                 </button>
-                <button onClick={() => router.push('/auth/signup')} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg">
+                <button onClick={() => router.push('/auth/signup')} className="cursor-pointer px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-lg">
                   Get Started Free
                 </button>
               </>
@@ -55,7 +55,7 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
                 <button
                   type="button"
                   onClick={() => setShowLogoutOption(prev => !prev)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 transition"
+                  className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 transition"
                 >
                   <UserCircle className="w-6 h-6 text-blue-600" />
                   <span className="text-blue-600 font-medium">
@@ -68,14 +68,14 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
                     <button
                       onClick={() => router.push('/meetings')}
                       type="button"
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="cursor-pointer w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >
                       My Meetings
                     </button>
                     <button
                       onClick={handleLogout}
                       type="button"
-                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 mt-1"
+                      className="cursor-pointer w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 mt-1"
                     >
                       Logout
                     </button>

@@ -38,7 +38,7 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
               <button
                 type="button"
                 onClick={() => setShowLogoutOption(prev => !prev)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 transition"
+                className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md hover:bg-blue-50 transition"
               >
                 <UserCircle className="w-5 sm:w-6 h-5 sm:h-6 text-blue-600" />
                 <span className="text-sm sm:text-lg text-blue-600 font-medium">
@@ -51,14 +51,14 @@ const Navbar: FC<NavbarProps> = ({ className = '' }) => {
                   <button
                     onClick={() => router.push('/meetings')}
                     type="button"
-                    className="w-full text-left px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="cursor-pointer w-full text-left px-2 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   >
                     My Meetings
                   </button>
                   <button
                     onClick={handleLogout}
                     type="button"
-                    className="w-full text-left px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 mt-1"
+                    className="cursor-pointer w-full text-left px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 mt-1"
                   >
                     Logout
                   </button>

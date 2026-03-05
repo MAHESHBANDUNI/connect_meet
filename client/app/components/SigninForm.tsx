@@ -90,7 +90,7 @@ export default function LoginForm() {
 
           <button
             onClick={() => window.location.href = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/google`}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-6"
+            className="cursor-pointer w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-6"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
             Sign in with Google

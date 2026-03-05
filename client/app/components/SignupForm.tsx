@@ -123,7 +123,7 @@ export default function SignupForm() {
 
                     <button
                         onClick={handleGoogleSignup}
-                        className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-6"
+                        className="cursor-pointer w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-700 font-medium hover:bg-gray-50 transition-colors mb-6"
                     >
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
                         Sign up with Google
@@ -199,7 +199,7 @@ export default function SignupForm() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-2.5 text-gray-400"
+                                    className="cursor-pointer absolute right-3 top-2.5 text-gray-400"
                                 >
                                     {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                 </button>
@@ -227,7 +227,7 @@ export default function SignupForm() {
 
                         <button
                             type="submit"
-                            className="w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50"
+                            className="cursor-pointer w-full py-2 px-4 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors flex justify-center items-center disabled:opacity-50"
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? "Creating account..." : "Sign Up"}

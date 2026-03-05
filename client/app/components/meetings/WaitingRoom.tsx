@@ -426,7 +426,7 @@ export default function WaitingRoom({
                     participant.hasJoined === true
                 )
               }
-              className="w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-95"
+              className="cursor-pointer w-full h-10 sm:h-11 md:h-12 text-sm sm:text-base font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-95"
             >
               {
                 meetingDetails?.participants?.some(

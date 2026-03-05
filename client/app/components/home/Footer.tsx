@@ -35,7 +35,7 @@ const Footer: FC = () => {
               placeholder="Enter your email"
               className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
             />
-            <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
+            <button className=" cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition">
               Subscribe
             </button>
           </div>

@@ -28,12 +28,12 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <div className="relative flex items-center">
-                <button onClick={() => setShowMeetingOptions(prev => !prev)} className="w-full px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
+                <button onClick={() => setShowMeetingOptions(prev => !prev)} className="cursor-pointer w-full px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-lg font-semibold shadow-lg flex items-center justify-center">
                   Start Free Meeting
                   <Play className="w-5 h-5 ml-2" />
                 </button>
                 {showMeetingOptions && (
-                  <div className="absolute right-0 top-full mt-2 w-full bg-white border rounded-lg z-50 shadow-md border-gray-200">
+                  <div className="cursor-pointer absolute right-0 top-full mt-2 w-full bg-white border rounded-lg z-50 shadow-md border-gray-200">
                     <button
                       type="button"
                       onClick={() => { setScheduleMeetingFormOpen(true) }}
@@ -44,7 +44,7 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
                     </button>
                     <button
                       type="button"
-                      className="w-full text-left px-4 py-2 text-sm sm:text-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition align-items-center flex"
+                      className="cursor-pointer w-full text-left px-4 py-2 text-sm sm:text-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition align-items-center flex"
                     >
                       <Plus className="w-4 h-4 sm:w-5.5 sm:h-5.5 inline-block mr-2 mt-0.5" />
                       Start an Instant Meeting
@@ -100,7 +100,7 @@ const Hero: FC<HeroProps> = ({ className = '' }) => {
                     </div>
                   </div>
 
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                  <button className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                     Join Now
                   </button>
 
