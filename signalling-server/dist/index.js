@@ -315,9 +315,9 @@ io.on('connection', (socket) => {
         const room = rooms.get(roomId);
         if (!room)
             return;
-        console.log(`Whiteboard data from ${userId} in ${roomId}`);
-        // Broadcast whiteboard data to everyone else in the room
-        socket.to(roomId).emit('whiteboard-data', {
+        console.log(`Whiteboard data from ${userId} in ${roomId}. Data:`, data);
+        // Broadcast whiteboard data to everyone in the room (including sender)
+        io.to(roomId).emit('whiteboard-data', {
             userId,
             data,
             timestamp: Date.now()
