@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { User } from '@/app/types';
-import { MicOff } from 'lucide-react';
+import { MicOff, Hand } from 'lucide-react';
 
 interface VideoTileProps {
   user: User;
@@ -59,18 +59,27 @@ export const VideoTile = ({ user, screenSharer, speakerId = "default" }: VideoTi
         <div className="flex justify-end">
           {user.isAudioMuted && (
             <div className="bg-blue-400 backdrop-blur-md rounded-full p-2.5 animate-in fade-in zoom-in duration-300">
-              <MicOff className="w-6 h-6 text-white" />
+              <MicOff className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           ) 
           }
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-2 shadow-2xl transition-transform duration-300 group-hover:translate-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-            <span className="text-white/90 font-bold text-sm tracking-tight text-shadow-sm">
-              {userName}
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-2 shadow-2xl transition-transform duration-300 group-hover:translate-x-1">
+              {user.isHandRaised ? (
+                <div className="bg-blue-400 backdrop-blur-md rounded-xl p-2 animate-in slide-in-from-bottom-2 duration-300 shadow-lg border border-blue-300/30">
+                  <Hand className="w-5 h-5 sm:w-6 sm:h-6 text-white font-bold" />
+                </div>)
+                :
+                (<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+              )}
+              <span className="text-white/90 font-bold text-sm tracking-tight text-shadow-sm">
+                {userName}
+              </span>
+              
+            </div>
           </div>
         </div>
       </div>

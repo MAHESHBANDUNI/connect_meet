@@ -6,7 +6,7 @@ import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown, Hand } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
 import { Whiteboard } from './Whiteboard';
 import { errorToast } from '../ui/toast';
@@ -258,6 +258,13 @@ export const VideoCall = ({
     sendUserAction(roomId, userId, 'toggle-screen', newValue);
   };
 
+  const handleToggleHand = () => {
+    const localUser = users.find(u => u.isLocal);
+    const newValue = !localUser?.isHandRaised;
+    setUsersLocalMedia('toggle-hand', newValue);
+    sendUserAction(roomId, userId, 'toggle-hand', newValue);
+  };
+
   const handleEndCall = () => {
     stopMediaStream();
     const isCurrentUserHost = meetingDetails?.participants?.some(
@@ -469,6 +476,29 @@ const gridClassMap: Record<string, string> = {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {users.filter(u => u.isHandRaised).length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] text-white/40 uppercase tracking-widest font-bold px-2">Raised Hands</h4>
+                    {users
+                      .filter(u => u.isHandRaised)
+                      .sort((a, b) => (a.handRaisedTimestamp || 0) - (b.handRaisedTimestamp || 0))
+                      .map((u) => (
+                        <div key={u.id} className="flex items-center justify-between p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
+                              {getParticipantName(u.id).charAt(0).toUpperCase()}
+                            </div>
+                            <p className="text-sm font-medium text-white">
+                              {getParticipantName(u.id)}
+                              {u.isLocal && " (You)"}
+                            </p>
+                          </div>
+                          <Hand className="w-5 h-5 text-blue-400" />
+                        </div>
+                      ))}
+                  </div>
+                )}
+                
                 {isCurrentUserHost && waitingUsers.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] text-yellow-500 uppercase tracking-widest font-bold px-2">Awaiting Admission</h4>
@@ -734,6 +764,8 @@ const gridClassMap: Record<string, string> = {
             roomId={roomId}
             showWhiteboard={showWhiteboard}
             onToggleWhiteboard={() => setShowWhiteboard(!showWhiteboard)}
+            isHandRaised={users.find(u => u.isLocal)?.isHandRaised ?? false}
+            onToggleHand={handleToggleHand}
           />
         </div>
 
