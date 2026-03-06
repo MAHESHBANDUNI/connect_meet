@@ -342,6 +342,8 @@ const gridClassMap: Record<string, string> = {
     stopCaptions();
   }
 
+  console.log("Waiting users: ",waitingUsers);
+
   useEffect(() => {
     if (eventPopups.length === 0) return;
 
