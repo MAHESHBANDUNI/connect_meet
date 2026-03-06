@@ -156,7 +156,7 @@ export class MeetingService {
             throw new ConflictError("Meeting is not live");
         }
 
-        const participant = await this.repo.checkMeetingParticipant(meetingId, user)
+        const participant = await this.repo.checkMeetingParticipant(meetingId, user, meeting?.directJoinPermission ? true : false)
             || await this.repo.checkMeetingHost(meetingId, user);
 
         if (!participant) {
@@ -200,7 +200,7 @@ export class MeetingService {
         }
         const leftAt = new Date();
         const status = "LEFT";
-        await this.repo.checkMeetingParticipant(meetingId, user);
+        await this.repo.checkMeetingParticipant(meetingId, user, false);
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, leftAt);
         return meeting;
     }

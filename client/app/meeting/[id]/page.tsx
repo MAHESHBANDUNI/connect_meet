@@ -238,8 +238,20 @@ export default function MeetingPage() {
     setMeetingEnded(true);
   };
 
-  const handleJoinRequest = async () => {
+  const handleJoinRequest = async(    
+    cameraEnabled: boolean,
+    micEnabled: boolean,
+    cameraId?: string,
+    micId?: string,
+    speakerId?: string) => {
     try {
+      setInitialMediaConfig({
+        cameraEnabled,
+        micEnabled,
+        cameraId: cameraId || '',
+        micId: micId || '',
+        speakerId: speakerId || 'default',
+      });
       setIsSending(true);
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
         method: 'POST',

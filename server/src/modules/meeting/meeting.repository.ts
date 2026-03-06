@@ -157,15 +157,37 @@ export class MeetingRepository {
         return this.getMeetingById(meetingId);
     }
 
-    async checkMeetingParticipant(meetingId: string, user: { userId: string }) {
-        const participant = await db.query.meetingParticipants.findFirst({
-            where: and(
-                eq(meetingParticipants.userId, user.userId),
-                eq(meetingParticipants.meetingId, meetingId),
-                eq(meetingParticipants.participantRole, 'PARTICIPANT')
-            )
+    async checkMeetingParticipant(
+      meetingId: string,
+      user: { userId: string },
+      hasDirectJoinPermission: boolean
+    ) {
+      const participant = await db.query.meetingParticipants.findFirst({
+        where: and(
+          eq(meetingParticipants.userId, user.userId),
+          eq(meetingParticipants.meetingId, meetingId),
+          eq(meetingParticipants.participantRole, "PARTICIPANT")
+        ),
+      });
+
+      const dbUser = await db.query.users.findFirst({
+        where: eq(users.userId, user.userId),
+        columns: { email: true },
+      });
+
+      if (!participant && hasDirectJoinPermission && dbUser) {
+        await db.insert(meetingParticipants).values({
+          userId: user.userId,
+          participantRole: "PARTICIPANT",
+          participantStatus: "WAITING",
+          meetingId,
+          joinedAt: new Date(),
+          hasJoined: true,
+          email: dbUser.email,
         });
-        return participant;
+      }
+
+      return participant;
     }
 
     async updateMeetingParticipantStatus(meetingId: string, user: { userId: string }, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date) {
