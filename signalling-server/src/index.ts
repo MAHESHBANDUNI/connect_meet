@@ -31,6 +31,12 @@ interface UserAction {
   targetUserId?: string;
 }
 
+interface WhiteboardData {
+  roomId: string;
+  userId: string;
+  data: any;
+}
+
 interface MeetingEndedPayload {
   roomId: string;
   userId: string;
@@ -412,6 +418,20 @@ io.on('connection', (socket: Socket) => {
     io.to(roomId).emit('meeting-ended', {
       roomId,
       endedBy: userId,
+      timestamp: Date.now()
+    });
+  });
+
+  // Handle whiteboard data synchronization
+  socket.on('whiteboard-data', ({ roomId, userId, data }: WhiteboardData) => {
+    const room = rooms.get(roomId);
+    if (!room) return;
+
+    console.log(`Whiteboard data from ${userId} in ${roomId}`);
+    // Broadcast whiteboard data to everyone else in the room
+    socket.to(roomId).emit('whiteboard-data', {
+      userId,
+      data,
       timestamp: Date.now()
     });
   });

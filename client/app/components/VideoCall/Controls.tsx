@@ -1,6 +1,6 @@
 "use client";
 
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Phone, ScreenShare, ScreenShareOff, LucideCaptions, Settings } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Phone, ScreenShare, ScreenShareOff, LucideCaptions, Settings, Pencil } from "lucide-react";
 
 interface ControlsProps {
   isAudioMuted: boolean;
@@ -18,6 +18,8 @@ interface ControlsProps {
   onOpenDeviceSettings: () => void;
   onEndCall: () => void;
   roomId: string;
+  showWhiteboard?: boolean;
+  onToggleWhiteboard?: () => void;
 }
 
 export const Controls = ({
@@ -34,7 +36,9 @@ export const Controls = ({
   onStopCaptions,
   onOpenDeviceSettings,
   onEndCall,
-  roomId
+  roomId,
+  showWhiteboard,
+  onToggleWhiteboard
 }: ControlsProps) => {
   return (
     <div className="w-full flex items-center justify-between px-4 md:px-6">
@@ -106,11 +110,21 @@ export const Controls = ({
                 : 'bg-white/10 hover:bg-white/20'
             }`}
           >
-            {isCaptionsEnabled ? (
-              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 text-white font-bold" />
-            ) : (
-              <LucideCaptions className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            )}
+
+            <LucideCaptions className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${isCaptionsEnabled ? 'font-bold' : ''}`} />
+          </button>
+
+          {/* Whiteboard */}
+          <button
+            onClick={onToggleWhiteboard}
+            className={`cursor-pointer flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+              showWhiteboard
+                ? 'bg-blue-400'
+                : 'bg-white/10 hover:bg-white/20'
+            }`}
+            title="Toggle Whiteboard"
+          >
+            <Pencil className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${showWhiteboard ? 'font-bold' : ''}`} />
           </button>
 
           {/* Device Settings */}
