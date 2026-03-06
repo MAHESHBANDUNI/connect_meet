@@ -167,7 +167,7 @@ export declare class MeetingRepository {
     } | undefined>;
     checkMeetingParticipant(meetingId: string, user: {
         userId: string;
-    }): Promise<{
+    }, hasDirectJoinPermission: boolean): Promise<{
         createdAt: Date;
         updatedAt: Date;
         userId: string | null;

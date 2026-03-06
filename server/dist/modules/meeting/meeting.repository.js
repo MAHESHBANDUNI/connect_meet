@@ -103,10 +103,25 @@ class MeetingRepository {
         await index_js_1.db.update(schema_js_1.meetings).set({ status: status, endTime: endTime ?? endTime }).where((0, drizzle_orm_1.eq)(schema_js_1.meetings.meetingId, meetingId));
         return this.getMeetingById(meetingId);
     }
-    async checkMeetingParticipant(meetingId, user) {
+    async checkMeetingParticipant(meetingId, user, hasDirectJoinPermission) {
         const participant = await index_js_1.db.query.meetingParticipants.findFirst({
-            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'PARTICIPANT'))
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "PARTICIPANT")),
         });
+        const dbUser = await index_js_1.db.query.users.findFirst({
+            where: (0, drizzle_orm_1.eq)(schema_js_1.users.userId, user.userId),
+            columns: { email: true },
+        });
+        if (!participant && hasDirectJoinPermission && dbUser) {
+            await index_js_1.db.insert(schema_js_1.meetingParticipants).values({
+                userId: user.userId,
+                participantRole: "PARTICIPANT",
+                participantStatus: "WAITING",
+                meetingId,
+                joinedAt: new Date(),
+                hasJoined: true,
+                email: dbUser.email,
+            });
+        }
         return participant;
     }
     async updateMeetingParticipantStatus(meetingId, user, status, joinedAt, leftAt) {
