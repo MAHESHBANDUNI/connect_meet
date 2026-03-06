@@ -137,6 +137,7 @@ export default function MeetingPage() {
     });
 
     try {
+      console.log('running handle join')
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.user?.token}` },
@@ -145,6 +146,7 @@ export default function MeetingPage() {
         }),
       });
       const result = await response.json();
+      console.log('running handle join response', result)
       if (result.data?.participantStatus === 'WAITING') {
         setIsWaiting(true);
       } else if (response.status === 200) {
@@ -253,6 +255,7 @@ export default function MeetingPage() {
         speakerId: speakerId || 'default',
       });
       setIsSending(true);
+      console.log('running handle join request')
       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/join`, {
         method: 'POST',
         headers: {
@@ -265,6 +268,7 @@ export default function MeetingPage() {
       });
 
       const result = await response.json();
+      console.log('running handle join request response',result)
       if (result.data?.participantStatus === 'WAITING') {
         setIsWaiting(true);
       }
