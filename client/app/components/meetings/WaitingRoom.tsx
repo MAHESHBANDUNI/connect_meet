@@ -36,7 +36,13 @@ interface WaitingRoomProps {
     micId?: string,
     speakerId?: string
   ) => void;
-  onJoinRequest: () => void;
+  onJoinRequest: (
+    cameraEnabled: boolean,
+    micEnabled: boolean,
+    cameraId?: string,
+    micId?: string,
+    speakerId?: string
+  ) => void;
   isWaiting?: boolean;
   isRejected?: boolean;
 }
@@ -253,19 +259,33 @@ export default function WaitingRoom({
         );
       }
     } else {
-      // If direct join disabled → DO NOT call onJoin yet
-      if (meetingDetails.directJoinPermission === false) {
-        setAwaitingHostPermission(true);
-        onJoinRequest();
-        return;
-      }
-      onJoin(
+      setAwaitingHostPermission(true);
+      onJoinRequest(
         cameraEnabled,
         micEnabled,
         selectedDevices.cameraId,
         selectedDevices.micId,
         selectedDevices.speakerId
       );
+      // If direct join disabled → DO NOT call onJoin yet
+      // if (meetingDetails.directJoinPermission === false) {
+      //   setAwaitingHostPermission(true);
+      //   onJoinRequest(
+      //     cameraEnabled,
+      //     micEnabled,
+      //     selectedDevices.cameraId,
+      //     selectedDevices.micId,
+      //     selectedDevices.speakerId
+      //   );
+      //   return;
+      // }
+      // onJoin(
+      //   cameraEnabled,
+      //   micEnabled,
+      //   selectedDevices.cameraId,
+      //   selectedDevices.micId,
+      //   selectedDevices.speakerId
+      // );
     }
   };
 
