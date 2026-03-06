@@ -1,6 +1,6 @@
 "use client";
 
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Phone, ScreenShare, ScreenShareOff, LucideCaptions, Settings, Pencil } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, Phone, ScreenShare, ScreenShareOff, LucideCaptions, Settings, Pencil, Hand } from "lucide-react";
 
 interface ControlsProps {
   isAudioMuted: boolean;
@@ -20,6 +20,8 @@ interface ControlsProps {
   roomId: string;
   showWhiteboard?: boolean;
   onToggleWhiteboard?: () => void;
+  isHandRaised: boolean;
+  onToggleHand: () => void;
 }
 
 export const Controls = ({
@@ -38,7 +40,9 @@ export const Controls = ({
   onEndCall,
   roomId,
   showWhiteboard,
-  onToggleWhiteboard
+  onToggleWhiteboard,
+  isHandRaised,
+  onToggleHand
 }: ControlsProps) => {
   return (
     <div className="w-full flex items-center justify-between px-4 md:px-6">
@@ -112,6 +116,19 @@ export const Controls = ({
           >
 
             <LucideCaptions className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${isCaptionsEnabled ? 'font-bold' : ''}`} />
+          </button>
+          
+          {/* Raise Hand */}
+          <button
+            onClick={onToggleHand}
+            className={`cursor-pointer flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-xl sm:rounded-2xl transition-all ${
+              isHandRaised
+                ? 'bg-blue-400'
+                : 'bg-white/10 hover:bg-white/20'
+            }`}
+            title={isHandRaised ? "Lower Hand" : "Raise Hand"}
+          >
+            <Hand className={`w-5 h-5 sm:w-6 sm:h-6 text-white ${isHandRaised ? 'font-bold' : ''}`} />
           </button>
 
           {/* Whiteboard */}

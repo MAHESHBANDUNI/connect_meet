@@ -121,6 +121,7 @@ export const useWebRTC = (
           isVideoOff: false,
           isLocal: false,
           isScreenSharing: false,
+          isHandRaised: false
         };
 
         user.stream = existing.camera;
@@ -242,6 +243,11 @@ export const useWebRTC = (
 
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
+        if (action === 'toggle-hand') {
+          user.isHandRaised = value;
+          user.handRaisedTimestamp = value ? Date.now() : undefined;
+        }
+
         if (action === 'toggle-screen') {
           user.isScreenSharing = value;
           // When sharing stops, clear the screenStream reference to hide the tile
@@ -313,6 +319,7 @@ export const useWebRTC = (
             isVideoOff: false,
             isLocal: false,
             isScreenSharing: false,
+            isHandRaised: false,
             name: userId.split(':')[0]
           }];
         });
@@ -348,6 +355,7 @@ export const useWebRTC = (
                 isVideoOff: false,
                 isLocal: false,
                 isScreenSharing: false,
+                isHandRaised: false,
                 name: u.userId.split(':')[0]
               });
             }
@@ -469,6 +477,7 @@ export const useWebRTC = (
           isVideoOff: false,
           isLocal: false,
           isScreenSharing: false,
+          isHandRaised: false
         };
 
         user.stream = existing.camera;
@@ -692,7 +701,7 @@ export const useWebRTC = (
   );
 
   const setUsersLocalMedia = useCallback(
-    (action: 'toggle-audio' | 'toggle-video' | 'toggle-screen', value: boolean) => {
+    (action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'toggle-hand', value: boolean) => {
       setState(prev => {
         const users = new Map(prev.users);
         const existingUser = users.get(localUserId);
@@ -703,6 +712,7 @@ export const useWebRTC = (
         if (action === 'toggle-audio') user.isAudioMuted = value;
         if (action === 'toggle-video') user.isVideoOff = value;
         if (action === 'toggle-screen') user.isScreenSharing = value;
+        if(action === 'toggle-hand') user.isHandRaised=value;
 
         users.set(localUserId, user);
         return { ...prev, users };
@@ -1060,6 +1070,8 @@ export const useWebRTC = (
         isVideoOff: existing?.isVideoOff ?? false,
         isLocal: true,
         isScreenSharing: !!screenStream,
+        isHandRaised: existing?.isHandRaised ?? false,
+        handRaisedTimestamp: existing?.handRaisedTimestamp,
       });
     
       return { ...prev, users };

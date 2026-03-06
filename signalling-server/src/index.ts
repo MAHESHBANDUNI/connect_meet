@@ -26,7 +26,7 @@ interface ChatMessage {
 interface UserAction {
   roomId: string;
   userId: string;
-  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'host-mute-audio' | 'host-mute-video' | 'host-drop-user';
+  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'host-mute-audio' | 'host-mute-video' | 'host-drop-user' | 'toggle-hand';
   value: boolean;
   targetUserId?: string;
 }

@@ -7,6 +7,8 @@ export interface User {
   isVideoOff: boolean;
   isScreenSharing: boolean;
   isLocal: boolean;
+  isHandRaised?: boolean;
+  handRaisedTimestamp?: number;
 }
 
 export interface Message {
@@ -38,6 +40,6 @@ export interface SignalData {
 
 export interface UserAction {
   userId: string;
-  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen';
+  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'toggle-hand';
   value: boolean;
 }
