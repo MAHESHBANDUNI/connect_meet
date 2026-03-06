@@ -127,7 +127,7 @@ class MeetingService {
         }
         const joinAt = new Date();
         const isHostOrCoHost = participant.participantRole === 'HOST' || participant.participantRole === 'CO_HOST';
-        const status = (meeting.directJoinPermission || isHostOrCoHost) ? "JOINED" : "WAITING";
+        const status = isHostOrCoHost ? "JOINED" : "WAITING";
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
         return { ...meeting, participantStatus: status };
     }
