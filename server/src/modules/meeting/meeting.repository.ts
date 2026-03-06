@@ -191,12 +191,22 @@ export class MeetingRepository {
     }
 
     async updateMeetingParticipantStatus(meetingId: string, user: { userId: string }, status: "JOINED" | "WAITING" | "LEFT" | "REJECTED", joinedAt?: Date, leftAt?: Date) {
-        await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where(
-            and(
-                eq(meetingParticipants.userId, user.userId),
-                eq(meetingParticipants.meetingId, meetingId)
-            )
-        );
+        if(status==="JOINED"|| "LEFT" || "REJECTED"){
+            await db.update(meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where(
+                and(
+                    eq(meetingParticipants.userId, user.userId),
+                    eq(meetingParticipants.meetingId, meetingId)
+                )
+            );
+        }
+        else if(status ==="WAITING"){
+            await db.update(meetingParticipants).set({ participantStatus: status}).where(
+                and(
+                    eq(meetingParticipants.userId, user.userId),
+                    eq(meetingParticipants.meetingId, meetingId)
+                )
+            );
+        }
     }
 
     async getMeetingsByUser(userId: string) {

@@ -125,7 +125,12 @@ class MeetingRepository {
         return participant;
     }
     async updateMeetingParticipantStatus(meetingId, user, status, joinedAt, leftAt) {
-        await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
+        if (status === "JOINED" || "LEFT" || "REJECTED") {
+            await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status, joinedAt: joinedAt ?? joinedAt, hasJoined: true, leftAt: leftAt ?? leftAt }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
+        }
+        else if (status === "WAITING") {
+            await index_js_1.db.update(schema_js_1.meetingParticipants).set({ participantStatus: status }).where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId)));
+        }
     }
     async getMeetingsByUser(userId) {
         const userMeetings = await index_js_1.db.query.meetingParticipants.findMany({
