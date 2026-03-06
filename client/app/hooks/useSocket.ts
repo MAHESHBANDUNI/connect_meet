@@ -14,6 +14,7 @@ interface SocketEventHandlers {
   onJoinResponse?: (data: { approved: boolean }) => void;
   onWaitingUsers?: (data: { users: { userId: string }[] }) => void;
   onMeetingEnded?: (data: { roomId: string; endedBy: string; timestamp: number }) => void;
+  onWhiteboardData?: (data: { userId: string; data: any; timestamp: number }) => void;
   onError?: (error: { type: string; message: string }) => void;
 }
 
@@ -94,6 +95,10 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
       handlersRef.current.onMeetingEnded?.(data);
     });
 
+    socket.on('whiteboard-data', (data) => {
+      handlersRef.current.onWhiteboardData?.(data);
+    });
+
     socket.on('error', (error) => {
       console.error('Socket error:', error);
       handlersRef.current.onError?.(error);
@@ -150,6 +155,12 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
+  const sendWhiteboardData = useCallback((roomId: string, userId: string, data: any) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('whiteboard-data', { roomId, userId, data });
+    }
+  }, []);
+
   useEffect(() => {
     return () => {
       disconnect();
@@ -164,6 +175,7 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     sendUserAction,
     sendJoinResponse,
     sendMeetingEnded,
+    sendWhiteboardData,
     joinRoom,
     isConnected,
   };

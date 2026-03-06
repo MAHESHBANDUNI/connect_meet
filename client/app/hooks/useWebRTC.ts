@@ -71,6 +71,8 @@ export const useWebRTC = (
   const workletNodeRef = useRef<AudioWorkletNode | null>(null);
   const isStartingRef = useRef(false);
   const turnsRef = useRef<Record<number, string>>({});
+  const [whiteboardData, setWhiteboardData] = useState<{ data: any; userId: string; timestamp: number } | null>(null);
+
 
   useEffect(() => {
     isHostRef.current = options?.isHost;
@@ -152,7 +154,8 @@ export const useWebRTC = (
     sendJoinResponse,
     sendMeetingEnded,
     joinRoom,
-    isConnected
+    isConnected,
+    sendWhiteboardData
   } = useSocket({
     onConnected: () => {
       joinRoom(roomId, localUserId, options?.isHost, options?.initialStatus === 'WAITING');
@@ -356,6 +359,10 @@ export const useWebRTC = (
 
     onMeetingEnded: ({ endedBy }) => {
       options?.onMeetingEnded?.(endedBy);
+    },
+
+    onWhiteboardData: (data) => {
+      setWhiteboardData(data);
     },
   });
 
@@ -712,6 +719,10 @@ export const useWebRTC = (
     const data = await response.json();
     return data.token;
   };
+
+  const handleSendWhiteboardData = useCallback((data: any) => {
+    sendWhiteboardData(roomId, localUserId, data);
+  }, [roomId, localUserId, sendWhiteboardData]);
 
   const createMixedAudioStream = (audioContext: AudioContext) => {
     const destination = audioContext.createMediaStreamDestination();
@@ -1102,5 +1113,8 @@ export const useWebRTC = (
     dismissEventPopup: (popupId: string) => {
       setEventPopups(prev => prev.filter(popup => popup.id !== popupId));
     },
+    whiteboardData,
+    sendWhiteboardData: handleSendWhiteboardData,
+    sendMeetingEnded
   };
 };

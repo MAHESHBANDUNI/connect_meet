@@ -310,6 +310,19 @@ io.on('connection', (socket) => {
             timestamp: Date.now()
         });
     });
+    // Handle whiteboard data synchronization
+    socket.on('whiteboard-data', ({ roomId, userId, data }) => {
+        const room = rooms.get(roomId);
+        if (!room)
+            return;
+        console.log(`Whiteboard data from ${userId} in ${roomId}`);
+        // Broadcast whiteboard data to everyone else in the room
+        socket.to(roomId).emit('whiteboard-data', {
+            userId,
+            data,
+            timestamp: Date.now()
+        });
+    });
     // Handle ping/pong for connection health
     socket.on('ping', () => {
         socket.emit('pong', { timestamp: Date.now() });

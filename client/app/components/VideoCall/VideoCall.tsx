@@ -8,6 +8,7 @@ import { Controls } from './Controls';
 import { Chat } from './Chat';
 import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
+import { Whiteboard } from './Whiteboard';
 import { errorToast } from '../ui/toast';
 import { MeetingEventPopups } from './MeetingEventPopups';
 
@@ -73,6 +74,7 @@ export const VideoCall = ({
   const [showDeviceSettings, setShowDeviceSettings] = useState(false);
   const [isCaptionEnabled, setIsCaptionEnabled] = useState(false);
   const [isFullScreenShareTileEnabled, setIsFullScreenShareTileEnabled] = useState(false);
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [chatRecipient, setChatRecipient] = useState<string>('all');
 
   const isCurrentUserHost = meetingDetails?.participants?.some(
@@ -109,7 +111,7 @@ export const VideoCall = ({
 
   const activeStream = localStream;
 
-  let {
+  const {
     users,
     messages,
     sendChatMessage,
@@ -124,7 +126,9 @@ export const VideoCall = ({
     startCaptions,
     stopCaptions,
     eventPopups,
-    dismissEventPopup
+    dismissEventPopup,
+    whiteboardData,
+    sendWhiteboardData
   } = useWebRTC(userId, roomId, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
@@ -355,9 +359,9 @@ const gridClassMap: Record<string, string> = {
   return (
     <div className="fixed inset-0 bg-[#363738] flex flex-col overflow-hidden">
       <MeetingEventPopups events={eventPopups} onDismiss={dismissEventPopup} />
+      
       {/* Top Header */}
       <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
-
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2 group cursor-pointer" onClick={toggleParticipants}>
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,10 +376,16 @@ const gridClassMap: Record<string, string> = {
 
       {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden relative bg-[#3e3f41]">
-
-        {screenSharer ? (
+        {showWhiteboard ? (
+          <div className="flex-1 p-4 bg-[#26282c]">
+            <Whiteboard 
+              onDraw={sendWhiteboardData} 
+              externalData={whiteboardData} 
+              className="h-full"
+            />
+          </div>
+        ) : screenSharer ? (
           <div className="flex flex-col lg:flex-row w-full h-full">
-
             {/* Share Screen Area */}
             <div className="flex-1 bg-[#26282c] flex items-center justify-center p-4 w-full lg:min-w-3/4 h-2/3 sm:h-full">
               <div className='w-full h-full flex items-center justify-center'>
@@ -405,7 +415,6 @@ const gridClassMap: Record<string, string> = {
             </div>}
 
           </div>
-
         ) : (
           <div className={`
             flex-1 p-6 grid gap-4 content-center overflow-y-auto
@@ -424,7 +433,7 @@ const gridClassMap: Record<string, string> = {
           </div>
         )}
 
-        {/* Combined Sidebar for Chat and Participants */}
+        {/* Combined Sidebar */}
         <aside className={`
           fixed right-0 top-16 bottom-[88px] w-[380px] bg-[#1a1d23] border-l border-white/5 
           transition-transform duration-300 ease-in-out shadow-[-10px_0_30px_rgba(0,0,0,0.3)] z-10
@@ -688,6 +697,7 @@ const gridClassMap: Record<string, string> = {
             </div>
           )}
         </aside>
+
         {isCaptionEnabled && (finalText || partialText) && (
           <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 px-6 py-3 max-w-2xl w-[60%] bg-black/70 backdrop-blur-md text-white text-center rounded-2xl shadow-xl">
             <p className="text-sm md:text-base font-medium leading-relaxed">
@@ -720,6 +730,8 @@ const gridClassMap: Record<string, string> = {
             onOpenDeviceSettings={() => setShowDeviceSettings(true)}
             onEndCall={handleEndCall}
             roomId={roomId}
+            showWhiteboard={showWhiteboard}
+            onToggleWhiteboard={() => setShowWhiteboard(!showWhiteboard)}
           />
         </div>
 
