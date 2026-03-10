@@ -470,10 +470,10 @@ const gridClassMap: Record<string, string> = {
                     {totalUsers} People in this meeting
                   </p>
                 </div>
-                <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
+                {isCurrentUserHost && <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
                   <UserPlusIcon className="w-5 h-5 text-white m-1" />
                   <p className='text-white text-sm'>Add people</p>
-                </button>
+                </button>}
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {users.filter(u => u.isHandRaised).length > 0 && (

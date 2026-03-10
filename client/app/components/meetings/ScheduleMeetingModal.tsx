@@ -254,21 +254,21 @@ const ScheduleMeetingModal = ({
     <div className="fixed inset-0 bg-opacity-40 flex items-center justify-center p-4 bg-[#00000082] backdrop-blur-[5px] z-9999">
       <div className="modal-content bg-white rounded-lg w-full max-w-2xl max-h-[95vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center border-b border-gray-200 p-4 bg-linear-to-r from-blue-600 to-blue-700">
-          <h2 className="text-xl text-white font-semibold">{mode === "edit" ? "Edit Meeting" : "Schedule Meeting"}</h2>
+        <div className="flex justify-between items-center border-b border-gray-200 p-2 sm:p-4 bg-linear-to-r from-blue-600 to-blue-700">
+          <h2 className="text-md sm:text-xl text-white font-semibold">{mode === "edit" ? "Edit Meeting" : "Schedule Meeting"}</h2>
           <button
             onClick={handleClose}
             className="text-white p-1 hover:bg-blue-800 rounded-full transition-colors cursor-pointer"
           >
-            <X className="w-6 h-6" />
+            <X className="w-4 sm:w-6 h-4 sm:h-6" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-3 sm:p-6 space-y-3 sm:space-y-6">
           {/* Topic */}
           <div>
-            <Label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-2">
+            <Label htmlFor="topic" className="block text-sm sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Topic*
             </Label>
             <Input
@@ -276,7 +276,7 @@ const ScheduleMeetingModal = ({
               value={formData.topic}
               disabled={saving}
               onChange={(e) => handleChange('topic', e.target.value)}
-              className={`w-full ${touched.topic && errors.topic ? "border-red-500" : ""}`}
+              className={`p-1.5 sm:p-3 w-full text-sm sm:text-md ${touched.topic && errors.topic ? "border-red-500" : ""}`}
               placeholder="Meeting about project planning"
             />
             {touched.topic && errors.topic && (
@@ -286,7 +286,7 @@ const ScheduleMeetingModal = ({
 
           {/* Description */}
           <div>
-            <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Description
             </Label>
             <Textarea
@@ -294,14 +294,14 @@ const ScheduleMeetingModal = ({
               value={formData.description}
               disabled={saving}
               onChange={(e) => handleChange('description', e.target.value)}
-              className="w-full min-h-25"
+              className="p-1.5 sm:p-3 w-full text-sm sm:text-md min-h-25"
               placeholder="Add meeting agenda, discussion points, etc."
             />
           </div>
 
           {/* Date and Time */}
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Date & Time*
             </Label>
             <Popover>
@@ -310,7 +310,7 @@ const ScheduleMeetingModal = ({
                   variant="outline"
                   disabled={saving}
                   className={cn(
-                    "cursor-pointer w-full justify-start text-left font-normal",
+                    "p-1.5 sm:p-3 cursor-pointer text-sm sm:text-md w-full justify-start text-left font-normal",
                     !formData.date && "text-muted-foreground",
                     touched.date && errors.date && "border-red-500"
                   )}
@@ -345,7 +345,7 @@ const ScheduleMeetingModal = ({
                       newDate.setHours(parseInt(hours), parseInt(minutes));
                       handleChange('date', newDate);
                     }}
-                    className="w-full"
+                    className="w-full text-sm sm:text-md"
                   />
                 </div>
               </PopoverContent>
@@ -356,7 +356,7 @@ const ScheduleMeetingModal = ({
           </div>
 
           {/* Permissions */}
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <Label className="block text-sm font-medium text-gray-700 mb-2">
               Permissions
             </Label>
@@ -408,7 +408,7 @@ const ScheduleMeetingModal = ({
 
           {/* Co-hosts */}
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Add Co-hosts
             </Label>
             <div className="space-y-2">
@@ -422,7 +422,7 @@ const ScheduleMeetingModal = ({
                     setErrors(prev => ({ ...prev, coHosts: undefined }));
                   }}
                   placeholder="co-host@example.com"
-                  className="flex-1"
+                  className="flex-1 p-1.5 sm:p-3 text-sm sm:text-md"
                 />
                 <Button
                   type="button"
@@ -462,7 +462,7 @@ const ScheduleMeetingModal = ({
 
           {/* Invitees */}
           <div>
-            <Label className="block text-sm font-medium text-gray-700 mb-2">
+            <Label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Add Invitees
             </Label>
             <div className="space-y-2">
@@ -476,7 +476,7 @@ const ScheduleMeetingModal = ({
                     setErrors(prev => ({ ...prev, invitees: undefined }));
                   }}
                   placeholder="invitee@example.com"
-                  className="flex-1"
+                  className="flex-1 p-1.5 sm:p-3 text-sm sm:text-md"
                 />
                 <Button
                   type="button"
@@ -522,13 +522,13 @@ const ScheduleMeetingModal = ({
           )}
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-1.5 sm:pt-4 border-t">
             <Button
               type="button"
               onClick={handleClose}
               variant="outline"
               disabled={saving}
-              className='cursor-pointer '
+              className='cursor-pointer'
             >
               Cancel
             </Button>
