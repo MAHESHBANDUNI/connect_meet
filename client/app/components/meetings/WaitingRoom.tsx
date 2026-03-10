@@ -238,8 +238,7 @@ export default function WaitingRoom({
     );
 
     if (isCurrentUserHost) {
-      if(meetingDetails?.status === 'SCHEDULED')
-      {
+      if (meetingDetails?.status === 'SCHEDULED') {
         onStart(
           cameraEnabled,
           micEnabled,
@@ -247,9 +246,7 @@ export default function WaitingRoom({
           selectedDevices.micId,
           selectedDevices.speakerId
         );
-      }
-      else if(meetingDetails?.status === 'LIVE')
-      {
+      } else if (meetingDetails?.status === 'LIVE') {
         onJoin(
           cameraEnabled,
           micEnabled,
@@ -267,25 +264,6 @@ export default function WaitingRoom({
         selectedDevices.micId,
         selectedDevices.speakerId
       );
-      // If direct join disabled → DO NOT call onJoin yet
-      // if (meetingDetails.directJoinPermission === false) {
-      //   setAwaitingHostPermission(true);
-      //   onJoinRequest(
-      //     cameraEnabled,
-      //     micEnabled,
-      //     selectedDevices.cameraId,
-      //     selectedDevices.micId,
-      //     selectedDevices.speakerId
-      //   );
-      //   return;
-      // }
-      // onJoin(
-      //   cameraEnabled,
-      //   micEnabled,
-      //   selectedDevices.cameraId,
-      //   selectedDevices.micId,
-      //   selectedDevices.speakerId
-      // );
     }
   };
 

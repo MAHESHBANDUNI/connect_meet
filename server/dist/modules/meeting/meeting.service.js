@@ -120,13 +120,13 @@ class MeetingService {
         if (meeting.status !== 'LIVE') {
             throw new errorHandler_1.ConflictError("Meeting is not live");
         }
-        const participant = await this.repo.checkMeetingParticipant(meetingId, user, meeting?.directJoinPermission ? true : false)
-            || await this.repo.checkMeetingHost(meetingId, user);
+        const participant = await this.repo.checkMeetingParticipant(meetingId, user, meeting?.directJoinPermission ?? false) || await this.repo.checkMeetingHost(meetingId, user);
         if (!participant) {
             throw new errorHandler_1.NotFoundError("Participant not found");
         }
         const joinAt = new Date();
-        const isHostOrCoHost = participant.participantRole === 'HOST' || participant.participantRole === 'CO_HOST';
+        const isHostOrCoHost = participant.participantRole === 'HOST' ||
+            participant.participantRole === 'CO_HOST';
         const status = isHostOrCoHost ? "JOINED" : "WAITING";
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
         return { ...meeting, participantStatus: status };

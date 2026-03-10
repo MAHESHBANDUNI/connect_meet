@@ -133,7 +133,7 @@ export const VideoCall = ({
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
     initialStatus: meetingDetails
-      ? (meetingDetails.directJoinPermission || isCurrentUserHost)
+      ? isCurrentUserHost
           ? 'JOINED'
           : 'WAITING'
       : undefined,

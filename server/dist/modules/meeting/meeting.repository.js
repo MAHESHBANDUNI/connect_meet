@@ -95,7 +95,7 @@ class MeetingRepository {
     }
     async checkMeetingHost(meetingId, user) {
         const participant = await index_js_1.db.query.meetingParticipants.findFirst({
-            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'HOST'))
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'HOST'), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'CO_HOST')))
         });
         return participant;
     }
@@ -104,15 +104,19 @@ class MeetingRepository {
         return this.getMeetingById(meetingId);
     }
     async checkMeetingParticipant(meetingId, user, hasDirectJoinPermission) {
-        const participant = await index_js_1.db.query.meetingParticipants.findFirst({
-            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "PARTICIPANT")),
+        let participant = await index_js_1.db.query.meetingParticipants.findFirst({
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), 
+            // allow PARTICIPANT OR CO_HOST
+            (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "PARTICIPANT"), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "CO_HOST"))),
         });
         const dbUser = await index_js_1.db.query.users.findFirst({
             where: (0, drizzle_orm_1.eq)(schema_js_1.users.userId, user.userId),
             columns: { email: true },
         });
         if (!participant && hasDirectJoinPermission && dbUser) {
-            await index_js_1.db.insert(schema_js_1.meetingParticipants).values({
+            const [inserted] = await index_js_1.db
+                .insert(schema_js_1.meetingParticipants)
+                .values({
                 userId: user.userId,
                 participantRole: "PARTICIPANT",
                 participantStatus: "WAITING",
@@ -120,7 +124,9 @@ class MeetingRepository {
                 joinedAt: new Date(),
                 hasJoined: true,
                 email: dbUser.email,
-            });
+            })
+                .returning();
+            participant = inserted;
         }
         return participant;
     }
