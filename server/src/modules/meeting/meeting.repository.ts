@@ -1,6 +1,6 @@
 import { db } from "../../drizzle/index.js";
 import { meetings, users, meetingParticipants } from "../../drizzle/schema.js";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray, ne, or } from "drizzle-orm";
 import { CreateMeetingInput } from "./meeting.validation.js";
 import type { MeetingParticipantRole } from "./meeting.types";
 
@@ -146,7 +146,10 @@ export class MeetingRepository {
             where: and(
                 eq(meetingParticipants.userId, user.userId),
                 eq(meetingParticipants.meetingId, meetingId),
-                eq(meetingParticipants.participantRole, 'HOST')
+                or(
+                  eq(meetingParticipants.participantRole, 'HOST'),
+                  eq(meetingParticipants.participantRole, 'CO_HOST')
+                )
             )
         });
         return participant;
@@ -162,11 +165,15 @@ export class MeetingRepository {
       user: { userId: string },
       hasDirectJoinPermission: boolean
     ) {
-      const participant = await db.query.meetingParticipants.findFirst({
+      let participant = await db.query.meetingParticipants.findFirst({
         where: and(
           eq(meetingParticipants.userId, user.userId),
           eq(meetingParticipants.meetingId, meetingId),
-          eq(meetingParticipants.participantRole, "PARTICIPANT")
+          // allow PARTICIPANT OR CO_HOST
+          or(
+            eq(meetingParticipants.participantRole, "PARTICIPANT"),
+            eq(meetingParticipants.participantRole, "CO_HOST")
+          )
         ),
       });
 
@@ -176,15 +183,20 @@ export class MeetingRepository {
       });
 
       if (!participant && hasDirectJoinPermission && dbUser) {
-        await db.insert(meetingParticipants).values({
-          userId: user.userId,
-          participantRole: "PARTICIPANT",
-          participantStatus: "WAITING",
-          meetingId,
-          joinedAt: new Date(),
-          hasJoined: true,
-          email: dbUser.email,
-        });
+        const [inserted] = await db
+          .insert(meetingParticipants)
+          .values({
+            userId: user.userId,
+            participantRole: "PARTICIPANT",
+            participantStatus: "WAITING",
+            meetingId,
+            joinedAt: new Date(),
+            hasJoined: true,
+            email: dbUser.email,
+          })
+          .returning();
+
+        participant = inserted;
       }
 
       return participant;
