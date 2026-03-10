@@ -191,6 +191,10 @@ export declare class MeetingRepository {
             participantId: string;
             participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
             participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            user: {
+                firstName: string;
+                lastName: string;
+            } | null;
         }[];
         createdAt: Date;
         updatedAt: Date;

@@ -77,6 +77,13 @@ class MeetingController {
             const result = await this.service.updateMeeting(meetingId, user.userId, updateMeetingDetails);
             res.status(200).json(result);
         });
+        this.sendMeetingInvite = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+            const user = req?.user;
+            const meetingId = req.params.id;
+            const emails = req.body.emails;
+            const meeting = await this.service.sendMeetingInvite(user.userId, meetingId, emails);
+            res.status(201).json({ success: true, data: meeting });
+        });
     }
 }
 exports.MeetingController = MeetingController;

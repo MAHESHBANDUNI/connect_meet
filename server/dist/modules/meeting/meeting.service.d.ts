@@ -281,6 +281,10 @@ export declare class MeetingService {
             participantId: string;
             participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
             participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            user: {
+                firstName: string;
+                lastName: string;
+            } | null;
         }[];
         createdAt: Date;
         updatedAt: Date;
@@ -301,6 +305,47 @@ export declare class MeetingService {
     }>;
     updateMeeting(meetingId: string, hostUserId: string, updateMeetingDetails: UpdateMeetingInput): Promise<{
         success: boolean;
+    }>;
+    sendMeetingInvite(hostUserId: string, meetingId: string, emails: string[]): Promise<{
+        createdAt: Date;
+        updatedAt: Date;
+        meetingId: string;
+        meetingCode: string;
+        topic: string;
+        description: string | null;
+        startTime: Date;
+        endTime: Date | null;
+        status: "SCHEDULED" | "LIVE" | "ENDED" | "CANCELLED";
+        directJoinPermission: boolean;
+        mutePermission: boolean;
+        screenSharePermission: boolean;
+        dropPermission: boolean;
+        participants: {
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string | null;
+            email: string;
+            meetingId: string;
+            participantId: string;
+            participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+            participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+            hasJoined: boolean;
+            joinedAt: Date | null;
+            leftAt: Date | null;
+            user: {
+                roleId: number;
+                createdAt: Date;
+                updatedAt: Date;
+                userId: string;
+                firstName: string;
+                lastName: string;
+                email: string;
+                password: string | null;
+                googleId: string | null;
+                authProvider: string;
+                isEmailVerified: boolean;
+            } | null;
+        }[];
     }>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map

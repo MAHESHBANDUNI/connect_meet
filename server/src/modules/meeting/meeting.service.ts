@@ -284,4 +284,56 @@ export class MeetingService {
         await this.repo.replaceMeetingParticipants(meetingId, participantMap);
         return { success: true };
     }
+
+    async sendMeetingInvite(hostUserId: string, meetingId: string, emails: string[]){
+        const meeting = await this.getMeetingById(meetingId);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        if (!checkHost) {
+            throw new ConflictError("User is not the host of the meeting");
+        }
+        const userMap = await this.repo.mapParticipantsWithUserDetails(emails);
+                const meetingParticipants: Record<
+            string,
+            { userId: string | null; firstName: string | null; lastName: string | null; participantRole: MeetingParticipantRole }
+        > = {};
+
+
+        for (const email of emails) {
+            meetingParticipants[email] = {
+                userId: userMap[email][0]?.userId ?? null,
+                firstName: userMap[email][0]?.firstName ?? null,
+                lastName: userMap[email][0]?.lastName ?? null,
+                participantRole: "PARTICIPANT"
+            };
+        }
+
+        await this.repo.addMeetingParticipant(
+            meeting.meetingId,
+            hostUserId,
+            meetingParticipants
+        );
+
+        const meetingDetails = {
+            topic: meeting.topic,
+            description: meeting.description,
+            startTime: meeting.startTime,
+            meetingLink: `${process.env.CLIENT_URL}/meeting/${meeting.meetingCode}`,
+        };
+
+        await Promise.allSettled(
+            Object.entries(meetingParticipants).map(([email, participant]) => {
+                if (!email) return;
+
+                return sendMeetingInvite(
+                    {
+                        email,
+                        firstName: participant.firstName ?? "Guest",
+                        lastName: participant.lastName ?? "",
+                    },
+                    meetingDetails as MeetingDetails
+                );
+            })
+        );
+        return meeting;
+    }
 }

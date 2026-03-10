@@ -70,18 +70,15 @@ export default function MeetingPage() {
 
     setIsSending(true);
     try {
-      await fetch('/api/meetings/invite', {
+      await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/invite`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.user?.token}` },
         body: JSON.stringify({
-          meetingCode,
-          emails: emailList,
-          inviterName: session?.user?.name,
-          inviterEmail: session?.user?.email,
+          emails: emailList
         }),
       });
 
-      alert(`Invitations sent to ${emailList.length} participant${emailList.length > 1 ? 's' : ''}`);
+      successToast('Meeting invitations has been send to the invitees.')
       setIsInviteModalOpen(false);
       setEmailList([]);
     } catch (error) {
@@ -110,11 +107,21 @@ export default function MeetingPage() {
         throw new Error('Failed to fetch meeting details');
       }
       const result = await response.json();
-      console.log("meeting details: ", result.data);
       setMeetingDetails(result.data);
       if(result.data.status === 'ENDED' || result.data.status === 'CANCELLED'){
         result.data.status === 'ENDED' ? infoToast('This meeting has already been ended.') : infoToast('This meeting has already been cancelled.');
         router.push('/meetings');
+      }
+
+      if (result.data.directJoinPermission === false) {
+        const isInvitedParticipant = result.data.participants?.some(
+          (participant: any) => participant.userId === session?.user?.id
+        );
+      
+        if (!isInvitedParticipant) {
+          infoToast("You are not invited to join this meeting. Only invited participants can join this meeting.");
+          router.push('/meetings');
+        }
       }
     }
     catch (err) {
@@ -296,7 +303,7 @@ export default function MeetingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token}`
         },
-        body: JSON.stringify({ userId: targetUserId }),
+        body: JSON.stringify({ userId: targetUserId.split(':')[1] }),
       });
       if (!response.ok) throw new Error('Failed to admit participant');
       successToast('Participant admitted');
@@ -314,7 +321,7 @@ export default function MeetingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token}`
         },
-        body: JSON.stringify({ userId: targetUserId }),
+        body: JSON.stringify({ userId: targetUserId.split(':')[1] }),
       });
       if (!response.ok) throw new Error('Failed to reject participant');
       successToast('Participant rejected');
