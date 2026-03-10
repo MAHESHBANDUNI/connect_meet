@@ -7,7 +7,7 @@ import WaitingRoom from "@/app/components/meetings/WaitingRoom";
 import { VideoCall } from "@/app/components/VideoCall/VideoCall";
 import { PlusIcon, X, Send, Mail } from "lucide-react";
 import { MeetingEnd } from "@/app/components/MeetingEnd";
-import { errorToast, successToast } from "@/app/components/ui/toast";
+import { errorToast, infoToast, successToast } from "@/app/components/ui/toast";
 
 export default function MeetingPage() {
   const params = useParams();
@@ -112,6 +112,10 @@ export default function MeetingPage() {
       const result = await response.json();
       console.log("meeting details: ", result.data);
       setMeetingDetails(result.data);
+      if(result.data.status === 'ENDED' || result.data.status === 'CANCELLED'){
+        result.data.status === 'ENDED' ? infoToast('This meeting has already been ended.') : infoToast('This meeting has already been cancelled.');
+        router.push('/meetings');
+      }
     }
     catch (err) {
       console.error("Failed to fetch meeting details:", err);
