@@ -23,7 +23,10 @@ io.on('connection', (socket) => {
     console.log('New connection:', socket.id);
     // Join a room
     socket.on('join-room', (roomId, userId, isHost = false, isWaiting = false) => {
-        console.log(`User ${userId} joining room ${roomId} (Host: ${isHost}, Waiting: ${isWaiting})`);
+        // hosts should always join directly, never remain in the waiting list
+        if (isHost) {
+            isWaiting = false;
+        }
         // Leave any previous room
         if (users.has(socket.id)) {
             const { roomId: oldRoomId } = users.get(socket.id);
