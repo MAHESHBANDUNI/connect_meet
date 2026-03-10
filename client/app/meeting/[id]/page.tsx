@@ -24,6 +24,10 @@ export default function MeetingPage() {
   const [isSending, setIsSending] = useState(false);
   const [meetingEnded, setMeetingEnded] = useState(false);
   const [meetingDetails, setMeetingDetails] = useState<any>(null);
+
+  const isCurrentUserHost = meetingDetails?.participants?.some((p: any) =>
+    p.userId === session?.user?.id && p.participantRole === "HOST"
+  );
   const [isWaiting, setIsWaiting] = useState(false);
   const [isRejected, setIsRejected] = useState(false);
   const [initialMediaConfig, setInitialMediaConfig] = useState({
@@ -147,7 +151,7 @@ export default function MeetingPage() {
       });
       const result = await response.json();
       console.log('running handle join response', result)
-      if (result.data?.participantStatus === 'WAITING') {
+      if (result.data?.participantStatus === 'WAITING' && !isCurrentUserHost) {
         setIsWaiting(true);
       } else if (response.status === 200) {
         setIsInCall(true);

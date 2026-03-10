@@ -159,7 +159,8 @@ export const useWebRTC = (
     sendWhiteboardData
   } = useSocket({
     onConnected: () => {
-      joinRoom(roomId, localUserId, options?.isHost, options?.initialStatus === 'WAITING');
+      const waitingFlag = options?.isHost ? false : options?.initialStatus === 'WAITING';
+      joinRoom(roomId, localUserId, options?.isHost, waitingFlag);
     },
 
     onUserConnected: ({ userId }) => {
