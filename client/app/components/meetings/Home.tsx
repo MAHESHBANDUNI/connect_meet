@@ -214,11 +214,11 @@ export default function HomeComponent() {
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.user?.token}`},
             })
             if(!response.ok){
-                console.error('Failed to cancel meeting');
+                errorToast('Failed to cancel meeting');
             }
             if(response.ok){
                 const result = await response.json();
-                console.log('Meeting cancelled successfully');
+                successToast('Meeting cancelled successfully');
             }
         }
         catch(err){
@@ -455,10 +455,10 @@ function MeetingCard({
     const [showActions, setShowActions] = useState(false);
 
     const statusStyles = {
-        LIVE: 'bg-red-50 text-red-700 ring-1 ring-red-600/20',
+        LIVE: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-600/20',
         SCHEDULED: 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20',
         ENDED: 'bg-gray-50 text-gray-600 ring-1 ring-gray-500/20',
-        CANCELLED: 'bg-orange-50 text-orange-700 ring-1 ring-orange-600/20'
+        CANCELLED: 'bg-red-50 text-red-700 ring-1 ring-red-600/20'
     };
 
     const statusLabels = {
@@ -472,10 +472,11 @@ function MeetingCard({
         <div className="group bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col h-full">
             {/* Status Bar */}
             <div className={`h-1.5 ${
-                meeting.status === 'LIVE' ? 'bg-red-500' :
-                meeting.status === 'SCHEDULED' ? 'bg-blue-500' :
-                meeting.status === 'ENDED' ? 'bg-gray-300' : 'bg-orange-500'
+              meeting.status === 'LIVE' ? 'bg-yellow-500' :
+              meeting.status === 'SCHEDULED' ? 'bg-blue-500' :
+              meeting.status === 'ENDED' ? 'bg-gray-400' : 'bg-red-500'
             }`} />
+
 
             <div className="p-4 sm:p-5 flex flex-col flex-1">
                 {/* Header */}
@@ -539,12 +540,6 @@ function MeetingCard({
                                         <Users className="w-4 h-4" />
                                         View participants
                                     </button>
-                                    {/* {isHost && (
-                                        <button className="w-full px-4 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 flex items-center gap-3">
-                                            <Trash2 className="w-4 h-4" />
-                                            Delete
-                                        </button>
-                                    )} */}
                                 </div>
                             </>
                         )}
@@ -621,7 +616,7 @@ function MeetingCard({
                 {meeting.status === 'LIVE' && (
                     <button
                         onClick={onJoin}
-                        className="cursor-pointer w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="cursor-pointer w-full px-4 py-3 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                         <Play className="w-4 h-4" />
                         Join live
@@ -631,6 +626,12 @@ function MeetingCard({
                 {meeting.status === 'ENDED' && (
                     <div className="px-4 py-3 bg-gray-50 text-gray-500 text-sm font-medium rounded-lg text-center border border-gray-200">
                         Meeting ended
+                    </div>
+                )}
+
+                {meeting.status === 'CANCELLED' && (
+                    <div className="px-4 py-3 bg-red-50 text-red-500 text-sm font-medium rounded-lg text-center border border-red-200">
+                        Meeting cancelled
                     </div>
                 )}
             </div>
