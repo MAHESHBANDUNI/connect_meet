@@ -7,12 +7,11 @@ const controller = new MeetingController();
 
 router.get("/user/all", protect, controller.getUserMeetings);
 router.post("/create", protect, controller.createMeeting);
-
 router.get("/:id", controller.getMeetingById);
 router.get("/code/:id", controller.getMeetingByCode);
 router.post("/:id/start", protect, controller.startMeeting);
 router.post("/:id/update", protect, controller.updateMeeting);
-router.put("/:id/update", protect, controller.updateMeeting);
+router.post("/:id/invite", protect, controller.sendMeetingInvite);
 router.post("/:id/end", protect, controller.endMeeting);
 router.post("/:id/join", protect, controller.joinMeeting);
 router.post("/:id/exit", protect, controller.exitMeeting);

@@ -232,14 +232,22 @@ export class MeetingRepository {
                                 participantId: true,
                                 email: true,
                                 participantRole: true,
-                                participantStatus: true
+                                participantStatus: true,
+                            },
+                            with: {
+                                user: {
+                                    columns: {
+                                        firstName: true,
+                                        lastName: true
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         });
-
+    
         return userMeetings.map(mp => ({
             ...mp.meeting,
             participantCount: mp.meeting.participants.length,

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, ReactNode } from "react";
-import HeaderDashboard from "../components/HeaderDashboard";
 import Sidebar from "../components/Sidebar";
+import HeaderDashboard from "../components/HeaderDashboard";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,10 +25,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         `}
       >
         <HeaderDashboard
-        //   sidebarOpen={sidebarOpen}
-        //   setSidebarOpen={setSidebarOpen}
-        //   isCollapsed={isCollapsed}
-        //   setIsCollapsed={setIsCollapsed}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
         />
 
         <main className="p-3 md:p-6 2xl:p-10 transition-all duration-300 ">
