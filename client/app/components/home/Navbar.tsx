@@ -7,16 +7,10 @@ import { useSession, signOut } from "next-auth/react";
 
 interface NavbarProps {
   className?: string;
-  sidebarOpen: boolean;
-  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  isCollapsed: boolean;
-  setIsCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Navbar: FC<NavbarProps> = ({
   className = "",
-  sidebarOpen,
-  setSidebarOpen,
 }) => {
   const router = useRouter();
   const { data: session } = useSession();
