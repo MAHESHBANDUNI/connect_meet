@@ -116,7 +116,7 @@ class MeetingService {
         return updatedMeeting;
     }
     async joinMeeting(meetingId, user) {
-        const meeting = await this.getMeetingById(meetingId);
+        let meeting = await this.getMeetingById(meetingId);
         if (meeting.status !== 'LIVE') {
             throw new errorHandler_1.ConflictError("Meeting is not live");
         }
@@ -129,7 +129,8 @@ class MeetingService {
             participant.participantRole === 'CO_HOST';
         const status = isHostOrCoHost ? "JOINED" : "WAITING";
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
-        return { ...meeting, participantStatus: status };
+        meeting = await this.getMeetingById(meetingId);
+        return { ...meeting };
     }
     async admitParticipant(meetingId, hostUserId, targetUserId) {
         const meeting = await this.getMeetingById(meetingId);
@@ -245,6 +246,35 @@ class MeetingService {
             }, meetingDetails);
         }));
         return meeting;
+    }
+    async promoteMeetingParticipant(hostUserId, meetingId, targetUserId) {
+        const meeting = await this.getMeetingById(meetingId);
+        const isHost = await this.repo.checkMeetingHost(meetingId, {
+            userId: hostUserId,
+        });
+        if (!isHost) {
+            throw new errorHandler_1.ConflictError("Only host can promote participants");
+        }
+        const participant = await this.repo.checkMeetingJoinedParticipants(meetingId, targetUserId);
+        if (!participant) {
+            throw new errorHandler_1.ConflictError("User is not a participant in this meeting");
+        }
+        let newRole;
+        if (participant.participantRole === "PARTICIPANT") {
+            newRole = "CO_HOST";
+        }
+        else if (participant.participantRole === "CO_HOST") {
+            newRole = "HOST";
+        }
+        else {
+            throw new errorHandler_1.ConflictError("User is already HOST");
+        }
+        await this.repo.promoteMeetingParticipant(meetingId, targetUserId, newRole);
+        return {
+            meetingId,
+            userId: targetUserId,
+            newRole,
+        };
     }
 }
 exports.MeetingService = MeetingService;

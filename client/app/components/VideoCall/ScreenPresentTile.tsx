@@ -52,7 +52,7 @@ export const ScreenPresentTile = ({
 
   if (!user.screenStream) return null;
 
-  const userName = user.id.split(":")[0];
+  const userName = user.name;
 
   return (
     <div className="relative group rounded-3xl object-cover overflow-hidden bg-[#1a1d23] shadow-2xl border border-white/5 ring-1 ring-white/10 transition-all duration-500 hover:ring-blue-500/50 w-full h-full">

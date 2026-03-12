@@ -3,6 +3,7 @@ import { ConflictError, NotFoundError } from "../../utils/errorHandler";
 import type { User, MeetingParticipantRole, MeetingDetails } from "./meeting.types";
 import { MeetingRepository } from "./meeting.repository";
 import { sendMeetingInvite } from "../../utils/emailHandler";
+import { fa } from "zod/v4/locales";
 
 export function generateMeetingCode(): string {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -151,7 +152,7 @@ export class MeetingService {
     }
 
     async joinMeeting(meetingId: string, user: User) {
-        const meeting = await this.getMeetingById(meetingId);
+        let meeting = await this.getMeetingById(meetingId);
         if (meeting.status !== 'LIVE') {
             throw new ConflictError("Meeting is not live");
         }
@@ -174,7 +175,8 @@ export class MeetingService {
         const status = isHostOrCoHost ? "JOINED" : "WAITING";
 
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
-        return { ...meeting, participantStatus: status };
+        meeting = await this.getMeetingById(meetingId);
+        return { ...meeting};
     }
 
     async admitParticipant(meetingId: string, hostUserId: string, targetUserId: string) {
@@ -336,4 +338,48 @@ export class MeetingService {
         );
         return meeting;
     }
+
+    async promoteMeetingParticipant(
+      hostUserId: string,
+      meetingId: string,
+      targetUserId: string
+    ) {
+      const meeting = await this.getMeetingById(meetingId);
+
+      const isHost = await this.repo.checkMeetingHost(meetingId, {
+        userId: hostUserId,
+      });
+
+      if (!isHost) {
+        throw new ConflictError("Only host can promote participants");
+      }
+
+      const participant = await this.repo.checkMeetingJoinedParticipants(
+        meetingId,
+        targetUserId
+      );
+
+      if (!participant) {
+        throw new ConflictError("User is not a participant in this meeting");
+      }
+
+      let newRole: "CO_HOST" | "HOST";
+
+      if (participant.participantRole === "PARTICIPANT") {
+        newRole = "CO_HOST";
+      } else if (participant.participantRole === "CO_HOST") {
+        newRole = "HOST";
+      } else {
+        throw new ConflictError("User is already HOST");
+      }
+
+      await this.repo.promoteMeetingParticipant(meetingId, targetUserId, newRole);
+
+      return {
+        meetingId,
+        userId: targetUserId,
+        newRole,
+      };
+    }
+    
 }

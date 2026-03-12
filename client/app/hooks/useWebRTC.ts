@@ -28,6 +28,8 @@ interface WebRTCState {
 export const useWebRTC = (
   localUserId: string,
   roomId: string,
+  name: string,
+  role: string,
   localStream: MediaStream | null,
   screenStream: MediaStream | null,
   options?: {
@@ -56,6 +58,11 @@ export const useWebRTC = (
     localUserId,
     roomId,
   });
+
+  const usersRef = useRef<Map<string, User>>(new Map());
+  useEffect(() => {
+    usersRef.current = state.users;
+  }, [state.users]);
 
   const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const remoteStreamsRef = useRef<
@@ -121,7 +128,9 @@ export const useWebRTC = (
           isVideoOff: false,
           isLocal: false,
           isScreenSharing: false,
-          isHandRaised: false
+          isHandRaised: false,
+          name: name,
+          role: role,
         };
 
         user.stream = existing.camera;
@@ -160,16 +169,19 @@ export const useWebRTC = (
   } = useSocket({
     onConnected: () => {
       const waitingFlag = options?.isHost ? false : options?.initialStatus === 'WAITING';
-      joinRoom(roomId, localUserId, options?.isHost, waitingFlag);
+      joinRoom(roomId, localUserId, name, role, options?.isHost, waitingFlag);
     },
 
-    onUserConnected: ({ userId }) => {
+    onUserConnected: ({ userId, name: connectedName, role: connectedRole }) => {
       if (userId !== localUserId) {
+
         setState(prev => {
           const users = new Map(prev.users);
           if (!users.has(userId)) {
             users.set(userId, {
               id: userId,
+              name: connectedName || "Guest",
+              role: connectedRole || "Participant",
               isAudioMuted: false,
               isVideoOff: false,
               isLocal: false,
@@ -182,7 +194,7 @@ export const useWebRTC = (
         pushEventPopup({
           type: 'participant-joined',
           title: 'Participant joined',
-          description: `${getDisplayName(userId)} joined the meeting`,
+          description: `${name} joined the meeting`,
           userId,
         });
 
@@ -191,11 +203,15 @@ export const useWebRTC = (
     },
 
     onUserDisconnected: ({ userId }) => {
+      const displayName =
+        usersRef.current.get(userId)?.name ||
+        getDisplayName(userId);
+
       if (userId !== localUserId) {
         pushEventPopup({
           type: 'participant-left',
           title: 'Participant left',
-          description: `${getDisplayName(userId)} left the meeting`,
+          description: `${displayName} left the meeting`,
           userId,
         });
       }
@@ -205,17 +221,23 @@ export const useWebRTC = (
     onExistingUsers: ({ users }) => {
       setState(prev => {
         const map = new Map(prev.users);
-        users.forEach(userId => {
-          if (!map.has(userId)) {
-            map.set(userId, {
-              id: userId,
-              isAudioMuted: false,
-              isVideoOff: false,
-              isLocal: false,
-              isScreenSharing: false
-            });
-          }
+      
+        users.forEach(user => {
+          if (!user?.userId) return;
+        
+          map.set(user.userId, {
+            id: user.userId,
+            name: user.name || "Guest",
+            role: user.role || "Participant",
+            isAudioMuted: false,
+            isVideoOff: false,
+            isLocal: false,
+            isScreenSharing: false,
+            isHandRaised: false
+          });
+        
         });
+      
         return { ...prev, users: map };
       });
     },
@@ -268,6 +290,10 @@ export const useWebRTC = (
     },
 
     onChatMessage: data => {
+      const senderName =
+        usersRef.current.get(data.userId)?.name ||
+        getDisplayName(data.userId);
+
       setState(prev => ({
         ...prev,
         messages: [
@@ -275,6 +301,7 @@ export const useWebRTC = (
           {
             id: Date.now().toString(),
             userId: data.userId,
+            userName: senderName,
             content: data.message,
             timestamp: new Date(data.timestamp),
             isLocal: false,
@@ -289,14 +316,14 @@ export const useWebRTC = (
           pushEventPopup({
             type: 'direct-message',
             title: 'New direct message',
-            description: `${getDisplayName(data.userId)}: ${data.message}`,
+            description: `${senderName}: ${data.message}`,
             userId: data.userId,
           });
         } else if (!data.targetUserId) {
           pushEventPopup({
             type: 'group-message',
             title: 'New group message',
-            description: `${getDisplayName(data.userId)}: ${data.message}`,
+            description: `${senderName}: ${data.message}`,
             userId: data.userId,
           });
         }
@@ -310,25 +337,26 @@ export const useWebRTC = (
       }
     },
 
-    onJoinRequest: ({ userId }) => {
+    onJoinRequest: ({ userId, name, role }) => {
       if (isHostRef.current) {
         setWaitingUsers(prev => {
           if (prev.find(u => u.id === userId)) return prev;
           return [...prev, {
             id: userId,
+            name: name ?? "Guest",
+            role: role ?? "PARTICIPANT",
             isAudioMuted: false,
             isVideoOff: false,
             isLocal: false,
             isScreenSharing: false,
             isHandRaised: false,
-            name: userId.split(':')[0]
           }];
         });
 
         pushEventPopup({
           type: 'join-request',
           title: 'Join request',
-          description: `${getDisplayName(userId)} is asking to join`,
+          description: `${name} is asking to join`,
           userId,
         });
       }
@@ -352,12 +380,13 @@ export const useWebRTC = (
             if (!newWaiting.find(existing => existing.id === u.userId)) {
               newWaiting.push({
                 id: u.userId,
+                name: u.name ?? "Guest",
+                role: u.role ?? "PARTICIPANT",
                 isAudioMuted: false,
                 isVideoOff: false,
                 isLocal: false,
                 isScreenSharing: false,
                 isHandRaised: false,
-                name: u.userId.split(':')[0]
               });
             }
           });
@@ -471,9 +500,13 @@ export const useWebRTC = (
       setState(prev => {
         const users = new Map(prev.users);
         const existingUser = users.get(remoteUserId);
+        console.log("jd: ",users);
+        console.log("gg: ",existingUser);
 
         const user = existingUser ? { ...existingUser } : {
           id: remoteUserId,
+          name: name,
+          role: role,
           isAudioMuted: false,
           isVideoOff: false,
           isLocal: false,
@@ -490,7 +523,7 @@ export const useWebRTC = (
         return { ...prev, users };
       });
     },
-    [state.users]
+    [ state.users]
   );
 
   // const onTrack = useCallback(
@@ -1064,7 +1097,8 @@ export const useWebRTC = (
     
       users.set(localUserId, {
         id: localUserId,
-        name: localUserId,
+        name: name,
+        role: role,
         stream: localStream || existing?.stream,
         screenStream: screenStream || undefined,
         isAudioMuted: existing?.isAudioMuted ?? false,
@@ -1077,7 +1111,7 @@ export const useWebRTC = (
     
       return { ...prev, users };
     });
-  }, [localStream, screenStream, localUserId]);
+  }, [localStream, screenStream, localUserId, name, role]);
 
   return {
     users: Array.from(state.users.values()),

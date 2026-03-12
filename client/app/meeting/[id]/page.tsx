@@ -131,7 +131,7 @@ export default function MeetingPage() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      setUserId(`${session.user.name}:${session.user.id}`);
+      setUserId(`${session.user.id}`);
       fetchMeetingDetails();
     }
   }, [session]);
@@ -162,7 +162,8 @@ export default function MeetingPage() {
       });
       const result = await response.json();
       console.log('running handle join response', result)
-      if (result.data?.participantStatus === 'WAITING' && !isCurrentUserHost) {
+      // if (result.data?.participantStatus === 'WAITING' && !isCurrentUserHost) {
+      if (result.data?.participants.find((p: any) => p.userId === session?.user.id)?.status === 'WAITING' && !isCurrentUserHost) {
         setIsWaiting(true);
       } else if (response.status === 200) {
         setIsInCall(true);
@@ -284,7 +285,8 @@ export default function MeetingPage() {
 
       const result = await response.json();
       console.log('running handle join request response',result)
-      if (result.data?.participantStatus === 'WAITING') {
+      console.log("result: ",result.data);
+      if (result.data?.participants.find((p: any) => p.userId === session?.user.id)?.participantStatus === 'WAITING') {
         setIsWaiting(true);
       }
     } catch (err) {
@@ -303,7 +305,7 @@ export default function MeetingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token}`
         },
-        body: JSON.stringify({ userId: targetUserId.split(':')[1] }),
+        body: JSON.stringify({ userId: targetUserId }),
       });
       if (!response.ok) throw new Error('Failed to admit participant');
       successToast('Participant admitted');
@@ -321,7 +323,7 @@ export default function MeetingPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.user?.token}`
         },
-        body: JSON.stringify({ userId: targetUserId.split(':')[1] }),
+        body: JSON.stringify({ userId: targetUserId }),
       });
       if (!response.ok) throw new Error('Failed to reject participant');
       successToast('Participant rejected');
@@ -335,17 +337,37 @@ export default function MeetingPage() {
     router.push("/meetings");
   };
 
+  const handleParticipantPromotion = async(targetUserId: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/meetings/${meetingDetails?.meetingId}/promote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.user?.token}`
+        },
+        body: JSON.stringify({ userId: targetUserId }),
+      });
+      if (!response.ok) throw new Error('Failed to promote participant');
+      successToast('Participant promoted');
+    } catch (err) {
+      console.error('Error promoting participant:', err);
+      errorToast('Failed to promote participant');
+    }
+  }
+
   if (isInCall || isWaiting) {
     return (
       <>
         <VideoCall
           roomId={roomId}
           userId={userId}
+          name={session?.user?.name || 'Guest'}
+          role={meetingDetails?.participants?.find((p: any) => p.userId === session?.user?.id)?.participantRole || 'PARTICIPANT'}
           meetingDetails={meetingDetails}
           user={{
             id: session?.user?.id || '',
             name: session?.user?.name || 'Guest',
-            role: session?.user?.role || ''
+            role: meetingDetails?.participants?.find((p: any) => p.userId === session?.user?.id)?.participantRole || 'PARTICIPANT'
           }}
           onLeave={handleLeaveRoom}
           onEnd={handleEndMeeting}
@@ -364,6 +386,7 @@ export default function MeetingPage() {
           }}
           onAdmitParticipant={handleAdmitParticipant}
           onRejectParticipant={handleRejectParticipant}
+          onParticipantPromotion={handleParticipantPromotion}
           initialMediaConfig={initialMediaConfig}
         />
 

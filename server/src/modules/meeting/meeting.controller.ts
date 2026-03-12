@@ -96,4 +96,12 @@ export class MeetingController {
         const meeting = await this.service.sendMeetingInvite(user.userId, meetingId, emails);
         res.status(201).json({ success: true, data: meeting });
     });
+
+    promoteMeetingPartcipant = asyncHandler(async (req: Request, res: Response) => {
+        const user = req?.user as User;
+        const meetingId = req.params.id as string;
+        const { userId } = req.body;
+        const meeting = await this.service.promoteMeetingParticipant(user.userId, meetingId, userId);
+        res.status(201).json({ success: true, data: meeting });
+    }) 
 }

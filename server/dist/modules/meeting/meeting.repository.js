@@ -201,6 +201,21 @@ class MeetingRepository {
             await index_js_1.db.insert(schema_js_1.meetingParticipants).values(records);
         }
     }
+    async checkMeetingJoinedParticipants(meetingId, userId) {
+        const participant = await index_js_1.db.query.meetingParticipants.findFirst({
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, userId)),
+        });
+        return participant;
+    }
+    async promoteMeetingParticipant(meetingId, userId, role) {
+        const result = await index_js_1.db
+            .update(schema_js_1.meetingParticipants)
+            .set({
+            participantRole: role,
+        })
+            .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, userId)));
+        return (result.rowCount ?? 0) > 0;
+    }
 }
 exports.MeetingRepository = MeetingRepository;
 //# sourceMappingURL=meeting.repository.js.map

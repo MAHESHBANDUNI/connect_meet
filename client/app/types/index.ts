@@ -1,6 +1,7 @@
 export interface User {
   id: string;
-  name?: string;
+  name: string;
+  role: string;
   stream?: MediaStream;
   screenStream?: MediaStream;
   isAudioMuted: boolean;

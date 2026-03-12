@@ -215,5 +215,19 @@ export declare class MeetingRepository {
         userId: string | null;
         participantRole: MeetingParticipantRole;
     }>): Promise<void>;
+    checkMeetingJoinedParticipants(meetingId: string, userId: string): Promise<{
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string | null;
+        email: string;
+        meetingId: string;
+        participantId: string;
+        participantRole: "HOST" | "CO_HOST" | "PRESENTER" | "PARTICIPANT" | "GUEST";
+        participantStatus: "INVITED" | "WAITING" | "JOINED" | "LEFT" | "REMOVED" | "REJECTED";
+        hasJoined: boolean;
+        joinedAt: Date | null;
+        leftAt: Date | null;
+    } | undefined>;
+    promoteMeetingParticipant(meetingId: string, userId: string, role: "CO_HOST" | "HOST"): Promise<boolean>;
 }
 //# sourceMappingURL=meeting.repository.d.ts.map

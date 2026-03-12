@@ -300,4 +300,35 @@ export class MeetingRepository {
             await db.insert(meetingParticipants).values(records);
         }
     }
+
+    async checkMeetingJoinedParticipants(meetingId: string, userId: string){
+      const participant = await db.query.meetingParticipants.findFirst({
+        where: and(
+          eq(meetingParticipants.meetingId, meetingId),
+          eq(meetingParticipants.userId, userId)
+        ),
+      });
+
+      return participant;
+    }
+
+    async promoteMeetingParticipant(
+      meetingId: string,
+      userId: string,
+      role: "CO_HOST" | "HOST"
+    ): Promise<boolean> {
+      const result = await db
+        .update(meetingParticipants)
+        .set({
+          participantRole: role,
+        })
+        .where(
+          and(
+            eq(meetingParticipants.meetingId, meetingId),
+            eq(meetingParticipants.userId, userId)
+          )
+        );
+
+      return (result.rowCount ?? 0) > 0;
+    }
 }

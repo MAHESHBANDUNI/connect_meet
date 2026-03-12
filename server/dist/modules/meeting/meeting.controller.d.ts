@@ -16,5 +16,6 @@ export declare class MeetingController {
     cancelMeeting: (req: Request, res: Response, next: import("express").NextFunction) => void;
     updateMeeting: (req: Request, res: Response, next: import("express").NextFunction) => void;
     sendMeetingInvite: (req: Request, res: Response, next: import("express").NextFunction) => void;
+    promoteMeetingPartcipant: (req: Request, res: Response, next: import("express").NextFunction) => void;
 }
 //# sourceMappingURL=meeting.controller.d.ts.map

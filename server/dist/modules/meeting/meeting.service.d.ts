@@ -185,7 +185,6 @@ export declare class MeetingService {
         }[];
     } | undefined>;
     joinMeeting(meetingId: string, user: User): Promise<{
-        participantStatus: string;
         createdAt: Date;
         updatedAt: Date;
         meetingId: string;
@@ -346,6 +345,11 @@ export declare class MeetingService {
                 isEmailVerified: boolean;
             } | null;
         }[];
+    }>;
+    promoteMeetingParticipant(hostUserId: string, meetingId: string, targetUserId: string): Promise<{
+        meetingId: string;
+        userId: string;
+        newRole: "HOST" | "CO_HOST";
     }>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map

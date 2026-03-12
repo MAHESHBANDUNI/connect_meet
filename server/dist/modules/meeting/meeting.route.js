@@ -18,5 +18,6 @@ router.post("/:id/exit", authMiddlerware_js_1.protect, controller.exitMeeting);
 router.post("/:id/admit", authMiddlerware_js_1.protect, controller.admitParticipant);
 router.post("/:id/reject", authMiddlerware_js_1.protect, controller.rejectParticipant);
 router.post("/:id/cancel", authMiddlerware_js_1.protect, controller.cancelMeeting);
+router.post("/:id/promote", authMiddlerware_js_1.protect, controller.promoteMeetingPartcipant);
 exports.default = router;
 //# sourceMappingURL=meeting.route.js.map

@@ -1,18 +1,20 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+type User = { userId: string; name?: string; role?: string };
+
 interface SocketEventHandlers {
   onConnected?: (userId: string) => void;
-  onUserConnected?: (data: { userId: string; roomId: string; timestamp: number }) => void;
+  onUserConnected?: (data: { userId: string; roomId: string; timestamp: number; name?: string; role?: string }) => void;
   onUserDisconnected?: (data: { userId: string; roomId: string; reason: string; timestamp: number }) => void;
-  onExistingUsers?: (data: { roomId: string; users: string[] }) => void;
+  onExistingUsers?: (data: { roomId: string; users: User[]; }) => void;
   onSignal?: (data: { from: string; signal: any }) => void;
   onChatMessage?: (data: { userId: string; message: string; timestamp: number; targetUserId?: string; isDirect?: boolean }) => void;
   onUserAction?: (data: { userId: string; action: string; value: any; timestamp: number; targetUserId?: string }) => void;
   onForceStopScreen?: () => void;
-  onJoinRequest?: (data: { userId: string; roomId: string }) => void;
+  onJoinRequest?: (data: { userId: string; roomId: string; name?: string; role?: string }) => void;
   onJoinResponse?: (data: { approved: boolean }) => void;
-  onWaitingUsers?: (data: { users: { userId: string }[] }) => void;
+  onWaitingUsers?: (data: { users: User[] }) => void;
   onMeetingEnded?: (data: { roomId: string; endedBy: string; timestamp: number }) => void;
   onWhiteboardData?: (data: { userId: string; data: any; timestamp: number }) => void;
   onError?: (error: { type: string; message: string }) => void;
@@ -137,9 +139,9 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     }
   }, []);
 
-  const joinRoom = useCallback((roomId: string, userId: string, isHost: boolean = false, isWaiting: boolean = false) => {
+  const joinRoom = useCallback((roomId: string, userId: string, name: string, role: string, isHost: boolean = false, isWaiting: boolean = false) => {
     if (socketRef.current?.connected) {
-      socketRef.current.emit('join-room', roomId, userId, isHost, isWaiting);
+      socketRef.current.emit('join-room', roomId, userId, name, role, isHost, isWaiting);
     }
   }, []);
 
