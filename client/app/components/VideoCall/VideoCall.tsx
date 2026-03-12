@@ -6,7 +6,7 @@ import { useWebRTC } from '@/app/hooks/useWebRTC';
 import { VideoTile } from './VideoTile';
 import { Controls } from './Controls';
 import { Chat } from './Chat';
-import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown, Hand } from "lucide-react";
+import { VideoIcon, VideoOffIcon, MicIcon, MicOff, UserPlusIcon, Phone, X, Camera, Headphones, ChevronDown, Hand, Crown } from "lucide-react";
 import { ScreenPresentTile } from './ScreenPresentTile';
 import { Whiteboard } from './Whiteboard';
 import { errorToast } from '../ui/toast';
@@ -15,6 +15,8 @@ import { MeetingEventPopups } from './MeetingEventPopups';
 interface VideoCallProps {
   roomId: string;
   userId: string;
+  name: string;
+  role: string;
   onEnd: () => void | Promise<void>;
   meetingDetails: {
     title: string;
@@ -44,6 +46,7 @@ interface VideoCallProps {
   onRejected?: () => void;
   onAdmitParticipant?: (targetUserId: string) => void;
   onRejectParticipant?: (targetUserId: string) => void;
+  onParticipantPromotion?: (targetUserId: string)=> void;
   initialMediaConfig?: {
     cameraEnabled: boolean;
     micEnabled: boolean;
@@ -56,6 +59,8 @@ interface VideoCallProps {
 export const VideoCall = ({
   roomId,
   userId,
+  name,
+  role,
   onLeave,
   onEnd,
   onMeetingEndedByHost,
@@ -66,6 +71,7 @@ export const VideoCall = ({
   onRejected,
   onAdmitParticipant,
   onRejectParticipant,
+  onParticipantPromotion,
   initialMediaConfig
 }: VideoCallProps) => {
   const hasInitializedMediaRef = useRef(false);
@@ -129,7 +135,7 @@ export const VideoCall = ({
     dismissEventPopup,
     whiteboardData,
     sendWhiteboardData
-  } = useWebRTC(userId, roomId, activeStream, screenStream, {
+  } = useWebRTC(userId, roomId, name, role, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
     isHost: isCurrentUserHost,
     initialStatus: meetingDetails
@@ -165,16 +171,6 @@ export const VideoCall = ({
   console.log("Final captions: ", finalText);
   console.log('Available devices: ', availableDevices);
   console.log('Selected devices: ',selectedDevices);
-
-  const getParticipantName = (participantId: string) => {
-    const participant = meetingDetails?.participants?.find(
-      (p: any) => p.userId === participantId || `${p.firstName}:${p.userId}` === participantId
-    );
-    if (participant) {
-      return `${participant.firstName} ${participant.lastName}`;
-    }
-    return participantId.split(':')[0];
-  };
 
   console.log('Current Users in Call:', users);
 
@@ -365,6 +361,16 @@ const gridClassMap: Record<string, string> = {
 
   console.log("waitingUsers", waitingUsers);
 
+  const handleParticipantPromotion = async(id :string) => {
+    try{
+      onParticipantPromotion?.(id);
+    }
+    catch(err){
+      console.error("Failed to promote participant", err);
+      errorToast("Failed to promote participant");
+    }
+  }
+
   return (
     <div className="fixed inset-0 bg-[#363738] flex flex-col overflow-hidden">
       <MeetingEventPopups events={eventPopups} onDismiss={dismissEventPopup} />
@@ -455,7 +461,7 @@ const gridClassMap: Record<string, string> = {
               currentUserId={userId}
               participants={users.map((participant) => ({
                 id: participant.id,
-                name: getParticipantName(participant.id),
+                name: participant.name,
               }))}
               selectedRecipient={chatRecipient}
               onRecipientChange={setChatRecipient}
@@ -486,10 +492,10 @@ const gridClassMap: Record<string, string> = {
                         <div key={u.id} className="flex items-center justify-between p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
-                              {getParticipantName(u.id).charAt(0).toUpperCase()}
+                              {u.name.charAt(0).toUpperCase()}
                             </div>
                             <p className="text-sm font-medium text-white">
-                              {getParticipantName(u.id)}
+                              {u.name}
                               {u.isLocal && " (You)"}
                             </p>
                           </div>
@@ -504,10 +510,8 @@ const gridClassMap: Record<string, string> = {
                     <h4 className="text-[10px] text-yellow-500 uppercase tracking-widest font-bold px-2">Awaiting Admission</h4>
                     {waitingUsers
                       .filter(wUser => {
-                        const userIdOnly = wUser.id.split(":")[1];
-                      
                         const participantDetail = meetingDetails?.participants?.find(
-                          (p: any) => p.userId === userIdOnly
+                          (p: any) => p.userId === wUser.id
                         );
                       
                         return participantDetail?.participantRole === "PARTICIPANT";
@@ -516,9 +520,9 @@ const gridClassMap: Record<string, string> = {
                         <div key={wUser.id} className="flex items-center justify-between p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
-                              {getParticipantName(wUser.id).charAt(0).toUpperCase()}
+                              {wUser.name.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-sm font-medium text-white">{getParticipantName(wUser.id)}</p>
+                            <p className="text-sm font-medium text-white">{wUser.name}</p>
                           </div>
                           <div className="flex gap-2">
                             <button
@@ -550,12 +554,12 @@ const gridClassMap: Record<string, string> = {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
-                                  {presentingUser.id.split(":")[0].charAt(0).toUpperCase()}
+                                  {presentingUser.name.charAt(0).toUpperCase()}
                                 </div>
 
                                 <div>
                                   <p className="text-sm font-semibold text-white">
-                                    {presentingUser.id.split(":")[0]}{" "}
+                                    {presentingUser.name}{" "}
                                     {presentingUser.isLocal && "(You)"}
                                   </p>
                                   <p className="text-xs text-emerald-400 font-medium">
@@ -570,7 +574,7 @@ const gridClassMap: Record<string, string> = {
 
                         {users.map((user) => {
                           const isLocal = user.isLocal
-                          const displayName = user.id.split(":")[0]
+                          const displayName = user.name
                           const firstLetter = displayName.charAt(0).toUpperCase()
 
                           return (
@@ -606,7 +610,12 @@ const gridClassMap: Record<string, string> = {
                                           : "font-medium text-white/90"
                                           }`}
                                       >
-                                        {displayName} {isLocal && "(You)"}
+                                        {displayName}
+                                        {isLocal && user.role === "PARTICIPANT" && " (You)"}
+                                        {isLocal && user.role === "HOST" && " (You, Host)"}
+                                        {isLocal && user.role === "CO_HOST" && " (You, Co-host)"}
+                                        {!isLocal && user.role === "HOST" && " (Host)"}
+                                        {!isLocal && user.role === "HOST" && " (Co-host)"}
                                       </p>
                                     </div>
                                   </button>
@@ -658,7 +667,7 @@ const gridClassMap: Record<string, string> = {
                                       </>
                                     );
                                   })()}
-                                  <div className="flex gap-2">
+
                                     {/* Video */}
                                     {(() => {
                                       const videoOff = isLocal ? isVideoOff : user.isVideoOff;
@@ -715,7 +724,8 @@ const gridClassMap: Record<string, string> = {
                                         <Phone className="w-5 h-5 text-white rotate-135" />
                                       </button>
                                     )}
-                                  </div>
+
+                                    {isCurrentUserHost && (user.role === 'PARTICIPANT'||'CO_HOSTS') && <button onClick={()=>{handleParticipantPromotion(user.id)}} className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white" title="Promote as Co-host"> <Crown className="w-5 h-5 text-white"></Crown></button>}
                                 </div>
                               </div>
                             </>

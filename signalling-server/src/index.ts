@@ -8,6 +8,8 @@ dotenv.config();
 interface UserInfo {
   userId: string;
   roomId: string;
+  name?: string;
+  role?: string;
 }
 
 interface SignalData {
@@ -53,6 +55,8 @@ interface ServerStats {
 interface UserConnectionData {
   userId: string;
   roomId: string;
+  name?: string;
+  role?: string;
   timestamp: number;
 }
 
@@ -88,7 +92,7 @@ io.on('connection', (socket: Socket) => {
   console.log('New connection:', socket.id);
 
   // Join a room
-  socket.on('join-room', (roomId: string, userId: string, isHost: boolean = false, isWaiting: boolean = false) => {
+  socket.on('join-room', (roomId: string, userId: string, name: string, role: string, isHost: boolean = false, isWaiting: boolean = false) => {
     if (isHost) {
       isWaiting = false;
     }
@@ -131,11 +135,9 @@ io.on('connection', (socket: Socket) => {
       // If there are waiting users, send them to the host immediately
       if (room.waitingUsers.size > 0) {
         const waitingList = Array.from(room.waitingUsers)
-          .map(sId => {
-            const userData = users.get(sId);
-            return userData ? { userId: userData.userId } : null;
-          })
-          .filter((u): u is { userId: string } => u !== null);
+          .map(sId => users.get(sId))
+          .filter((u): u is UserInfo => u !== undefined)
+          .map(u => ({ userId: u.userId, name: u.name, role: u.role }));
 
         socket.emit('waiting-users', { users: waitingList });
       }
@@ -143,7 +145,7 @@ io.on('connection', (socket: Socket) => {
 
     if (isWaiting) {
       room.waitingUsers.add(socket.id);
-      users.set(socket.id, { userId, roomId });
+      users.set(socket.id, { userId, roomId, name, role });
 
       // Notify host about waiting user
       if (room.hostUserId) {
@@ -155,31 +157,40 @@ io.on('connection', (socket: Socket) => {
           }
         }
         if (hostSocketId) {
-          io.to(hostSocketId).emit('join-request', { userId, roomId });
+          io.to(hostSocketId).emit('join-request', { userId, roomId, name, role });
         }
       }
       return;
     }
 
     room.users.add(socket.id);
-    users.set(socket.id, { userId, roomId });
+    users.set(socket.id, { userId, roomId, name, role });
 
     // Get all other users in the room
     const otherUsers = Array.from(room.users)
       .filter(id => id !== socket.id)
-      .map(id => users.get(id)?.userId)
-      .filter((id): id is string => id !== undefined);
-
+      .map(id => users.get(id))
+      .filter((u): u is UserInfo => u !== undefined);
+      
+    // Send full user objects
+    const existingUsers = otherUsers.map(u => ({
+      userId: u.userId,
+      name: u.name,
+      role: u.role,
+    }));
+    
     // Notify new user of existing users
     socket.emit('existing-users', {
       roomId,
-      users: otherUsers
+      users: existingUsers
     });
 
     // Notify others in room about new user
     socket.to(roomId).emit('user-connected', {
       userId,
       roomId,
+      name,
+      role,
       timestamp: Date.now()
     } as UserConnectionData);
 
@@ -385,17 +396,27 @@ io.on('connection', (socket: Socket) => {
       io.to(roomId).emit('user-connected', {
         userId: userData.userId,
         roomId,
+        name: userData.name,
+        role: userData.role,
         timestamp: Date.now()
       });
 
       // Send existing users to the new user
       const otherUsers = Array.from(room.users)
         .filter(id => id !== targetSocketId)
-        .map(id => users.get(id)!.userId);
+        .map(id => users.get(id))
+        .filter((u): u is UserInfo => u !== undefined);
+
+      // Send full user objects
+      const existingUsers = otherUsers.map(u => ({
+        userId: u.userId,
+        name: u.name,
+        role: u.role,
+      }));
 
       io.to(targetSocketId).emit('existing-users', {
         roomId,
-        users: otherUsers
+        users: existingUsers,
       });
     } else {
       room.waitingUsers.delete(targetSocketId);

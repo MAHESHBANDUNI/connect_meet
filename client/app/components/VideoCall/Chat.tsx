@@ -80,7 +80,7 @@ export const Chat = ({
   };
 
   const getNameById = (id: string) =>
-    participants.find((participant) => participant.id === id)?.name || id.split(":")[0];
+    participants.find((participant) => participant.id === id)?.name || 'Unknown';
 
   return (
     <div className="flex flex-col h-full bg-[#1a1d23] overflow-hidden">
