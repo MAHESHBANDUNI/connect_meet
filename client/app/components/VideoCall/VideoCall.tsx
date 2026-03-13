@@ -46,7 +46,7 @@ interface VideoCallProps {
   onRejected?: () => void;
   onAdmitParticipant?: (targetUserId: string) => void;
   onRejectParticipant?: (targetUserId: string) => void;
-  onParticipantPromotion?: (targetUserId: string)=> void;
+  onParticipantRoleChange?: (targetUserId: string) => void;
   initialMediaConfig?: {
     cameraEnabled: boolean;
     micEnabled: boolean;
@@ -71,7 +71,7 @@ export const VideoCall = ({
   onRejected,
   onAdmitParticipant,
   onRejectParticipant,
-  onParticipantPromotion,
+  onParticipantRoleChange,
   initialMediaConfig
 }: VideoCallProps) => {
   const hasInitializedMediaRef = useRef(false);
@@ -82,12 +82,6 @@ export const VideoCall = ({
   const [isFullScreenShareTileEnabled, setIsFullScreenShareTileEnabled] = useState(false);
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [chatRecipient, setChatRecipient] = useState<string>('all');
-
-  const isCurrentUserHost = meetingDetails?.participants?.some(
-    (participant: any) =>
-      participant.userId === user?.id &&
-      participant.participantRole === "HOST"
-  );
 
   const {
     localStream,
@@ -137,11 +131,13 @@ export const VideoCall = ({
     sendWhiteboardData
   } = useWebRTC(userId, roomId, name, role, activeStream, screenStream, {
     onForceStopScreen: stopScreenShare,
-    isHost: isCurrentUserHost,
+    isHost: meetingDetails?.participants?.some(
+      (p: any) => p.userId === userId && p.participantRole === "HOST"
+    ),
     initialStatus: meetingDetails
-      ? isCurrentUserHost
-          ? 'JOINED'
-          : 'WAITING'
+      ? meetingDetails?.participants?.some((p: any) => p.userId === userId && p.participantRole === "HOST")
+        ? 'JOINED'
+        : 'WAITING'
       : undefined,
     onAdmitted,
     onRejected,
@@ -167,10 +163,19 @@ export const VideoCall = ({
     onRejectParticipant
   });
 
+  // Calculate permissions based on current users state from useWebRTC
+  const localUserFromState = users.find(u => u.id === userId);
+  console.log("local user from state: ",localUserFromState);
+  const userRole = localUserFromState?.role || role;
+
+  const isCurrentUserHost = userRole === "HOST";
+  const isCurrentUserCoHost = userRole === "CO_HOST";
+  const canManageParticipants = isCurrentUserHost || isCurrentUserCoHost;
+
   console.log("Partial captions: ", partialText);
   console.log("Final captions: ", finalText);
   console.log('Available devices: ', availableDevices);
-  console.log('Selected devices: ',selectedDevices);
+  console.log('Selected devices: ', selectedDevices);
 
   console.log('Current Users in Call:', users);
 
@@ -263,11 +268,6 @@ export const VideoCall = ({
 
   const handleEndCall = () => {
     stopMediaStream();
-    const isCurrentUserHost = meetingDetails?.participants?.some(
-      (participant: any) =>
-        participant.userId === user?.id &&
-        participant.participantRole === "HOST"
-    );
     if (isCurrentUserHost) {
       endMeetingForAll();
       Promise.resolve(onEnd()).catch((error) => {
@@ -290,6 +290,16 @@ export const VideoCall = ({
     sendUserAction(roomId, userId, 'host-drop-user', true, targetUserId);
   };
 
+  const handlePromoteParticipant = (targetUserId: string, newRole: 'CO_HOST') => {
+    onParticipantRoleChange?.(targetUserId);
+    sendUserAction(roomId, userId, 'promote-participant', newRole, targetUserId);
+  };
+
+  const handleDemoteParticipant = (targetUserId: string, newRole: 'PARTICIPANT') => {
+    onParticipantRoleChange?.(targetUserId);
+    sendUserAction(roomId, userId, 'demote-participant', newRole, targetUserId);
+  };
+
   const handleSendMessage = (content: string, targetUserId?: string) => {
     sendChatMessage(content, targetUserId);
   };
@@ -298,21 +308,21 @@ export const VideoCall = ({
 
   const participantCount = users.length;
 
-const layoutMode = screenSharer
-  ? isFullScreenShareTileEnabled
-    ? "presentation-full"
-    : "presentation"
-  : participantCount <= 2
-  ? "grid-small"
-  : participantCount <= 6
-  ? "grid-medium"
-  : "grid-large";
+  const layoutMode = screenSharer
+    ? isFullScreenShareTileEnabled
+      ? "presentation-full"
+      : "presentation"
+    : participantCount <= 2
+      ? "grid-small"
+      : participantCount <= 6
+        ? "grid-medium"
+        : "grid-large";
 
-const gridClassMap: Record<string, string> = {
-  "grid-small": "grid-cols-1 md:grid-cols-2",
-  "grid-medium": "grid-cols-2 md:grid-cols-3",
-  "grid-large": "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-};
+  const gridClassMap: Record<string, string> = {
+    "grid-small": "grid-cols-1 md:grid-cols-2",
+    "grid-medium": "grid-cols-2 md:grid-cols-3",
+    "grid-large": "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+  };
 
   const toggleParticipants = () => {
     setShowParticipants(!showParticipants);
@@ -335,17 +345,17 @@ const gridClassMap: Record<string, string> = {
     setShowChat(true);
   };
 
-  const onStartCaptions = () =>{
+  const onStartCaptions = () => {
     setIsCaptionEnabled(true);
     startCaptions();
   }
 
-  const onStopCaptions = () =>{
+  const onStopCaptions = () => {
     setIsCaptionEnabled(false);
     stopCaptions();
   }
 
-  console.log("Waiting users: ",waitingUsers);
+  console.log("Waiting users: ", waitingUsers);
 
   useEffect(() => {
     if (eventPopups.length === 0) return;
@@ -361,28 +371,18 @@ const gridClassMap: Record<string, string> = {
 
   console.log("waitingUsers", waitingUsers);
 
-  const handleParticipantPromotion = async(id :string) => {
-    try{
-      onParticipantPromotion?.(id);
-    }
-    catch(err){
-      console.error("Failed to promote participant", err);
-      errorToast("Failed to promote participant");
-    }
-  }
-
   return (
     <div className="fixed inset-0 bg-[#363738] flex flex-col overflow-hidden">
       <MeetingEventPopups events={eventPopups} onDismiss={dismissEventPopup} />
-      
+
       {/* Top Header */}
-      <header className="h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2 group cursor-pointer" onClick={toggleParticipants}>
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <header className="h-[40px] sm:h-16 flex items-center justify-end px-6 bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
+        <div className="flex items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-1 sm:gap-2 group cursor-pointer" onClick={toggleParticipants}>
+            <svg className="w-4 h-4 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span className="text-sm font-medium text-white pt-0.5">
+            <span className="text-xs sm:text-sm font-medium text-white pt-0.5">
               {totalUsers === 1 ? '1 Participant' : `${totalUsers} Participants`}
             </span>
           </div>
@@ -393,9 +393,9 @@ const gridClassMap: Record<string, string> = {
       <main className="flex-1 flex overflow-hidden relative bg-[#3e3f41]">
         {showWhiteboard ? (
           <div className="flex-1 p-4 bg-[#26282c]">
-            <Whiteboard 
-              onDraw={sendWhiteboardData} 
-              externalData={whiteboardData} 
+            <Whiteboard
+              onDraw={sendWhiteboardData}
+              externalData={whiteboardData}
               className="h-full"
             />
           </div>
@@ -432,7 +432,7 @@ const gridClassMap: Record<string, string> = {
           </div>
         ) : (
           <div className={`
-            flex-1 p-6 grid gap-4 content-center overflow-y-auto
+            flex-1 p-1 sm:p-6 grid gap-4 content-center overflow-y-auto
             ${totalUsers === 1
               ? 'max-w-4xl mx-auto grid-cols-1'
               : totalUsers === 2
@@ -450,7 +450,7 @@ const gridClassMap: Record<string, string> = {
 
         {/* Combined Sidebar */}
         <aside className={`
-          fixed right-0 top-16 bottom-[88px] w-[380px] bg-[#1a1d23] border-l border-white/5 
+          fixed right-0 top-10 sm:top-16 bottom-[48px] sm:bottom-[88px] w-[280px] sm:w-[380px] bg-[#1a1d23] border-l border-white/5 
           transition-transform duration-300 ease-in-out shadow-[-10px_0_30px_rgba(0,0,0,0.3)] z-10
           ${showChat || showParticipants ? 'translate-x-0' : 'translate-x-full'}
         `}>
@@ -470,18 +470,18 @@ const gridClassMap: Record<string, string> = {
           {showParticipants && (
             <div className="flex flex-col h-full bg-[#1a1d23]">
               <div className='flex flex-row justify-around items-center'>
-                <div className="px-6 py-5 border-b border-white/5 bg-black/10">
-                  <h3 className="text-sm font-bold text-white tracking-tight">Participants</h3>
-                  <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">
+                <div className="px-2 sm:px-6 py-1.5 sm:py-5 border-b border-white/5 bg-black/10">
+                  <h3 className="text-sm font-semibold sm:font-bold text-white tracking-tight">Participants</h3>
+                  <p className="text-[8px] sm:text-[10px] text-white/40 uppercase tracking-widest font-semibold">
                     {totalUsers} People in this meeting
                   </p>
                 </div>
-                {isCurrentUserHost && <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-2 m-2'>
-                  <UserPlusIcon className="w-5 h-5 text-white m-1" />
-                  <p className='text-white text-sm'>Add people</p>
+                {isCurrentUserHost && <button onClick={onAddParticipant} className='inline-flex justify-center items-center cursor-pointer hover:bg-white/10 rounded-2xl p-1 sm:p-4'>
+                  <UserPlusIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white m-1" />
+                  <p className='text-white text-xs sm:text-sm'>Add people</p>
                 </button>}
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-1.5 sm:p-4 space-y-4">
                 {users.filter(u => u.isHandRaised).length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] text-white/40 uppercase tracking-widest font-bold px-2">Raised Hands</h4>
@@ -489,51 +489,44 @@ const gridClassMap: Record<string, string> = {
                       .filter(u => u.isHandRaised)
                       .sort((a, b) => (a.handRaisedTimestamp || 0) - (b.handRaisedTimestamp || 0))
                       .map((u) => (
-                        <div key={u.id} className="flex items-center justify-between p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                        <div key={u.id} className="flex items-center justify-between p-1 sm:p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 font-bold text-xs">
                               {u.name.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-sm font-medium text-white">
+                            <p className="text-xs sm:text-sm font-medium text-white">
                               {u.name}
                               {u.isLocal && " (You)"}
                             </p>
                           </div>
-                          <Hand className="w-5 h-5 text-blue-400" />
+                          <Hand className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
                         </div>
                       ))}
                   </div>
                 )}
-                
-                {isCurrentUserHost && waitingUsers.length > 0 && (
+
+                {canManageParticipants && waitingUsers.length > 0 && (
                   <div className="space-y-2">
                     <h4 className="text-[10px] text-yellow-500 uppercase tracking-widest font-bold px-2">Awaiting Admission</h4>
                     {waitingUsers
-                      .filter(wUser => {
-                        const participantDetail = meetingDetails?.participants?.find(
-                          (p: any) => p.userId === wUser.id
-                        );
-                      
-                        return participantDetail?.participantRole === "PARTICIPANT";
-                      })
                       .map((wUser) => (
-                        <div key={wUser.id} className="flex items-center justify-between p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
+                        <div key={wUser.id} className="flex items-center justify-between p-1 sm:p-3 rounded-2xl bg-yellow-500/10 border border-yellow-500/20">
+                          <div className="flex items-center gap-1.5 sm:gap-3">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-500 font-bold text-xs">
                               {wUser.name.charAt(0).toUpperCase()}
                             </div>
-                            <p className="text-sm font-medium text-white">{wUser.name}</p>
+                            <p className="text-xs sm:text-sm font-medium text-white">{wUser.name}</p>
                           </div>
                           <div className="flex gap-2">
                             <button
                               onClick={() => admitParticipant(wUser.id)}
-                              className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold rounded-lg transition-colors"
+                              className="px-1.5 sm:px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold rounded-lg transition-colors"
                             >
                               Admit
                             </button>
                             <button
                               onClick={() => rejectParticipant(wUser.id)}
-                              className="px-2 py-1 bg-red-600/20 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-colors border border-red-500/30"
+                              className="px-1.5 sm:px-2 py-1 bg-red-600/20 hover:bg-red-600 text-white text-[10px] font-bold rounded-lg transition-colors border border-red-500/30"
                             >
                               Deny
                             </button>
@@ -550,15 +543,15 @@ const gridClassMap: Record<string, string> = {
                     return (
                       <>
                         {presentingUser && (
-                          <div className="mb-4 p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
+                          <div className="mb-1.5 sm:mb-4 p-1.5 sm:p-4 rounded-2xl bg-emerald-600/10 border border-emerald-500/20">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
+                              <div className="flex items-center gap-1.5 sm:gap-3">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30 text-emerald-400 font-bold">
                                   {presentingUser.name.charAt(0).toUpperCase()}
                                 </div>
 
                                 <div>
-                                  <p className="text-sm font-semibold text-white">
+                                  <p className="text-xs sm:text-sm font-semibold text-white pb-0.5 sm:pb-0">
                                     {presentingUser.name}{" "}
                                     {presentingUser.isLocal && "(You)"}
                                   </p>
@@ -581,21 +574,21 @@ const gridClassMap: Record<string, string> = {
                             <>
                               <div
                                 key={user.id}
-                                className={`flex items-center justify-between p-3 rounded-2xl transition-colors ${isLocal
+                                className={`flex items-center justify-between p-1 sm:p-3 rounded-2xl transition-colors ${isLocal
                                   ? "bg-white/5 border border-white/5"
                                   : "hover:bg-white/5"
                                   }`}
                               >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1.5 sm:gap-3">
                                   <button
                                     type="button"
                                     onClick={() => openDirectChat(user.id)}
                                     disabled={isLocal}
-                                    className={`flex items-center gap-3 text-left ${isLocal ? "cursor-default" : "cursor-pointer hover:opacity-90"}`}
+                                    className={`flex items-center gap-1.5 sm:gap-3 text-left ${isLocal ? "cursor-default" : "cursor-pointer hover:opacity-90"}`}
                                     title={isLocal ? undefined : `Message ${displayName}`}
                                   >
                                     <div
-                                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-medium ${isLocal
+                                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full sm:rounded-xl flex items-center justify-center font-medium ${isLocal
                                         ? "bg-blue-600/20 border border-blue-500/20 text-blue-400 font-bold"
                                         : "bg-white/5 border border-white/5 text-white/60"
                                         }`}
@@ -604,128 +597,143 @@ const gridClassMap: Record<string, string> = {
                                     </div>
 
                                     <div>
-                                      <p
-                                        className={`text-sm ${isLocal
-                                          ? "font-semibold text-white"
-                                          : "font-medium text-white/90"
-                                          }`}
-                                      >
-                                        {displayName}
-                                        {isLocal && user.role === "PARTICIPANT" && " (You)"}
-                                        {isLocal && user.role === "HOST" && " (You, Host)"}
-                                        {isLocal && user.role === "CO_HOST" && " (You, Co-host)"}
-                                        {!isLocal && user.role === "HOST" && " (Host)"}
-                                        {!isLocal && user.role === "HOST" && " (Co-host)"}
-                                      </p>
+                                      <div className="flex items-center gap-1.5">
+                                        <p
+                                          className={`text-xs sm:text-sm ${isLocal
+                                            ? "font-semibold text-white"
+                                            : "font-medium text-white/90"
+                                            }`}
+                                        >
+                                          {displayName}
+                                          {isLocal && " (You)"}
+                                        </p>
+                                        {user.role === "HOST" && (
+                                          <div title="Host">
+                                            <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500" />
+                                          </div>
+                                        )}
+                                        {user.role === "CO_HOST" && (
+                                          <div className="px-1 py-0.5 rounded bg-white/10 text-[8px] text-white/60 font-bold uppercase tracking-tighter">Co-host</div>
+                                        )}
+                                      </div>
                                     </div>
                                   </button>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-1 sm:gap-2">
                                   {/* Audio */}
                                   {(() => {
                                     const muted = isLocal ? isAudioMuted : user.isAudioMuted;
-                                  
+
                                     return (
                                       <>
-                                        {(!isCurrentUserHost || (isLocal && isCurrentUserHost)) && 
+                                        {(!canManageParticipants || (isLocal && canManageParticipants)) &&
                                           <span
-                                            className={`p-1 rounded-xl ${
-                                              muted ? "text-red-400" : "text-white"
-                                            }`}
+                                            className={`p-1 rounded-xl ${muted ? "text-red-400" : "text-white"
+                                              }`}
                                           >
                                             {muted ? (
-                                              <MicOff className="w-5 h-5" />
+                                              <MicOff className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                                             ) : (
-                                              <MicIcon className="w-5 h-5" />
+                                              <MicIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                                             )}
                                           </span>
                                         }
-                                        
+
                                         {/* Host Control Button */}
-                                        {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                        {!isLocal && canManageParticipants && (
                                           <>
-                                          { user?.isAudioMuted === true ? (
-                                            <button
-                                              onClick={() => handleHostMuteAudio(user.id)}
-                                              className="p-1 rounded-xl text-red-400"
-                                            >
-                                            <MicOff className="w-5 h-5" />
-                                            </button>
-                                            ):(
-                                            <button
-                                              onClick={() => handleHostMuteAudio(user.id)}
-                                              className="p-1 rounded-xl text-white"
-                                              title="Mute Participant"
-                                            >
-                                            <MicIcon className="w-5 h-5" />
-                                            </button>
-                                          )
-                                          }
+                                            {user?.isAudioMuted === true ? (
+                                              <button
+                                                onClick={() => handleHostMuteAudio(user.id)}
+                                                className="p-1 rounded-xl text-red-400"
+                                              >
+                                                <MicOff className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                                              </button>
+                                            ) : (
+                                              <button
+                                                onClick={() => handleHostMuteAudio(user.id)}
+                                                className="p-1 rounded-xl text-white"
+                                                title="Mute Participant"
+                                              >
+                                                <MicIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                                              </button>
+                                            )
+                                            }
                                           </>
                                         )}
                                       </>
                                     );
                                   })()}
 
-                                    {/* Video */}
-                                    {(() => {
-                                      const videoOff = isLocal ? isVideoOff : user.isVideoOff;
-                                    
-                                      return (
-                                        <>
-                                          {(!isCurrentUserHost || (isLocal && isCurrentUserHost)) && 
+                                  {/* Video */}
+                                  {(() => {
+                                    const videoOff = isLocal ? isVideoOff : user.isVideoOff;
+
+                                    return (
+                                      <>
+                                        {(!canManageParticipants || (isLocal && canManageParticipants)) &&
                                           <span
-                                            className={`p-1 rounded-xl ${
-                                              videoOff ? "text-red-400" : "text-white"
-                                            }`}
+                                            className={`p-1 rounded-xl ${videoOff ? "text-red-400" : "text-white"
+                                              }`}
                                           >
                                             {videoOff ? (
-                                              <VideoOffIcon className="w-5 h-5" />
+                                              <VideoOffIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                                             ) : (
-                                              <VideoIcon className="w-5 h-5" />
+                                              <VideoIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                                             )}
                                           </span>
-                                          }
-                                          
-                                          {/* Host Control Button */}
-                                          {!isLocal && isCurrentUserHost && meetingDetails?.mutePermission && (
+                                        }
+
+                                        {/* Host Control Button */}
+                                        {!isLocal && canManageParticipants && (
                                           <>
-                                          { user?.isVideoOff === true ? (
-                                            <button
-                                              onClick={() => handleHostMuteVideo(user.id)}
-                                              className="p-1 rounded-xl text-red-400"
-                                            >
-                                              <VideoOffIcon className="w-5 h-5" />
-                                            </button>
-                                            ):(
-                                            <button
-                                              onClick={() => handleHostMuteVideo(user.id)}
-                                              className="p-1 rounded-xl text-white"
-                                              title="Stop Participant Video"
-                                            >
-                                              <VideoIcon className="w-5 h-5" />
-                                            </button>
+                                            {user?.isVideoOff === true ? (
+                                              <button
+                                                onClick={() => handleHostMuteVideo(user.id)}
+                                                className="p-1 rounded-xl text-red-400"
+                                              >
+                                                <VideoOffIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                                              </button>
+                                            ) : (
+                                              <button
+                                                onClick={() => handleHostMuteVideo(user.id)}
+                                                className="p-1 rounded-xl text-white"
+                                                title="Stop Participant Video"
+                                              >
+                                                <VideoIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                                              </button>
                                             )
-                                          }
+                                            }
                                           </>
-                                          )}
-                                        </>
-                                      );
-                                    })()}
+                                        )}
+                                      </>
+                                    );
+                                  })()}
 
-                                    {/* Drop */}
-                                    {!isLocal && isCurrentUserHost && meetingDetails?.dropPermission && (
-                                      <button
-                                        onClick={() => handleHostDropUser(user.id)}
-                                        className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white"
-                                        title="Remove Participant"
-                                      >
-                                        <Phone className="w-5 h-5 text-white rotate-135" />
-                                      </button>
-                                    )}
+                                  {/* Drop */}
+                                  {!isLocal && canManageParticipants && (
+                                    <button
+                                      onClick={() => handleHostDropUser(user.id)}
+                                      className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white/60 hover:text-red-400 transition-colors"
+                                      title="Remove Participant"
+                                    >
+                                      <Phone className="w-3.5 h-3.5 sm:w-5 sm:h-5 rotate-135" />
+                                    </button>
+                                  )}
 
-                                    {isCurrentUserHost && (user.role === 'PARTICIPANT'||'CO_HOSTS') && <button onClick={()=>{handleParticipantPromotion(user.id)}} className="p-1 bg-transparent backdrop-blur-md rounded-xl text-white" title="Promote as Co-host"> <Crown className="w-5 h-5 text-white"></Crown></button>}
+                                  {/* Promotion/Demotion Controls */}
+                                  {!isLocal && isCurrentUserHost && (
+                                    <div className="flex gap-1">
+                                        <button
+                                          onClick={() => user.role === 'PARTICIPANT' ? handlePromoteParticipant(user.id, 'CO_HOST') : handleDemoteParticipant(user.id, 'PARTICIPANT')}
+                                          className="p-1 bg-transparent rounded-xl text-white/40 hover:text-blue-400 transition-colors"
+                                          title= {user.role === 'PARTICIPANT' ? "Promote to Co-host" : "Demote to Participant"} 
+                                        >
+                                          <Crown className={`w-3.5 h-3.5 sm:w-5 sm:h-5 opacity-40 hover:opacity-100 ${user.role === 'PARTICIPANT' ? 'text-white': 'text-red-500'}`} />
+                                        </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </>
@@ -750,7 +758,7 @@ const gridClassMap: Record<string, string> = {
         )}
       </main>
 
-      <footer className="h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-8 z-20">
+      <footer className="h-[46px] sm:h-[88px] bg-[#0f1115] border-t border-white/5 flex items-center justify-between px-4 sm:px-8 z-20">
         <div className="flex-1 flex justify-between">
           <Controls
             isAudioMuted={isAudioMuted}
@@ -760,26 +768,25 @@ const gridClassMap: Record<string, string> = {
             isCaptionsEnabled={isCaptionEnabled}
             onStartCaptions={onStartCaptions}
             onStopCaptions={onStopCaptions}
-            isUserHost={meetingDetails?.participants?.some(
-              (participant: any) =>
-                participant.userId === user?.id &&
-                participant.participantRole === "HOST"
-            )}
+            onEndCall={handleEndCall}
             onToggleAudio={handleToggleAudio}
             onToggleVideo={handleToggleVideo}
             onToggleScreenShare={handleToggleScreenShare}
-            onToggleLiveCaptions={()=> {}}
+            onToggleLiveCaptions={() => { }}
             onOpenDeviceSettings={() => setShowDeviceSettings(true)}
-            onEndCall={handleEndCall}
+            isUserHost={isCurrentUserHost}
+            isUserCoHost={isCurrentUserCoHost}
             roomId={roomId}
             showWhiteboard={showWhiteboard}
             onToggleWhiteboard={() => setShowWhiteboard(!showWhiteboard)}
             isHandRaised={users.find(u => u.isLocal)?.isHandRaised ?? false}
             onToggleHand={handleToggleHand}
+            onToggleChat={toggleChat}
+            showChat={showChat}
           />
         </div>
 
-        <div className="w-1/4 flex justify-end gap-3">
+        <div className="hidden w-1/4 sm:flex justify-end gap-3">
           <button
             onClick={toggleChat}
             className={`

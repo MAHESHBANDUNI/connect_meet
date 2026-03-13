@@ -34,10 +34,10 @@ export function MeetingEventPopups({ events, onDismiss }: MeetingEventPopupsProp
         return (
           <div
             key={event.id}
-            className={`pointer-events-auto rounded-2xl border px-4 py-3 shadow-2xl backdrop-blur-md ${colorClass}`}
+            className={`pointer-events-auto rounded-2xl border px-2 sm:px-4 py-1.5 sm:py-3 shadow-2xl backdrop-blur-md ${colorClass}`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
+            <div className="flex items-start justify-between gap-1.5 sm:gap-3">
+              <div className="flex items-start gap-1.5 sm:gap-3">
                 <div className="mt-0.5 rounded-lg bg-black/20 p-1.5">
                   <Icon className="h-4 w-4" />
                 </div>

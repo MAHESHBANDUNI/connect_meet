@@ -337,8 +337,37 @@ export const useWebRTC = (
       }
     },
 
+    onRoleUpdated: ({ userId: updatedUserId, newRole, prevHostId }) => {
+      setState(prev => {
+        const users = new Map(prev.users);
+        const existingUser = users.get(updatedUserId);
+        
+        if (existingUser) {
+          users.set(updatedUserId, { ...existingUser, role: newRole });
+        }
+
+        // If a new host was assigned, the old host was demoted to CO_HOST
+        if (prevHostId && users.has(prevHostId)) {
+          const prevHost = users.get(prevHostId)!;
+          users.set(prevHostId, { ...prevHost, role: 'CO_HOST' });
+        }
+
+        return { ...prev, users };
+      });
+
+      if (updatedUserId === localUserId) {
+        isHostRef.current = newRole === 'HOST';
+      } else if (prevHostId === localUserId) {
+        isHostRef.current = false;
+      }
+    },
+
     onJoinRequest: ({ userId, name, role }) => {
-      if (isHostRef.current) {
+      // Allow Host and Co-host to see join requests
+      const localUser = usersRef.current.get(localUserId);
+      const canManageAdmissions = localUser?.role === 'HOST' || localUser?.role === 'CO_HOST';
+      
+      if (canManageAdmissions) {
         setWaitingUsers(prev => {
           if (prev.find(u => u.id === userId)) return prev;
           return [...prev, {
@@ -373,7 +402,10 @@ export const useWebRTC = (
     },
 
     onWaitingUsers: ({ users }) => {
-      if (isHostRef.current) {
+      const localUser = usersRef.current.get(localUserId);
+      const canManageAdmissions = localUser?.role === 'HOST' || localUser?.role === 'CO_HOST';
+
+      if (canManageAdmissions) {
         setWaitingUsers(prev => {
           const newWaiting = [...prev];
           users.forEach(u => {

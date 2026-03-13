@@ -212,6 +212,83 @@ io.on('connection', (socket) => {
             }
         }
         // Broadcast action to others
+        if (action === 'promote-participant' && value) {
+            if (room.hostUserId !== userId) {
+                socket.emit('error', {
+                    type: 'FORBIDDEN',
+                    message: 'Only host can promote participants'
+                });
+                return;
+            }
+            if (!targetUserId)
+                return;
+            const newRole = value;
+            // Prevent host replacement
+            if (newRole === 'HOST') {
+                socket.emit('error', {
+                    type: 'FORBIDDEN',
+                    message: 'Host role cannot be transferred'
+                });
+                return;
+            }
+            let targetSocketId = null;
+            for (const [sId, userData] of users.entries()) {
+                if (userData.userId === targetUserId && room.users.has(sId)) {
+                    targetSocketId = sId;
+                    break;
+                }
+            }
+            if (targetSocketId) {
+                const userData = users.get(targetSocketId);
+                userData.role = 'CO_HOST';
+                users.set(targetSocketId, userData);
+                io.to(roomId).emit('role-updated', {
+                    userId: targetUserId,
+                    newRole: 'CO_HOST'
+                });
+                console.log(`User ${targetUserId} promoted to CO_HOST in room ${roomId}`);
+            }
+            return;
+        }
+        if (action === 'demote-participant' && value) {
+            if (room.hostUserId !== userId) {
+                socket.emit('error', {
+                    type: 'FORBIDDEN',
+                    message: 'Only host can promote participants'
+                });
+                return;
+            }
+            if (!targetUserId)
+                return;
+            const newRole = value;
+            // Prevent host replacement
+            if (newRole === 'HOST') {
+                socket.emit('error', {
+                    type: 'FORBIDDEN',
+                    message: 'Host role cannot be transferred'
+                });
+                return;
+            }
+            let targetSocketId = null;
+            for (const [sId, userData] of users.entries()) {
+                if (userData.userId === targetUserId && room.users.has(sId)) {
+                    targetSocketId = sId;
+                    break;
+                }
+            }
+            if (targetSocketId) {
+                const userData = users.get(targetSocketId);
+                userData.role = 'PARTICIPANT';
+                users.set(targetSocketId, userData);
+                io.to(roomId).emit('role-updated', {
+                    userId: targetUserId,
+                    newRole: 'PARTICIPANT'
+                });
+                console.log(`User ${targetUserId} demoted to PARTICIPANT in room ${roomId}`);
+            }
+            return;
+        }
+        // Broadcast action to others
         if (targetUserId) {
             socket.to(roomId).emit('user-action', {
                 userId,

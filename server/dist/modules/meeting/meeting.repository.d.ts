@@ -111,7 +111,7 @@ export declare class MeetingRepository {
     }>): Promise<boolean>;
     checkMeetingHost(meetingId: string, user: {
         userId: string;
-    }): Promise<{
+    }, strictHostAccess: boolean): Promise<{
         createdAt: Date;
         updatedAt: Date;
         userId: string | null;
@@ -228,6 +228,6 @@ export declare class MeetingRepository {
         joinedAt: Date | null;
         leftAt: Date | null;
     } | undefined>;
-    promoteMeetingParticipant(meetingId: string, userId: string, role: "CO_HOST" | "HOST"): Promise<boolean>;
+    changeMeetingParticipantRole(meetingId: string, userId: string, role: "CO_HOST" | "PARTICIPANT"): Promise<boolean>;
 }
 //# sourceMappingURL=meeting.repository.d.ts.map

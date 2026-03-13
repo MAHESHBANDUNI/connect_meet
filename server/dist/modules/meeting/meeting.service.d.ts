@@ -346,10 +346,10 @@ export declare class MeetingService {
             } | null;
         }[];
     }>;
-    promoteMeetingParticipant(hostUserId: string, meetingId: string, targetUserId: string): Promise<{
+    changeMeetingParticipantRole(hostUserId: string, meetingId: string, targetUserId: string): Promise<{
         meetingId: string;
         userId: string;
-        newRole: "HOST" | "CO_HOST";
+        newRole: "CO_HOST" | "PARTICIPANT";
     }>;
 }
 //# sourceMappingURL=meeting.service.d.ts.map
