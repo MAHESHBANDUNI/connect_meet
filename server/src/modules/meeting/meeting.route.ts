@@ -18,6 +18,6 @@ router.post("/:id/exit", protect, controller.exitMeeting);
 router.post("/:id/admit", protect, controller.admitParticipant);
 router.post("/:id/reject", protect, controller.rejectParticipant);
 router.post("/:id/cancel", protect, controller.cancelMeeting);
-router.post("/:id/promote", protect, controller.promoteMeetingPartcipant);
+router.post("/:id/role-change", protect, controller.changeMeetingParticipantRole);
 
 export default router;

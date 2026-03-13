@@ -124,7 +124,7 @@ export class MeetingService {
             throw new ConflictError("Meeting is not scheduled");
         }
         const status = 'LIVE';
-        const checkHost = await this.repo.checkMeetingHost(meetingId, user);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, user, true);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -142,7 +142,7 @@ export class MeetingService {
         }
         const status = 'ENDED';
         const endTime = new Date();
-        const checkHost = await this.repo.checkMeetingHost(meetingId, user);
+        const checkHost = await this.repo.checkMeetingHost(meetingId, user, true);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -162,26 +162,25 @@ export class MeetingService {
                 meetingId,
                 user,
                 meeting?.directJoinPermission ?? false
-            ) || await this.repo.checkMeetingHost(meetingId, user);
+            ) || await this.repo.checkMeetingHost(meetingId, user, false);
 
         if (!participant) {
             throw new NotFoundError("Participant not found");
         }
 
         const joinAt = new Date();
-        const isHostOrCoHost =
-            participant.participantRole === 'HOST' ||
-            participant.participantRole === 'CO_HOST';
-        const status = isHostOrCoHost ? "JOINED" : "WAITING";
+        const isHost=
+            participant.participantRole === 'HOST';
+        const status = isHost ? "JOINED" : "WAITING";
 
         await this.repo.updateMeetingParticipantStatus(meetingId, user, status, joinAt);
         meeting = await this.getMeetingById(meetingId);
-        return { ...meeting};
+        return { ...meeting };
     }
 
     async admitParticipant(meetingId: string, hostUserId: string, targetUserId: string) {
         const meeting = await this.getMeetingById(meetingId);
-        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId }, false);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -192,7 +191,7 @@ export class MeetingService {
 
     async rejectParticipant(meetingId: string, hostUserId: string, targetUserId: string) {
         const meeting = await this.getMeetingById(meetingId);
-        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId }, false);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -220,7 +219,7 @@ export class MeetingService {
 
     async cancelMeeting(meetingId: string, hostUserId: string) {
         const meeting = await this.getMeetingById(meetingId);
-        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId }, true);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -231,7 +230,7 @@ export class MeetingService {
 
     async updateMeeting(meetingId: string, hostUserId: string, updateMeetingDetails: UpdateMeetingInput) {
         const meeting = await this.getMeetingById(meetingId);
-        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId }, true);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
@@ -287,14 +286,14 @@ export class MeetingService {
         return { success: true };
     }
 
-    async sendMeetingInvite(hostUserId: string, meetingId: string, emails: string[]){
+    async sendMeetingInvite(hostUserId: string, meetingId: string, emails: string[]) {
         const meeting = await this.getMeetingById(meetingId);
-        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId });
+        const checkHost = await this.repo.checkMeetingHost(meetingId, { userId: hostUserId }, false);
         if (!checkHost) {
             throw new ConflictError("User is not the host of the meeting");
         }
         const userMap = await this.repo.mapParticipantsWithUserDetails(emails);
-                const meetingParticipants: Record<
+        const meetingParticipants: Record<
             string,
             { userId: string | null; firstName: string | null; lastName: string | null; participantRole: MeetingParticipantRole }
         > = {};
@@ -339,47 +338,48 @@ export class MeetingService {
         return meeting;
     }
 
-    async promoteMeetingParticipant(
-      hostUserId: string,
-      meetingId: string,
-      targetUserId: string
+    async changeMeetingParticipantRole(
+        hostUserId: string,
+        meetingId: string,
+        targetUserId: string
     ) {
-      const meeting = await this.getMeetingById(meetingId);
+        const meeting = await this.getMeetingById(meetingId);
 
-      const isHost = await this.repo.checkMeetingHost(meetingId, {
-        userId: hostUserId,
-      });
+        const isHost = await this.repo.checkMeetingHost(meetingId, {
+            userId: hostUserId
+        }, true
+        );
 
-      if (!isHost) {
-        throw new ConflictError("Only host can promote participants");
-      }
+        if (!isHost) {
+            throw new ConflictError("Only host can demote participants");
+        }
 
-      const participant = await this.repo.checkMeetingJoinedParticipants(
-        meetingId,
-        targetUserId
-      );
+        const participant = await this.repo.checkMeetingJoinedParticipants(
+            meetingId,
+            targetUserId
+        );
 
-      if (!participant) {
-        throw new ConflictError("User is not a participant in this meeting");
-      }
+        if (!participant) {
+            throw new ConflictError("User is not a participant in this meeting");
+        }
 
-      let newRole: "CO_HOST" | "HOST";
+        let newRole: "CO_HOST" | "PARTICIPANT";
 
-      if (participant.participantRole === "PARTICIPANT") {
-        newRole = "CO_HOST";
-      } else if (participant.participantRole === "CO_HOST") {
-        newRole = "HOST";
-      } else {
-        throw new ConflictError("User is already HOST");
-      }
+        if (participant.participantRole === "PARTICIPANT") {
+            newRole = "CO_HOST";
+        } 
+        else if (participant.participantRole === "CO_HOST") {
+            newRole = "PARTICIPANT";
+        } else {
+            throw new ConflictError("User is already HOST/CO_HOST");
+        }
 
-      await this.repo.promoteMeetingParticipant(meetingId, targetUserId, newRole);
+        await this.repo.changeMeetingParticipantRole(meetingId, targetUserId, newRole);
 
-      return {
-        meetingId,
-        userId: targetUserId,
-        newRole,
-      };
+        return {
+            meetingId,
+            userId: targetUserId,
+            newRole,
+        };
     }
-    
 }

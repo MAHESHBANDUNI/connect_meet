@@ -141,18 +141,25 @@ export class MeetingRepository {
         return true;
     }
 
-    async checkMeetingHost(meetingId: string, user: { userId: string }) {
-        const participant = await db.query.meetingParticipants.findFirst({
-            where: and(
-                eq(meetingParticipants.userId, user.userId),
-                eq(meetingParticipants.meetingId, meetingId),
-                or(
-                  eq(meetingParticipants.participantRole, 'HOST'),
-                  eq(meetingParticipants.participantRole, 'CO_HOST')
-                )
-            )
-        });
-        return participant;
+    async checkMeetingHost(
+      meetingId: string,
+      user: { userId: string },
+      strictHostAccess: boolean
+    ) {
+      const participant = await db.query.meetingParticipants.findFirst({
+        where: and(
+          eq(meetingParticipants.userId, user.userId),
+          eq(meetingParticipants.meetingId, meetingId),
+          strictHostAccess
+            ? eq(meetingParticipants.participantRole, "HOST")
+            : or(
+                eq(meetingParticipants.participantRole, "HOST"),
+                eq(meetingParticipants.participantRole, "CO_HOST")
+              )
+        ),
+      });
+  
+      return participant;
     }
 
     async updateMeetingStatus(meetingId: string, status: "LIVE" | "ENDED" | "CANCELLED", endTime?: Date) {
@@ -312,10 +319,10 @@ export class MeetingRepository {
       return participant;
     }
 
-    async promoteMeetingParticipant(
+    async changeMeetingParticipantRole(
       meetingId: string,
       userId: string,
-      role: "CO_HOST" | "HOST"
+      role: "CO_HOST" | "PARTICIPANT"
     ): Promise<boolean> {
       const result = await db
         .update(meetingParticipants)

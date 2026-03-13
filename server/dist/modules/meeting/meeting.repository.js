@@ -93,9 +93,11 @@ class MeetingRepository {
         }
         return true;
     }
-    async checkMeetingHost(meetingId, user) {
+    async checkMeetingHost(meetingId, user, strictHostAccess) {
         const participant = await index_js_1.db.query.meetingParticipants.findFirst({
-            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'HOST'), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, 'CO_HOST')))
+            where: (0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.userId, user.userId), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.meetingId, meetingId), strictHostAccess
+                ? (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "HOST")
+                : (0, drizzle_orm_1.or)((0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "HOST"), (0, drizzle_orm_1.eq)(schema_js_1.meetingParticipants.participantRole, "CO_HOST"))),
         });
         return participant;
     }
@@ -207,7 +209,7 @@ class MeetingRepository {
         });
         return participant;
     }
-    async promoteMeetingParticipant(meetingId, userId, role) {
+    async changeMeetingParticipantRole(meetingId, userId, role) {
         const result = await index_js_1.db
             .update(schema_js_1.meetingParticipants)
             .set({

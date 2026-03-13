@@ -41,6 +41,6 @@ export interface SignalData {
 
 export interface UserAction {
   userId: string;
-  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'toggle-hand';
-  value: boolean;
+  action: 'toggle-audio' | 'toggle-video' | 'toggle-screen' | 'toggle-hand' | 'promote-participant' | 'demote-participant';
+  value: any;
 }

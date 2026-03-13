@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { User } from '@/app/types';
-import { MicOff, Hand } from 'lucide-react';
+import { MicOff, Hand, Crown } from 'lucide-react';
 
 interface VideoTileProps {
   user: User;
@@ -55,28 +55,30 @@ export const VideoTile = ({ user, screenSharer, speakerId = "default" }: VideoTi
         </div>
       )}
 
-      <div className="absolute inset-0 p-4 flex flex-col justify-between pointer-events-none">
+      <div className="absolute inset-0 p-1 sm:p-4 flex flex-col justify-between pointer-events-none">
         <div className="flex justify-end">
           {user.isAudioMuted && (
-            <div className="bg-blue-400 backdrop-blur-md rounded-full p-2.5 animate-in fade-in zoom-in duration-300">
-              <MicOff className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            <div className="bg-blue-400 backdrop-blur-md rounded-full p-1.5 sm:p-2.5 animate-in fade-in zoom-in duration-300">
+              <MicOff className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
           ) 
           }
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-2 shadow-2xl transition-transform duration-300 group-hover:translate-x-1">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-2 sm:px-4 py-1 sm:py-2 shadow-2xl transition-transform duration-300 group-hover:translate-x-1">
               {user.isHandRaised ? (
-                <div className="bg-blue-400 backdrop-blur-md rounded-xl p-2 animate-in slide-in-from-bottom-2 duration-300 shadow-lg border border-blue-300/30">
-                  <Hand className="w-5 h-5 sm:w-6 sm:h-6 text-white font-bold" />
+                <div className="bg-blue-400 backdrop-blur-md rounded-xl p-1 sm:p-2 animate-in slide-in-from-bottom-2 duration-300 shadow-lg border border-blue-300/30">
+                  <Hand className="w-4 h-4 sm:w-6 sm:h-6 text-white font-bold" />
                 </div>)
                 :
-                (<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                (<div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
               )}
-              <span className="text-white/90 font-bold text-sm tracking-tight text-shadow-sm">
+              <span className="text-white/90 font-bold text-xs sm:text-sm tracking-tight text-shadow-sm flex items-center gap-1">
                 {userName}
+                {user.role === 'HOST' && <Crown className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-yellow-500" />}
+                {user.role === 'CO_HOST' && <Crown className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-blue-400" />}
               </span>
               
             </div>

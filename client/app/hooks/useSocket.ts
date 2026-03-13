@@ -16,6 +16,7 @@ interface SocketEventHandlers {
   onJoinResponse?: (data: { approved: boolean }) => void;
   onWaitingUsers?: (data: { users: User[] }) => void;
   onMeetingEnded?: (data: { roomId: string; endedBy: string; timestamp: number }) => void;
+  onRoleUpdated?: (data: { userId: string; newRole: string; prevHostId?: string }) => void;
   onWhiteboardData?: (data: { userId: string; data: any; timestamp: number }) => void;
   onError?: (error: { type: string; message: string }) => void;
 }
@@ -95,6 +96,11 @@ export const useSocket = (handlers: SocketEventHandlers = {}) => {
     socket.on('meeting-ended', (data) => {
       console.log('Meeting ended:', data);
       handlersRef.current.onMeetingEnded?.(data);
+    });
+
+    socket.on('role-updated', (data) => {
+      console.log('Role updated:', data);
+      handlersRef.current.onRoleUpdated?.(data);
     });
 
     socket.on('whiteboard-data', (data) => {
